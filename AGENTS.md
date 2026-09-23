@@ -59,10 +59,17 @@ hand-editing the header.
 
 ## The frozen contract
 
-- **`tests/golden/vectors/*.json` are frozen. Never edit one to make a test
-  pass.** They were recorded once from an external implementation and cannot be
-  regenerated. A failing vector means colander's behavior moved, not that the
-  fixture is stale.
+- **`tests/golden/vectors/*.json` are frozen against accidental drift.** They
+  were recorded once from an external implementation and cannot be regenerated, so
+  a vector that fails on its own means colander's behavior moved, not that the
+  fixture is stale. Never edit one to make an unintended failure pass. A
+  **decided** contract change is the one exception: move the affected expectation
+  in the same commit, name the decision it implements (the `SPEC.md` clause or the
+  triage entry) in the commit message, and leave every other vector untouched.
+  Payload cases are compared byte-for-byte, and an error case is compared by its
+  `SCREAMING_SNAKE` code only, so a decided change usually moves one code and
+  nothing else. No automatic guard covers the vectors, so the affected cases are
+  enumerated by hand before the change lands.
 - Seven groups: `canonical`, `hash`, `semver`, `rules`, `validate`, `compile`,
   `errors`. The shared harness is `tests/common/mod.rs`. The eighth group, `ai`,
   lives in the separate `slate-ai` repository with its own harness subset.

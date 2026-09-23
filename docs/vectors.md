@@ -39,12 +39,20 @@ already been recorded before it was trusted with the new ones. The group
 therefore still checks colander against a number colander did not produce. Only names
 moved: never a value, an ordering or an error code.
 
-## Frozen
+## Frozen against accidental drift
 
 The harness that produced these files is not part of this repository, and the
-files cannot be regenerated. Treat them as read-only fixtures: a failing case
-means colander's behaviour moved, not that the fixture is stale. Nothing in the
-repository depends on where the recording came from.
+files cannot be regenerated. A case that fails on its own means colander's
+behavior moved, not that the fixture is stale. Nothing in the repository depends
+on where the recording came from.
+
+A **decided** contract change is the one exception. When the behavior is changed
+on purpose, the affected expectation moves with it: update it in the same commit,
+name the decision it implements (the `SPEC.md` clause or the triage entry) in the
+commit message, and leave every other case untouched. Payload cases are compared
+byte-for-byte, and an error case is compared by its `SCREAMING_SNAKE` code only,
+so a decided change usually moves one code and nothing else. No automatic guard
+covers these files, so the affected cases are enumerated by hand first.
 
 ## Skipped entries
 
