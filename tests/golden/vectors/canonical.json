@@ -1,0 +1,220 @@
+[
+  {
+    "name": "object-jumbled-keys",
+    "rawInput": "{\"é\":1,\"Z\":2,\"a\":3,\"A\":4,\"_\":5,\"b\":6,\"z\":7}",
+    "input": {
+      "é": 1,
+      "Z": 2,
+      "a": 3,
+      "A": 4,
+      "_": 5,
+      "b": 6,
+      "z": 7
+    },
+    "canonical": "{\"A\":4,\"Z\":2,\"_\":5,\"a\":3,\"b\":6,\"z\":7,\"\\u00E9\":1}"
+  },
+  {
+    "name": "object-nested",
+    "rawInput": "{\"b\":{\"d\":[1,2,{\"x\":null}]},\"a\":[{},[],{\"y\":true}]}",
+    "input": {
+      "b": {
+        "d": [
+          1,
+          2,
+          {
+            "x": null
+          }
+        ]
+      },
+      "a": [
+        {},
+        [],
+        {
+          "y": true
+        }
+      ]
+    },
+    "canonical": "{\"a\":[{},[],{\"y\":true}],\"b\":{\"d\":[1,2,{\"x\":null}]}}"
+  },
+  {
+    "name": "empty-object",
+    "rawInput": "{}",
+    "input": {},
+    "canonical": "{}"
+  },
+  {
+    "name": "empty-array",
+    "rawInput": "[]",
+    "input": [],
+    "canonical": "[]"
+  },
+  {
+    "name": "object-empty-object-and-array",
+    "rawInput": "{\"o\":{},\"a\":[]}",
+    "input": {
+      "o": {},
+      "a": []
+    },
+    "canonical": "{\"a\":[],\"o\":{}}"
+  },
+  {
+    "name": "string-escaping-controls",
+    "rawInput": "{\"quote\":\"\\\"\",\"backslash\":\"\\\\\",\"slash\":\"/\",\"nul\":\"\\u0000\",\"soh\":\"\\u0001\",\"stx\":\"\\u0002\",\"etx\":\"\\u0003\",\"eot\":\"\\u0004\",\"enq\":\"\\u0005\",\"ack\":\"\\u0006\",\"bel\":\"\\u0007\",\"bs\":\"\\b\",\"tab\":\"\\t\",\"lf\":\"\\n\",\"vt\":\"\\u000B\",\"ff\":\"\\f\",\"cr\":\"\\r\",\"so\":\"\\u000E\",\"si\":\"\\u000F\",\"dle\":\"\\u0010\",\"dc1\":\"\\u0011\",\"dc2\":\"\\u0012\",\"dc3\":\"\\u0013\",\"dc4\":\"\\u0014\",\"nak\":\"\\u0015\",\"syn\":\"\\u0016\",\"etb\":\"\\u0017\",\"can\":\"\\u0018\",\"em\":\"\\u0019\",\"sub\":\"\\u001A\",\"esc\":\"\\u001B\",\"fs\":\"\\u001C\",\"gs\":\"\\u001D\",\"rs\":\"\\u001E\",\"us\":\"\\u001F\"}",
+    "input": {
+      "quote": "\"",
+      "backslash": "\\",
+      "slash": "/",
+      "nul": "\u0000",
+      "soh": "\u0001",
+      "stx": "\u0002",
+      "etx": "\u0003",
+      "eot": "\u0004",
+      "enq": "\u0005",
+      "ack": "\u0006",
+      "bel": "\u0007",
+      "bs": "\b",
+      "tab": "\t",
+      "lf": "\n",
+      "vt": "\u000B",
+      "ff": "\f",
+      "cr": "\r",
+      "so": "\u000E",
+      "si": "\u000F",
+      "dle": "\u0010",
+      "dc1": "\u0011",
+      "dc2": "\u0012",
+      "dc3": "\u0013",
+      "dc4": "\u0014",
+      "nak": "\u0015",
+      "syn": "\u0016",
+      "etb": "\u0017",
+      "can": "\u0018",
+      "em": "\u0019",
+      "sub": "\u001A",
+      "esc": "\u001B",
+      "fs": "\u001C",
+      "gs": "\u001D",
+      "rs": "\u001E",
+      "us": "\u001F"
+    },
+    "canonical": "{\"ack\":\"\\u0006\",\"backslash\":\"\\\\\",\"bel\":\"\\u0007\",\"bs\":\"\\b\",\"can\":\"\\u0018\",\"cr\":\"\\r\",\"dc1\":\"\\u0011\",\"dc2\":\"\\u0012\",\"dc3\":\"\\u0013\",\"dc4\":\"\\u0014\",\"dle\":\"\\u0010\",\"em\":\"\\u0019\",\"enq\":\"\\u0005\",\"eot\":\"\\u0004\",\"esc\":\"\\u001B\",\"etb\":\"\\u0017\",\"etx\":\"\\u0003\",\"ff\":\"\\f\",\"fs\":\"\\u001C\",\"gs\":\"\\u001D\",\"lf\":\"\\n\",\"nak\":\"\\u0015\",\"nul\":\"\\u0000\",\"quote\":\"\\u0022\",\"rs\":\"\\u001E\",\"si\":\"\\u000F\",\"slash\":\"/\",\"so\":\"\\u000E\",\"soh\":\"\\u0001\",\"stx\":\"\\u0002\",\"sub\":\"\\u001A\",\"syn\":\"\\u0016\",\"tab\":\"\\t\",\"us\":\"\\u001F\",\"vt\":\"\\u000B\"}"
+  },
+  {
+    "name": "string-escaping-html-and-unicode",
+    "rawInput": "{\"amp\":\"&\",\"apos\":\"'\",\"plus\":\"+\",\"lt\":\"<\",\"gt\":\">\",\"backtick\":\"`\",\"del\":\"\\u007F\",\"e-acute\":\"\\u00E9\",\"line-sep\":\"\\u2028\",\"para-sep\":\"\\u2029\",\"replacement\":\"\\uFFFD\",\"emoji\":\"\\uD83D\\uDE00\",\"tab-literal\":\"\\t\"}",
+    "input": {
+      "amp": "&",
+      "apos": "'",
+      "plus": "+",
+      "lt": "<",
+      "gt": ">",
+      "backtick": "`",
+      "del": "\u007F",
+      "e-acute": "é",
+      "line-sep": "\u2028",
+      "para-sep": "\u2029",
+      "replacement": "�",
+      "emoji": "\uD83D\uDE00",
+      "tab-literal": "\t"
+    },
+    "canonical": "{\"amp\":\"\\u0026\",\"apos\":\"\\u0027\",\"backtick\":\"\\u0060\",\"del\":\"\\u007F\",\"e-acute\":\"\\u00E9\",\"emoji\":\"\\uD83D\\uDE00\",\"gt\":\"\\u003E\",\"line-sep\":\"\\u2028\",\"lt\":\"\\u003C\",\"para-sep\":\"\\u2029\",\"plus\":\"\\u002B\",\"replacement\":\"\\uFFFD\",\"tab-literal\":\"\\t\"}"
+  },
+  {
+    "name": "string-escaping-mixed",
+    "rawInput": "{\"mix\":\"line\\nbreak\\tand \\\"quote\\\" \\\\ slash / <tag> & ' + ` end\"}",
+    "input": {
+      "mix": "line\nbreak\tand \"quote\" \\ slash / <tag> & ' + ` end"
+    },
+    "canonical": "{\"mix\":\"line\\nbreak\\tand \\u0022quote\\u0022 \\\\ slash / \\u003Ctag\\u003E \\u0026 \\u0027 \\u002B \\u0060 end\"}"
+  },
+  {
+    "name": "string-with-emoji-and-accent",
+    "rawInput": "{\"text\":\"Presión Arterial \\uD83D\\uDE00 \\u00F1 \\u00D8\"}",
+    "input": {
+      "text": "Presión Arterial \uD83D\uDE00 ñ Ø"
+    },
+    "canonical": "{\"text\":\"Presi\\u00F3n Arterial \\uD83D\\uDE00 \\u00F1 \\u00D8\"}"
+  },
+  {
+    "name": "numbers-raw-forms",
+    "rawInput": "{\"a\":1.50,\"b\":1e3,\"c\":1.0e-7,\"d\":-0.0,\"e\":0,\"f\":-0,\"g\":123456789012345678901234567890,\"h\":9007199254740993,\"i\":1e300,\"j\":1e-300,\"k\":1.7976931348623157e308,\"l\":5e-324,\"m\":0.1,\"n\":1E+2,\"o\":-1.5E-3}",
+    "input": {
+      "a": 1.50,
+      "b": 1e3,
+      "c": 1.0e-7,
+      "d": -0.0,
+      "e": 0,
+      "f": -0,
+      "g": 123456789012345678901234567890,
+      "h": 9007199254740993,
+      "i": 1e300,
+      "j": 1e-300,
+      "k": 1.7976931348623157e308,
+      "l": 5e-324,
+      "m": 0.1,
+      "n": 1E+2,
+      "o": -1.5E-3
+    },
+    "canonical": "{\"a\":1.50,\"b\":1e3,\"c\":1.0e-7,\"d\":-0.0,\"e\":0,\"f\":-0,\"g\":123456789012345678901234567890,\"h\":9007199254740993,\"i\":1e300,\"j\":1e-300,\"k\":1.7976931348623157e308,\"l\":5e-324,\"m\":0.1,\"n\":1E+2,\"o\":-1.5E-3}"
+  },
+  {
+    "name": "number-top-level-positive",
+    "rawInput": "1.50",
+    "input": 1.50,
+    "canonical": "1.50"
+  },
+  {
+    "name": "number-top-level-exponent",
+    "rawInput": "1e3",
+    "input": 1e3,
+    "canonical": "1e3"
+  },
+  {
+    "name": "number-top-level-negative-zero",
+    "rawInput": "-0.0",
+    "input": -0.0,
+    "canonical": "-0.0"
+  },
+  {
+    "name": "number-top-level-big-integer",
+    "rawInput": "123456789012345678901234567890",
+    "input": 123456789012345678901234567890,
+    "canonical": "123456789012345678901234567890"
+  },
+  {
+    "name": "literal-null",
+    "rawInput": "null",
+    "input": null,
+    "canonical": "null"
+  },
+  {
+    "name": "literal-true",
+    "rawInput": "true",
+    "input": true,
+    "canonical": "true"
+  },
+  {
+    "name": "literal-false",
+    "rawInput": "false",
+    "input": false,
+    "canonical": "false"
+  },
+  {
+    "name": "array-with-literals",
+    "rawInput": "[null,true,false,1.50,\"x\"]",
+    "input": [
+      null,
+      true,
+      false,
+      1.50,
+      "x"
+    ],
+    "canonical": "[null,true,false,1.50,\"x\"]"
+  },
+  {
+    "name": "string-top-level",
+    "rawInput": "\"plain string\"",
+    "input": "plain string",
+    "canonical": "\"plain string\""
+  }
+]

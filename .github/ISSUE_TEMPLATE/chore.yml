@@ -1,0 +1,53 @@
+name: Chore
+description: Maintenance, tooling, dependency or documentation work.
+title: 'chore: '
+labels: [chore]
+body:
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What should exist once this is done, and why.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: chore-kind
+    attributes:
+      label: Kind of chore
+      description: Which kind of maintenance work this is.
+      options:
+        - Tooling or scripts
+        - Build or packaging
+        - Dependencies
+        - Documentation
+        - Something else
+    validations:
+      required: true
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: Technical rules the implementation must respect.
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: One testable statement per line, each starting with a dash.
+      placeholder: |
+        - The goal holds on a clean checkout.
+        - Nothing under `tests/golden/vectors/` changes.
+    validations:
+      required: true
+
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+      description: What this explicitly does not cover, so the boundary is clear.
+    validations:
+      required: false

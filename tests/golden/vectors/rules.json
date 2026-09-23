@@ -1,0 +1,6673 @@
+[
+  {
+    "name": "fixture:evaluate-bp-validation.json",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "systolic",
+          "code": "vital.bp.systolic",
+          "type": "integer"
+        },
+        {
+          "id": "diastolic",
+          "code": "vital.bp.diastolic",
+          "type": "integer"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {},
+      "validations": [
+        {
+          "code": "BP_SYSTOLIC_GT_DIASTOLIC",
+          "message": "Systolic must be greater than diastolic",
+          "when": {
+            "op": "and",
+            "args": [
+              {
+                "op": "not",
+                "args": [
+                  {
+                    "op": "empty",
+                    "args": [
+                      {
+                        "ref": "vital.bp.systolic"
+                      }
+                    ]
+                  }
+                ]
+              },
+              {
+                "op": "not",
+                "args": [
+                  {
+                    "op": "empty",
+                    "args": [
+                      {
+                        "ref": "vital.bp.diastolic"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          },
+          "assert": {
+            "op": "gt",
+            "args": [
+              {
+                "ref": "vital.bp.systolic"
+              },
+              {
+                "ref": "vital.bp.diastolic"
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "values": {
+      "vital.bp.systolic": 120,
+      "vital.bp.diastolic": 130
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"systolic\",\"code\":\"vital.bp.systolic\",\"type\":\"integer\"},{\"id\":\"diastolic\",\"code\":\"vital.bp.diastolic\",\"type\":\"integer\"}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"validations\":[{\"code\":\"BP_SYSTOLIC_GT_DIASTOLIC\",\"message\":\"Systolic must be greater than diastolic\",\"when\":{\"op\":\"and\",\"args\":[{\"op\":\"not\",\"args\":[{\"op\":\"empty\",\"args\":[{\"ref\":\"vital.bp.systolic\"}]}]},{\"op\":\"not\",\"args\":[{\"op\":\"empty\",\"args\":[{\"ref\":\"vital.bp.diastolic\"}]}]}]},\"assert\":{\"op\":\"gt\",\"args\":[{\"ref\":\"vital.bp.systolic\"},{\"ref\":\"vital.bp.diastolic\"}]}}]}",
+      "valuesRaw": "{\"vital.bp.systolic\":120,\"vital.bp.diastolic\":130}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "systolic": true,
+        "diastolic": true
+      },
+      "enabled": {
+        "systolic": true,
+        "diastolic": true
+      },
+      "required": {
+        "systolic": false,
+        "diastolic": false
+      },
+      "calculatedValues": {},
+      "validationErrors": [
+        {
+          "code": "BP_SYSTOLIC_GT_DIASTOLIC",
+          "message": "Systolic must be greater than diastolic"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "fixture:evaluate-calculation-incomplete.json",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "weight-kg",
+          "code": "body.weight.kg",
+          "type": "number"
+        },
+        {
+          "id": "height-m",
+          "code": "body.height.m",
+          "type": "number"
+        },
+        {
+          "id": "bmi",
+          "code": "body.bmi",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.01
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "bmi": {
+          "calculate": {
+            "op": "div",
+            "args": [
+              {
+                "ref": "body.weight.kg"
+              },
+              {
+                "op": "mul",
+                "args": [
+                  {
+                    "ref": "body.height.m"
+                  },
+                  {
+                    "ref": "body.height.m"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"weight-kg\",\"code\":\"body.weight.kg\",\"type\":\"number\"},{\"id\":\"height-m\",\"code\":\"body.height.m\",\"type\":\"number\"},{\"id\":\"bmi\",\"code\":\"body.bmi\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.01}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"bmi\":{\"calculate\":{\"op\":\"div\",\"args\":[{\"ref\":\"body.weight.kg\"},{\"op\":\"mul\",\"args\":[{\"ref\":\"body.height.m\"},{\"ref\":\"body.height.m\"}]}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "weight-kg": true,
+        "height-m": true,
+        "bmi": true
+      },
+      "enabled": {
+        "weight-kg": true,
+        "height-m": true,
+        "bmi": false
+      },
+      "required": {
+        "weight-kg": false,
+        "height-m": false,
+        "bmi": false
+      },
+      "calculatedValues": {
+        "body.bmi": null
+      },
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "fixture:evaluate-calculation.json",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "weight-kg",
+          "code": "body.weight.kg",
+          "type": "number"
+        },
+        {
+          "id": "height-m",
+          "code": "body.height.m",
+          "type": "number"
+        },
+        {
+          "id": "bmi",
+          "code": "body.bmi",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.01
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "bmi": {
+          "calculate": {
+            "op": "div",
+            "args": [
+              {
+                "ref": "body.weight.kg"
+              },
+              {
+                "op": "mul",
+                "args": [
+                  {
+                    "ref": "body.height.m"
+                  },
+                  {
+                    "ref": "body.height.m"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {
+      "body.weight.kg": 70,
+      "body.height.m": 1.75
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"weight-kg\",\"code\":\"body.weight.kg\",\"type\":\"number\"},{\"id\":\"height-m\",\"code\":\"body.height.m\",\"type\":\"number\"},{\"id\":\"bmi\",\"code\":\"body.bmi\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.01}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"bmi\":{\"calculate\":{\"op\":\"div\",\"args\":[{\"ref\":\"body.weight.kg\"},{\"op\":\"mul\",\"args\":[{\"ref\":\"body.height.m\"},{\"ref\":\"body.height.m\"}]}]}}}}",
+      "valuesRaw": "{\"body.weight.kg\":70,\"body.height.m\":1.75}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "weight-kg": true,
+        "height-m": true,
+        "bmi": true
+      },
+      "enabled": {
+        "weight-kg": true,
+        "height-m": true,
+        "bmi": false
+      },
+      "required": {
+        "weight-kg": false,
+        "height-m": false,
+        "bmi": false
+      },
+      "calculatedValues": {
+        "body.bmi": 22.86
+      },
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "fixture:evaluate-calculation-nonfinite.json",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "weight-kg",
+          "code": "body.weight.kg",
+          "type": "number"
+        },
+        {
+          "id": "height-m",
+          "code": "body.height.m",
+          "type": "number"
+        },
+        {
+          "id": "bmi",
+          "code": "body.bmi",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.01
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "bmi": {
+          "calculate": {
+            "op": "div",
+            "args": [
+              {
+                "ref": "body.weight.kg"
+              },
+              {
+                "op": "mul",
+                "args": [
+                  {
+                    "ref": "body.height.m"
+                  },
+                  {
+                    "ref": "body.height.m"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {
+      "body.weight.kg": 70,
+      "body.height.m": 0
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"weight-kg\",\"code\":\"body.weight.kg\",\"type\":\"number\"},{\"id\":\"height-m\",\"code\":\"body.height.m\",\"type\":\"number\"},{\"id\":\"bmi\",\"code\":\"body.bmi\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.01}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"bmi\":{\"calculate\":{\"op\":\"div\",\"args\":[{\"ref\":\"body.weight.kg\"},{\"op\":\"mul\",\"args\":[{\"ref\":\"body.height.m\"},{\"ref\":\"body.height.m\"}]}]}}}}",
+      "valuesRaw": "{\"body.weight.kg\":70,\"body.height.m\":0}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "weight-kg": true,
+        "height-m": true,
+        "bmi": true
+      },
+      "enabled": {
+        "weight-kg": true,
+        "height-m": true,
+        "bmi": false
+      },
+      "required": {
+        "weight-kg": false,
+        "height-m": false,
+        "bmi": false
+      },
+      "calculatedValues": {
+        "body.bmi": null
+      },
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "fixture:evaluate-visibility.json",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "consciousness",
+          "code": "assessment.consciousness",
+          "type": "choice",
+          "options": [
+            {
+              "value": "alert",
+              "label": "Alert"
+            },
+            {
+              "value": "pain",
+              "label": "Pain"
+            }
+          ]
+        },
+        {
+          "id": "pain-details",
+          "code": "assessment.pain-details",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "pain-details": {
+          "visibleWhen": {
+            "op": "eq",
+            "args": [
+              {
+                "ref": "assessment.consciousness"
+              },
+              {
+                "lit": "pain"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {
+      "assessment.consciousness": "alert"
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"consciousness\",\"code\":\"assessment.consciousness\",\"type\":\"choice\",\"options\":[{\"value\":\"alert\",\"label\":\"Alert\"},{\"value\":\"pain\",\"label\":\"Pain\"}]},{\"id\":\"pain-details\",\"code\":\"assessment.pain-details\",\"type\":\"text\"}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"pain-details\":{\"visibleWhen\":{\"op\":\"eq\",\"args\":[{\"ref\":\"assessment.consciousness\"},{\"lit\":\"pain\"}]}}}}",
+      "valuesRaw": "{\"assessment.consciousness\":\"alert\"}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "consciousness": true,
+        "pain-details": false
+      },
+      "enabled": {
+        "consciousness": true,
+        "pain-details": true
+      },
+      "required": {
+        "consciousness": false,
+        "pain-details": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "empty-rules-fields",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {}
+    },
+    "values": {
+      "x": 1
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{}}",
+      "valuesRaw": "{\"x\":1}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "coalesce-first-nonempty",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "not",
+            "args": [
+              {
+                "op": "empty",
+                "args": [
+                  {
+                    "op": "coalesce",
+                    "args": [
+                      {
+                        "ref": "s"
+                      },
+                      {
+                        "ref": "tgt"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {
+      "s": "",
+      "tgt": "fallback"
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"not\",\"args\":[{\"op\":\"empty\",\"args\":[{\"op\":\"coalesce\",\"args\":[{\"ref\":\"s\"},{\"ref\":\"tgt\"}]}]}]}}}}",
+      "valuesRaw": "{\"s\":\"\",\"tgt\":\"fallback\"}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "coalesce-all-empty",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "not",
+            "args": [
+              {
+                "op": "empty",
+                "args": [
+                  {
+                    "op": "coalesce",
+                    "args": [
+                      {
+                        "ref": "y"
+                      },
+                      {
+                        "ref": "missing"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {
+      "y": 0
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"not\",\"args\":[{\"op\":\"empty\",\"args\":[{\"op\":\"coalesce\",\"args\":[{\"ref\":\"y\"},{\"ref\":\"missing\"}]}]}]}}}}",
+      "valuesRaw": "{\"y\":0}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "and-empty-args",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "and",
+            "args": []
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"and\",\"args\":[]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "or-empty-args",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "or",
+            "args": []
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"or\",\"args\":[]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": false
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "not-empty-args",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "not",
+            "args": []
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"not\",\"args\":[]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": null,
+    "error": "ArgumentOutOfRangeException: Index was out of range. Must be non-negative and less than the size of the collection. (Parameter 'index')"
+  },
+  {
+    "name": "empty-number-zero",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "empty",
+            "args": [
+              {
+                "lit": 0
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"empty\",\"args\":[{\"lit\":0}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": false
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "empty-empty-string",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "empty",
+            "args": [
+              {
+                "lit": ""
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"empty\",\"args\":[{\"lit\":\"\"}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "empty-array-literal",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "empty",
+            "args": [
+              {
+                "lit": []
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"empty\",\"args\":[{\"lit\":[]}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "empty-false-literal",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "empty",
+            "args": [
+              {
+                "lit": false
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"empty\",\"args\":[{\"lit\":false}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": false
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "empty-json-array-value",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "empty",
+            "args": [
+              {
+                "ref": "s"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {
+      "s": []
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"empty\",\"args\":[{\"ref\":\"s\"}]}}}}",
+      "valuesRaw": "{\"s\":[]}",
+      "uiRaw": null
+    },
+    "expected": null,
+    "error": "NotSupportedException: JSON arrays are not supported."
+  },
+  {
+    "name": "eq-string-vs-number",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "eq",
+            "args": [
+              {
+                "lit": "10"
+              },
+              {
+                "lit": 10
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"eq\",\"args\":[{\"lit\":\"10\"},{\"lit\":10}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "eq-bool-vs-number",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "eq",
+            "args": [
+              {
+                "lit": true
+              },
+              {
+                "lit": 1
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"eq\",\"args\":[{\"lit\":true},{\"lit\":1}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "neq-missing-ref-vs-empty-string",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "neq",
+            "args": [
+              {
+                "ref": "missing"
+              },
+              {
+                "lit": ""
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"neq\",\"args\":[{\"ref\":\"missing\"},{\"lit\":\"\"}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "eq-missing-ref-vs-missing-ref",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "eq",
+            "args": [
+              {
+                "ref": "a"
+              },
+              {
+                "ref": "b"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"eq\",\"args\":[{\"ref\":\"a\"},{\"ref\":\"b\"}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "gt-numeric-string-vs-number",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "gt",
+            "args": [
+              {
+                "ref": "s"
+              },
+              {
+                "lit": 9
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {
+      "s": "10"
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"gt\",\"args\":[{\"ref\":\"s\"},{\"lit\":9}]}}}}",
+      "valuesRaw": "{\"s\":\"10\"}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "lt-lexicographic-strings",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "lt",
+            "args": [
+              {
+                "ref": "s"
+              },
+              {
+                "lit": "9"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {
+      "s": "10"
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"lt\",\"args\":[{\"ref\":\"s\"},{\"lit\":\"9\"}]}}}}",
+      "valuesRaw": "{\"s\":\"10\"}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "compare-nonnumeric-string",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "gt",
+            "args": [
+              {
+                "ref": "s"
+              },
+              {
+                "lit": 1
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {
+      "s": "abc"
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"gt\",\"args\":[{\"ref\":\"s\"},{\"lit\":1}]}}}}",
+      "valuesRaw": "{\"s\":\"abc\"}",
+      "uiRaw": null
+    },
+    "expected": null,
+    "error": "FormatException: The input string 'abc' was not in a correct format."
+  },
+  {
+    "name": "div-by-zero",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "calc-num": {
+          "calculate": {
+            "op": "div",
+            "args": [
+              {
+                "ref": "x"
+              },
+              {
+                "ref": "y"
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {
+      "x": 70,
+      "y": 0
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"calc-num\":{\"calculate\":{\"op\":\"div\",\"args\":[{\"ref\":\"x\"},{\"ref\":\"y\"}]}}}}",
+      "valuesRaw": "{\"x\":70,\"y\":0}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {
+        "calc-num": null
+      },
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "sub-0.1-minus-0.2",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "calc-num": {
+          "calculate": {
+            "op": "sub",
+            "args": [
+              {
+                "lit": 0.1
+              },
+              {
+                "lit": 0.2
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"calc-num\":{\"calculate\":{\"op\":\"sub\",\"args\":[{\"lit\":0.1},{\"lit\":0.2}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {
+        "calc-num": -0.1
+      },
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "mul-1.5-times-2",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "calc-num": {
+          "calculate": {
+            "op": "mul",
+            "args": [
+              {
+                "lit": 1.5
+              },
+              {
+                "lit": 2
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"calc-num\":{\"calculate\":{\"op\":\"mul\",\"args\":[{\"lit\":1.5},{\"lit\":2}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {
+        "calc-num": 3
+      },
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "integer-round-half-away-positive",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "calc-int": {
+          "calculate": {
+            "op": "add",
+            "args": [
+              {
+                "lit": 2
+              },
+              {
+                "lit": 0.5
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"calc-int\":{\"calculate\":{\"op\":\"add\",\"args\":[{\"lit\":2},{\"lit\":0.5}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {
+        "calc-int": 3
+      },
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "integer-round-half-away-negative",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "calc-int": {
+          "calculate": {
+            "op": "sub",
+            "args": [
+              {
+                "lit": 0
+              },
+              {
+                "lit": 2.5
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"calc-int\":{\"calculate\":{\"op\":\"sub\",\"args\":[{\"lit\":0},{\"lit\":2.5}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {
+        "calc-int": -3
+      },
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "number-decimal-places-3",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "calc-dp": {
+          "calculate": {
+            "lit": 1.23456
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"calc-dp\":{\"calculate\":{\"lit\":1.23456}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {
+        "calc-dp": 1.235
+      },
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "number-multiple-of-0.05",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "calc-step": {
+          "calculate": {
+            "lit": 1.234
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"calc-step\":{\"calculate\":{\"lit\":1.234}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {
+        "calc-step": 1.25
+      },
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "number-default-2dp-rounding",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "calc-num": {
+          "calculate": {
+            "lit": 1.005
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"calc-num\":{\"calculate\":{\"lit\":1.005}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {
+        "calc-num": 1
+      },
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "number-calc-chain",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "calc-num": {
+          "calculate": {
+            "op": "add",
+            "args": [
+              {
+                "ref": "x"
+              },
+              {
+                "ref": "y"
+              }
+            ]
+          }
+        },
+        "calc-dp": {
+          "calculate": {
+            "op": "mul",
+            "args": [
+              {
+                "ref": "calc-num"
+              },
+              {
+                "lit": 2
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {
+      "x": 1.111,
+      "y": 2.222
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"calc-num\":{\"calculate\":{\"op\":\"add\",\"args\":[{\"ref\":\"x\"},{\"ref\":\"y\"}]}},\n\"calc-dp\":{\"calculate\":{\"op\":\"mul\",\"args\":[{\"ref\":\"calc-num\"},{\"lit\":2}]}}}}",
+      "valuesRaw": "{\"x\":1.111,\"y\":2.222}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {
+        "calc-num": 3.33,
+        "calc-dp": 6.66
+      },
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "visible-when-false",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "gt",
+            "args": [
+              {
+                "ref": "x"
+              },
+              {
+                "lit": 100
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {
+      "x": 1
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"gt\",\"args\":[{\"ref\":\"x\"},{\"lit\":100}]}}}}",
+      "valuesRaw": "{\"x\":1}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": false
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "enabled-when-false",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "enabledWhen": {
+            "op": "lt",
+            "args": [
+              {
+                "ref": "x"
+              },
+              {
+                "lit": 100
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {
+      "x": 1
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"enabledWhen\":{\"op\":\"lt\",\"args\":[{\"ref\":\"x\"},{\"lit\":100}]}}}}",
+      "valuesRaw": "{\"x\":1}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "required-when-true",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "requiredWhen": {
+            "lit": true
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"requiredWhen\":{\"lit\":true}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": true
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "required-when-false",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "requiredWhen": {
+            "lit": false
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"requiredWhen\":{\"lit\":false}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "ui-hidden-defaults",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {}
+    },
+    "values": {},
+    "ui": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"hidden-field\":{\"hidden\":true},\"ro-field\":{\"hidden\":false}}}",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{}}",
+      "valuesRaw": "{}",
+      "uiRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"hidden-field\":{\"hidden\":true},\"ro-field\":{\"hidden\":false}}}"
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": false,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "readonly-and-required-seeding",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {}
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "unknown-operator",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "calc-num": {
+          "calculate": {
+            "op": "pow",
+            "args": [
+              {
+                "lit": 2
+              },
+              {
+                "lit": 3
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"calc-num\":{\"calculate\":{\"op\":\"pow\",\"args\":[{\"lit\":2},{\"lit\":3}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": null,
+    "error": "ValidationException: Unsupported expression operator 'pow'."
+  },
+  {
+    "name": "missing-args",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "op": "eq"
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"op\":\"eq\"}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": null,
+    "error": "ValidationException: Expression 'eq' is missing args."
+  },
+  {
+    "name": "missing-op",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": {
+            "args": [
+              {
+                "lit": 1
+              }
+            ]
+          }
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":{\"args\":[{\"lit\":1}]}}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": null,
+    "error": "ValidationException: Expression node is missing op."
+  },
+  {
+    "name": "invalid-expression-node",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "tgt": {
+          "visibleWhen": [
+            1,
+            2,
+            3
+          ]
+        }
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"tgt\":{\"visibleWhen\":[1,2,3]}}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": null,
+    "error": "ValidationException: Invalid expression node."
+  },
+  {
+    "name": "validation-assert-false",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {},
+      "validations": [
+        {
+          "code": "V_GT",
+          "message": "x must exceed 100",
+          "assert": {
+            "op": "gt",
+            "args": [
+              {
+                "ref": "x"
+              },
+              {
+                "lit": 100
+              }
+            ]
+          }
+        },
+        {
+          "code": "V_SKIPPED",
+          "message": "never",
+          "when": {
+            "lit": false
+          },
+          "assert": {
+            "lit": false
+          }
+        }
+      ]
+    },
+    "values": {
+      "x": 1
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"validations\":[\n{\"code\":\"V_GT\",\"message\":\"x must exceed 100\",\"assert\":{\"op\":\"gt\",\"args\":[{\"ref\":\"x\"},{\"lit\":100}]}},\n{\"code\":\"V_SKIPPED\",\"message\":\"never\",\"when\":{\"lit\":false},\"assert\":{\"lit\":false}}]}",
+      "valuesRaw": "{\"x\":1}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": [
+        {
+          "code": "V_GT",
+          "message": "x must exceed 100"
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "validation-default-code-and-message",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "validations": [
+          {
+            "assert": {
+              "lit": false
+            }
+          }
+        ]
+      }
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"validations\":[{\"assert\":{\"lit\":false}}]}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": true,
+        "calc-num": true,
+        "calc-step": true,
+        "calc-dp": true,
+        "hidden-field": true,
+        "ro-field": true,
+        "tgt": true
+      },
+      "enabled": {
+        "x": true,
+        "y": true,
+        "s": true,
+        "flag": true,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": true,
+        "ro-field": false,
+        "tgt": true
+      },
+      "required": {
+        "x": false,
+        "y": false,
+        "s": false,
+        "flag": false,
+        "calc-int": false,
+        "calc-num": false,
+        "calc-step": false,
+        "calc-dp": false,
+        "hidden-field": false,
+        "ro-field": false,
+        "tgt": false
+      },
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "values-with-nested-array",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {}
+    },
+    "values": {
+      "s": [
+        "a",
+        "b"
+      ]
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{}}",
+      "valuesRaw": "{\"s\":[\"a\",\"b\"]}",
+      "uiRaw": null
+    },
+    "expected": null,
+    "error": "NotSupportedException: JSON arrays are not supported."
+  },
+  {
+    "name": "values-with-nested-object",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {}
+    },
+    "values": {
+      "s": {
+        "k": 1
+      }
+    },
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{}}",
+      "valuesRaw": "{\"s\":{\"k\":1}}",
+      "uiRaw": null
+    },
+    "expected": null,
+    "error": "NotSupportedException: Nested JSON objects are not supported."
+  },
+  {
+    "name": "invalid-form-json",
+    "form": "{\"fields\":[",
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {}
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"fields\":[",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": null,
+    "error": "ValidationException: Invalid form schema: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 11."
+  },
+  {
+    "name": "invalid-rules-json",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": "{\"fields\":{",
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"fields\":{",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": null,
+    "error": "ValidationException: Invalid rules schema: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 11."
+  },
+  {
+    "name": "invalid-ui-json",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {}
+    },
+    "values": {},
+    "ui": "{\"fields\":",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{}}",
+      "valuesRaw": "{}",
+      "uiRaw": "{\"fields\":"
+    },
+    "expected": null,
+    "error": "ValidationException: Invalid UI schema: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 10."
+  },
+  {
+    "name": "rules-null-object",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x",
+          "type": "number"
+        },
+        {
+          "id": "y",
+          "code": "y",
+          "type": "number"
+        },
+        {
+          "id": "s",
+          "code": "s",
+          "type": "text"
+        },
+        {
+          "id": "flag",
+          "code": "flag",
+          "type": "boolean"
+        },
+        {
+          "id": "calc-int",
+          "code": "calc-int",
+          "type": "integer",
+          "readOnly": true
+        },
+        {
+          "id": "calc-num",
+          "code": "calc-num",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "calc-step",
+          "code": "calc-step",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.05
+        },
+        {
+          "id": "calc-dp",
+          "code": "calc-dp",
+          "type": "number",
+          "readOnly": true,
+          "decimalPlaces": 3
+        },
+        {
+          "id": "hidden-field",
+          "code": "hidden-field",
+          "type": "text"
+        },
+        {
+          "id": "ro-field",
+          "code": "ro-field",
+          "type": "text",
+          "readOnly": true
+        },
+        {
+          "id": "tgt",
+          "code": "tgt",
+          "type": "text"
+        }
+      ]
+    },
+    "rules": null,
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"x\",\"code\":\"x\",\"type\":\"number\"},\n{\"id\":\"y\",\"code\":\"y\",\"type\":\"number\"},\n{\"id\":\"s\",\"code\":\"s\",\"type\":\"text\"},\n{\"id\":\"flag\",\"code\":\"flag\",\"type\":\"boolean\"},\n{\"id\":\"calc-int\",\"code\":\"calc-int\",\"type\":\"integer\",\"readOnly\":true},\n{\"id\":\"calc-num\",\"code\":\"calc-num\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"calc-step\",\"code\":\"calc-step\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.05},\n{\"id\":\"calc-dp\",\"code\":\"calc-dp\",\"type\":\"number\",\"readOnly\":true,\"decimalPlaces\":3},\n{\"id\":\"hidden-field\",\"code\":\"hidden-field\",\"type\":\"text\"},\n{\"id\":\"ro-field\",\"code\":\"ro-field\",\"type\":\"text\",\"readOnly\":true},\n{\"id\":\"tgt\",\"code\":\"tgt\",\"type\":\"text\"}\n]}",
+      "rulesRaw": "null",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": null,
+    "error": "ValidationException: Invalid rules schema: expected a JSON object."
+  },
+  {
+    "name": "form-missing-fields",
+    "form": {
+      "schemaVersion": "1.0.0"
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {}
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\"}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": {
+      "visibility": {},
+      "enabled": {},
+      "required": {},
+      "calculatedValues": {},
+      "validationErrors": []
+    },
+    "error": null
+  },
+  {
+    "name": "field-missing-type",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {}
+    },
+    "values": {},
+    "ui": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\"}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{}}",
+      "valuesRaw": "{}",
+      "uiRaw": null
+    },
+    "expected": null,
+    "error": "ValidationException: Expected field type at /fields/0/type."
+  },
+  {
+    "name": "analyze:chain",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number"
+        },
+        {
+          "id": "c1",
+          "code": "c1",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "c2",
+          "code": "c2",
+          "type": "number",
+          "readOnly": true
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "c1": {
+          "calculate": {
+            "ref": "a"
+          }
+        },
+        "c2": {
+          "calculate": {
+            "op": "mul",
+            "args": [
+              {
+                "ref": "c1"
+              },
+              {
+                "lit": 2
+              }
+            ]
+          }
+        }
+      }
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"},\n{\"id\":\"c1\",\"code\":\"c1\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"c2\",\"code\":\"c2\",\"type\":\"number\",\"readOnly\":true}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c1\":{\"calculate\":{\"ref\":\"a\"}},\n\"c2\":{\"calculate\":{\"op\":\"mul\",\"args\":[{\"ref\":\"c1\"},{\"lit\":2}]}}}}"
+    },
+    "analyze": {
+      "calculatedFieldIds": [
+        "c1",
+        "c2"
+      ],
+      "evaluationOrder": [
+        "c1",
+        "c2"
+      ]
+    }
+  },
+  {
+    "name": "analyze:diamond",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number"
+        },
+        {
+          "id": "b",
+          "code": "b",
+          "type": "number"
+        },
+        {
+          "id": "c1",
+          "code": "c1",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "c2",
+          "code": "c2",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "c3",
+          "code": "c3",
+          "type": "number",
+          "readOnly": true
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "c3": {
+          "calculate": {
+            "op": "add",
+            "args": [
+              {
+                "ref": "c1"
+              },
+              {
+                "ref": "c2"
+              }
+            ]
+          }
+        },
+        "c1": {
+          "calculate": {
+            "ref": "a"
+          }
+        },
+        "c2": {
+          "calculate": {
+            "ref": "b"
+          }
+        }
+      }
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"},\n{\"id\":\"b\",\"code\":\"b\",\"type\":\"number\"},\n{\"id\":\"c1\",\"code\":\"c1\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"c2\",\"code\":\"c2\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"c3\",\"code\":\"c3\",\"type\":\"number\",\"readOnly\":true}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c3\":{\"calculate\":{\"op\":\"add\",\"args\":[{\"ref\":\"c1\"},{\"ref\":\"c2\"}]}},\n\"c1\":{\"calculate\":{\"ref\":\"a\"}},\n\"c2\":{\"calculate\":{\"ref\":\"b\"}}}}"
+    },
+    "analyze": {
+      "calculatedFieldIds": [
+        "c3",
+        "c1",
+        "c2"
+      ],
+      "evaluationOrder": [
+        "c1",
+        "c2",
+        "c3"
+      ]
+    }
+  },
+  {
+    "name": "analyze:unknown-field-id-skipped",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "nope": {
+          "calculate": {
+            "ref": "a"
+          }
+        }
+      }
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"nope\":{\"calculate\":{\"ref\":\"a\"}}}}"
+    },
+    "analyze": {
+      "calculatedFieldIds": [],
+      "evaluationOrder": []
+    }
+  },
+  {
+    "name": "analyze:no-rules-fields",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0"
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\"}"
+    },
+    "analyze": {
+      "calculatedFieldIds": [],
+      "evaluationOrder": []
+    }
+  },
+  {
+    "name": "analyze:rule-node-not-object",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number",
+          "readOnly": true
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "a": [
+          1,
+          2
+        ]
+      }
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\",\"readOnly\":true}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"a\":[1,2]}}"
+    },
+    "analyze": {
+      "calculatedFieldIds": [],
+      "evaluationOrder": []
+    }
+  },
+  {
+    "name": "validateDependencies:valid",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number"
+        },
+        {
+          "id": "c1",
+          "code": "c1",
+          "type": "number",
+          "readOnly": true
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "c1": {
+          "calculate": {
+            "ref": "a"
+          }
+        }
+      }
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"},\n{\"id\":\"c1\",\"code\":\"c1\",\"type\":\"number\",\"readOnly\":true}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"calculate\":{\"ref\":\"a\"}}}}"
+    },
+    "validateDependencies": {
+      "error": null
+    }
+  },
+  {
+    "name": "validateDependencies:unknown-field-id",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "ghost": {
+          "calculate": {
+            "ref": "a"
+          }
+        }
+      }
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"ghost\":{\"calculate\":{\"ref\":\"a\"}}}}"
+    },
+    "validateDependencies": {
+      "error": "ValidationException: RULE_UNKNOWN_FIELD: rules reference unknown form field id 'ghost' at /fields/ghost."
+    }
+  },
+  {
+    "name": "validateDependencies:unknown-field-code-ref",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number"
+        },
+        {
+          "id": "c1",
+          "code": "c1",
+          "type": "number",
+          "readOnly": true
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "c1": {
+          "calculate": {
+            "ref": "nope"
+          }
+        }
+      }
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"},\n{\"id\":\"c1\",\"code\":\"c1\",\"type\":\"number\",\"readOnly\":true}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"calculate\":{\"ref\":\"nope\"}}}}"
+    },
+    "validateDependencies": {
+      "error": "ValidationException: RULE_UNKNOWN_FIELD_REF: expression at /fields/c1/calculate references unknown field code 'nope'."
+    }
+  },
+  {
+    "name": "validateDependencies:calculate-on-writable-field",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number"
+        },
+        {
+          "id": "c1",
+          "code": "c1",
+          "type": "number"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "c1": {
+          "calculate": {
+            "ref": "a"
+          }
+        }
+      }
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"},\n{\"id\":\"c1\",\"code\":\"c1\",\"type\":\"number\"}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"calculate\":{\"ref\":\"a\"}}}}"
+    },
+    "validateDependencies": {
+      "error": "ValidationException: RULE_CALCULATE_NOT_READONLY: calculated field 'c1' at /fields/c1/calculate must be readOnly in the form schema."
+    }
+  },
+  {
+    "name": "validateDependencies:self-reference",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "c1",
+          "code": "c1",
+          "type": "number",
+          "readOnly": true
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "c1": {
+          "calculate": {
+            "ref": "c1"
+          }
+        }
+      }
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"c1\",\"code\":\"c1\",\"type\":\"number\",\"readOnly\":true}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"calculate\":{\"ref\":\"c1\"}}}}"
+    },
+    "validateDependencies": {
+      "error": "ValidationException: RULE_SELF_REFERENCE: calculated field 'c1' at /fields/c1/calculate must not reference its own code 'c1'."
+    }
+  },
+  {
+    "name": "validateDependencies:duplicate-validation-code",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {},
+      "validations": [
+        {
+          "code": "DUP",
+          "message": "one",
+          "assert": {
+            "ref": "a"
+          }
+        },
+        {
+          "code": "DUP",
+          "message": "two",
+          "assert": {
+            "ref": "a"
+          }
+        }
+      ]
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"validations\":[\n{\"code\":\"DUP\",\"message\":\"one\",\"assert\":{\"ref\":\"a\"}},\n{\"code\":\"DUP\",\"message\":\"two\",\"assert\":{\"ref\":\"a\"}}]}"
+    },
+    "validateDependencies": {
+      "error": "ValidationException: RULE_DUPLICATE_VALIDATION_CODE: validation code 'DUP' at /validations/1/code is duplicated."
+    }
+  },
+  {
+    "name": "validateDependencies:form-version-mismatch",
+    "form": {
+      "schemaVersion": "2.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {}
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"2.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{}}"
+    },
+    "validateDependencies": {
+      "error": "ValidationException: RULE_SCHEMA_VERSION_MISMATCH: rules formSchemaVersion '1.0.0' does not match form schemaVersion '2.0.0'."
+    }
+  },
+  {
+    "name": "validateDependencies:cyclic-dependency",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "c1",
+          "code": "c1",
+          "type": "number",
+          "readOnly": true
+        },
+        {
+          "id": "c2",
+          "code": "c2",
+          "type": "number",
+          "readOnly": true
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "c1": {
+          "calculate": {
+            "ref": "c2"
+          }
+        },
+        "c2": {
+          "calculate": {
+            "ref": "c1"
+          }
+        }
+      }
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"c1\",\"type\":\"number\",\"readOnly\":true},\n{\"id\":\"c2\",\"code\":\"c2\",\"type\":\"number\",\"readOnly\":true}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c1\":{\"calculate\":{\"ref\":\"c2\"}},\n\"c2\":{\"calculate\":{\"ref\":\"c1\"}}}}"
+    },
+    "validateDependencies": {
+      "error": "ValidationException: RULE_CYCLIC_DEPENDENCY: calculated fields contain a cyclic dependency."
+    }
+  },
+  {
+    "name": "validateDependencies:validation-missing-code",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {},
+      "validations": [
+        {
+          "message": "m",
+          "assert": {
+            "ref": "a"
+          }
+        }
+      ]
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"validations\":[{\"message\":\"m\",\"assert\":{\"ref\":\"a\"}}]}"
+    },
+    "validateDependencies": {
+      "error": "ValidationException: Expected validation code at /validations/0/code."
+    }
+  },
+  {
+    "name": "validateDependencies:unknown-field-in-validation",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number"
+        }
+      ]
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {},
+      "validations": [
+        {
+          "code": "V",
+          "message": "m",
+          "assert": {
+            "ref": "ghost"
+          }
+        }
+      ]
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"}]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"validations\":[{\"code\":\"V\",\"message\":\"m\",\"assert\":{\"ref\":\"ghost\"}}]}"
+    },
+    "validateDependencies": {
+      "error": "ValidationException: RULE_UNKNOWN_FIELD_REF: expression at /validations/0/assert references unknown field code 'ghost'."
+    }
+  }
+]

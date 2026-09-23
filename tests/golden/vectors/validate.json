@@ -1,0 +1,5551 @@
+[
+  {
+    "name": "draft-basic",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.name": "Ana",
+      "patient.age": 41
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.name\":\"Ana\",\"patient.age\":41}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"patient.name\":\"Ana\",\"patient.age\":41}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "draft-no-answers",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {},
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "complete-required-missing",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {},
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "REQUIRED_FIELD_MISSING",
+          "path": "/fields/10",
+          "message": "Field 'patient.req' is required."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "complete-required-present",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.req": "ok"
+    },
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.req\":\"ok\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"patient.req\":\"ok\"}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "draft-required-missing-ok",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {},
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "unknown-field",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "nope": 1
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"nope\":1}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "UNKNOWN_FIELD",
+          "path": "/answers/nope",
+          "message": "Unknown answer field 'nope'."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "hidden-field-value",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "name": {
+          "hidden": true
+        }
+      }
+    },
+    "rules": null,
+    "answers": {
+      "patient.name": "Ana"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"name\":{\"hidden\":true}}}",
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.name\":\"Ana\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "HIDDEN_FIELD_VALUE",
+          "path": "/fields/0",
+          "message": "Field 'patient.name' cannot accept values while hidden or disabled."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "disabled-field-value",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "name": {
+          "enabledWhen": {
+            "lit": false
+          }
+        }
+      }
+    },
+    "answers": {
+      "patient.name": "Ana"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"name\":{\"enabledWhen\":{\"lit\":false}}}}",
+      "answersRaw": "{\"patient.name\":\"Ana\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "DISABLED_FIELD_VALUE",
+          "path": "/fields/0",
+          "message": "Field 'patient.name' cannot accept values while hidden or disabled."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "disabled-field-empty-value-ok",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "name": {
+          "enabledWhen": {
+            "lit": false
+          }
+        }
+      }
+    },
+    "answers": {},
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"name\":{\"enabledWhen\":{\"lit\":false}}}}",
+      "answersRaw": "{}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "readonly-field-modified",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.ro": "x"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.ro\":\"x\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "DISABLED_FIELD_VALUE",
+          "path": "/fields/11",
+          "message": "Field 'patient.ro' cannot accept values while hidden or disabled."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "readonly-field-modified-when-enabled",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "ro": {
+          "enabledWhen": {
+            "lit": true
+          }
+        }
+      }
+    },
+    "answers": {
+      "patient.ro": "x"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"ro\":{\"enabledWhen\":{\"lit\":true}}}}",
+      "answersRaw": "{\"patient.ro\":\"x\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "READONLY_FIELD_MODIFIED",
+          "path": "/fields/11",
+          "message": "Field 'patient.ro' is read-only."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "readonly-field-empty-ok",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.ro": ""
+    },
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.ro\":\"\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "REQUIRED_FIELD_MISSING",
+          "path": "/fields/10",
+          "message": "Field 'patient.req' is required."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "calculated-mismatch-complete",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "w",
+          "code": "w",
+          "type": "number"
+        },
+        {
+          "id": "h",
+          "code": "h",
+          "type": "number"
+        },
+        {
+          "id": "bmi",
+          "code": "bmi",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.01
+        }
+      ]
+    },
+    "ui": null,
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "bmi": {
+          "calculate": {
+            "op": "div",
+            "args": [
+              {
+                "ref": "w"
+              },
+              {
+                "op": "mul",
+                "args": [
+                  {
+                    "ref": "h"
+                  },
+                  {
+                    "ref": "h"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "answers": {
+      "w": 70,
+      "h": 1.75,
+      "bmi": 1.0
+    },
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"w\",\"code\":\"w\",\"type\":\"number\"},\n{\"id\":\"h\",\"code\":\"h\",\"type\":\"number\"},\n{\"id\":\"bmi\",\"code\":\"bmi\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.01}\n]}",
+      "uiRaw": null,
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"bmi\":{\"calculate\":{\"op\":\"div\",\"args\":[{\"ref\":\"w\"},{\"op\":\"mul\",\"args\":[{\"ref\":\"h\"},{\"ref\":\"h\"}]}]}}}}",
+      "answersRaw": "{\"w\":70,\"h\":1.75,\"bmi\":1.0}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"w\":70,\"h\":1.75,\"bmi\":22.86}",
+      "errors": [
+        {
+          "code": "CALCULATED_VALUE_MISMATCH",
+          "path": "/fields/2",
+          "message": "Field 'bmi' must match the server-calculated value."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "calculated-correct-complete",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "w",
+          "code": "w",
+          "type": "number"
+        },
+        {
+          "id": "h",
+          "code": "h",
+          "type": "number"
+        },
+        {
+          "id": "bmi",
+          "code": "bmi",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.01
+        }
+      ]
+    },
+    "ui": null,
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "bmi": {
+          "calculate": {
+            "op": "div",
+            "args": [
+              {
+                "ref": "w"
+              },
+              {
+                "op": "mul",
+                "args": [
+                  {
+                    "ref": "h"
+                  },
+                  {
+                    "ref": "h"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "answers": {
+      "w": 70,
+      "h": 1.75,
+      "bmi": 22.86
+    },
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"w\",\"code\":\"w\",\"type\":\"number\"},\n{\"id\":\"h\",\"code\":\"h\",\"type\":\"number\"},\n{\"id\":\"bmi\",\"code\":\"bmi\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.01}\n]}",
+      "uiRaw": null,
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"bmi\":{\"calculate\":{\"op\":\"div\",\"args\":[{\"ref\":\"w\"},{\"op\":\"mul\",\"args\":[{\"ref\":\"h\"},{\"ref\":\"h\"}]}]}}}}",
+      "answersRaw": "{\"w\":70,\"h\":1.75,\"bmi\":22.86}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"w\":70,\"h\":1.75,\"bmi\":22.86}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "calculated-valid-in-draft-with-wrong-submitted",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "w",
+          "code": "w",
+          "type": "number"
+        },
+        {
+          "id": "h",
+          "code": "h",
+          "type": "number"
+        },
+        {
+          "id": "bmi",
+          "code": "bmi",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.01
+        }
+      ]
+    },
+    "ui": null,
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "bmi": {
+          "calculate": {
+            "op": "div",
+            "args": [
+              {
+                "ref": "w"
+              },
+              {
+                "op": "mul",
+                "args": [
+                  {
+                    "ref": "h"
+                  },
+                  {
+                    "ref": "h"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "answers": {
+      "w": 70,
+      "h": 1.75,
+      "bmi": 1.0
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"w\",\"code\":\"w\",\"type\":\"number\"},\n{\"id\":\"h\",\"code\":\"h\",\"type\":\"number\"},\n{\"id\":\"bmi\",\"code\":\"bmi\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.01}\n]}",
+      "uiRaw": null,
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"bmi\":{\"calculate\":{\"op\":\"div\",\"args\":[{\"ref\":\"w\"},{\"op\":\"mul\",\"args\":[{\"ref\":\"h\"},{\"ref\":\"h\"}]}]}}}}",
+      "answersRaw": "{\"w\":70,\"h\":1.75,\"bmi\":1.0}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"w\":70,\"h\":1.75,\"bmi\":22.86}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "calculated-absent-answer",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "w",
+          "code": "w",
+          "type": "number"
+        },
+        {
+          "id": "h",
+          "code": "h",
+          "type": "number"
+        },
+        {
+          "id": "bmi",
+          "code": "bmi",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.01
+        }
+      ]
+    },
+    "ui": null,
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "bmi": {
+          "calculate": {
+            "op": "div",
+            "args": [
+              {
+                "ref": "w"
+              },
+              {
+                "op": "mul",
+                "args": [
+                  {
+                    "ref": "h"
+                  },
+                  {
+                    "ref": "h"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "answers": {
+      "w": 70,
+      "h": 1.75
+    },
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"w\",\"code\":\"w\",\"type\":\"number\"},\n{\"id\":\"h\",\"code\":\"h\",\"type\":\"number\"},\n{\"id\":\"bmi\",\"code\":\"bmi\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.01}\n]}",
+      "uiRaw": null,
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"bmi\":{\"calculate\":{\"op\":\"div\",\"args\":[{\"ref\":\"w\"},{\"op\":\"mul\",\"args\":[{\"ref\":\"h\"},{\"ref\":\"h\"}]}]}}}}",
+      "answersRaw": "{\"w\":70,\"h\":1.75}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"w\":70,\"h\":1.75,\"bmi\":22.86}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "calculated-nonfinite-literal",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "w",
+          "code": "w",
+          "type": "number"
+        },
+        {
+          "id": "h",
+          "code": "h",
+          "type": "number"
+        },
+        {
+          "id": "bmi",
+          "code": "bmi",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.01
+        }
+      ]
+    },
+    "ui": null,
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "bmi": {
+          "calculate": {
+            "lit": 1e999
+          }
+        }
+      }
+    },
+    "answers": {
+      "w": 70,
+      "h": 1.75
+    },
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"w\",\"code\":\"w\",\"type\":\"number\"},\n{\"id\":\"h\",\"code\":\"h\",\"type\":\"number\"},\n{\"id\":\"bmi\",\"code\":\"bmi\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.01}\n]}",
+      "uiRaw": null,
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"bmi\":{\"calculate\":{\"lit\":1e999}}}}",
+      "answersRaw": "{\"w\":70,\"h\":1.75}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"w\":70,\"h\":1.75,\"bmi\":null}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "calculated-inputs-missing",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "w",
+          "code": "w",
+          "type": "number"
+        },
+        {
+          "id": "h",
+          "code": "h",
+          "type": "number"
+        },
+        {
+          "id": "bmi",
+          "code": "bmi",
+          "type": "number",
+          "readOnly": true,
+          "multipleOf": 0.01
+        }
+      ]
+    },
+    "ui": null,
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "bmi": {
+          "calculate": {
+            "op": "div",
+            "args": [
+              {
+                "ref": "w"
+              },
+              {
+                "op": "mul",
+                "args": [
+                  {
+                    "ref": "h"
+                  },
+                  {
+                    "ref": "h"
+                  }
+                ]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "answers": {},
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"w\",\"code\":\"w\",\"type\":\"number\"},\n{\"id\":\"h\",\"code\":\"h\",\"type\":\"number\"},\n{\"id\":\"bmi\",\"code\":\"bmi\",\"type\":\"number\",\"readOnly\":true,\"multipleOf\":0.01}\n]}",
+      "uiRaw": null,
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"bmi\":{\"calculate\":{\"op\":\"div\",\"args\":[{\"ref\":\"w\"},{\"op\":\"mul\",\"args\":[{\"ref\":\"h\"},{\"ref\":\"h\"}]}]}}}}",
+      "answersRaw": "{}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"bmi\":null}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "type-error-text-number",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.name": 5
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.name\":5}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "INVALID_TYPE",
+          "path": "/fields/0",
+          "message": "Field 'patient.name' must be a string."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "type-error-number-string",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.weight": "heavy"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.weight\":\"heavy\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "INVALID_TYPE",
+          "path": "/fields/2",
+          "message": "Field 'patient.weight' must be a number."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "type-error-integer-fraction",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.age": 1.5
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.age\":1.5}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "INVALID_TYPE",
+          "path": "/fields/1",
+          "message": "Field 'patient.age' must be an integer."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "type-error-boolean-string",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.active": "true"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.active\":\"true\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "INVALID_TYPE",
+          "path": "/fields/3",
+          "message": "Field 'patient.active' must be a boolean."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "type-error-date",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.dob": "not-a-date"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.dob\":\"not-a-date\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "INVALID_TYPE",
+          "path": "/fields/4",
+          "message": "Field 'patient.dob' must be an ISO date (YYYY-MM-DD)."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "type-error-datetime",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.seen": "not-a-datetime"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.seen\":\"not-a-datetime\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "INVALID_TYPE",
+          "path": "/fields/5",
+          "message": "Field 'patient.seen' must be an ISO date-time."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "type-error-time",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.clock": "not-a-time"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.clock\":\"not-a-time\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "INVALID_TYPE",
+          "path": "/fields/6",
+          "message": "Field 'patient.clock' must be an ISO time."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "type-error-choice-number",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.color": 1
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.color\":1}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "INVALID_TYPE",
+          "path": "/fields/7",
+          "message": "Field 'patient.color' must be a choice value."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "choice-invalid-value",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.color": "green"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.color\":\"green\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "CONSTRAINT_VIOLATION",
+          "path": "/fields/7",
+          "message": "Field 'patient.color' contains an invalid choice value."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "choice-missing-options",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.noopts": "x"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.noopts\":\"x\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "INVALID_SCHEMA",
+          "path": "/fields/8",
+          "message": "Choice field 'patient.noopts' is missing options."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "choice-allow-multiple-array-answer",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.tags": [
+        "a",
+        "b"
+      ]
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.tags\":[\"a\",\"b\"]}"
+    },
+    "expected": null,
+    "error": "NotSupportedException: Nested JSON arrays are not supported as answer values."
+  },
+  {
+    "name": "choice-allow-multiple-single-string",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.tags": "a"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.tags\":\"a\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "INVALID_TYPE",
+          "path": "/fields/9",
+          "message": "Field 'patient.tags' must be an array of choice values."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "choice-allow-multiple-invalid-member",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.tags": [
+        "z"
+      ]
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.tags\":[\"z\"]}"
+    },
+    "expected": null,
+    "error": "NotSupportedException: Nested JSON arrays are not supported as answer values."
+  },
+  {
+    "name": "date-normalization",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.dob": "2024-1-5"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.dob\":\"2024-1-5\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"patient.dob\":\"2024-01-05\"}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "datetime-normalization",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.seen": "2024-01-05T10:00:00Z"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.seen\":\"2024-01-05T10:00:00Z\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"patient.seen\":\"2024-01-05T10:00:00.0000000\\u002B00:00\"}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "time-normalization",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.clock": "9:5:3"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.clock\":\"9:5:3\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"patient.clock\":\"09:05:03\"}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "number-1.50-normalization",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.weight": 1.50
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.weight\":1.50}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"patient.weight\":1.5}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "integer-and-boolean-normalization",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "patient.age": 7,
+      "patient.active": true
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.age\":7,\"patient.active\":true}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"patient.age\":7,\"patient.active\":true}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "constraint-minlength",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "t",
+          "code": "t",
+          "type": "text",
+          "minLength": 3,
+          "maxLength": 5,
+          "pattern": "^[a-z]+$"
+        },
+        {
+          "id": "n",
+          "code": "n",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        },
+        {
+          "id": "i",
+          "code": "i",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "t": "ab"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"t\",\"code\":\"t\",\"type\":\"text\",\"minLength\":3,\"maxLength\":5,\"pattern\":\"^[a-z]+$\"},\n{\"id\":\"n\",\"code\":\"n\",\"type\":\"number\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5},\n{\"id\":\"i\",\"code\":\"i\",\"type\":\"integer\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"t\":\"ab\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "CONSTRAINT_VIOLATION",
+          "path": "/fields/0",
+          "message": "Field 't' must be at least 3 characters."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "constraint-maxlength",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "t",
+          "code": "t",
+          "type": "text",
+          "minLength": 3,
+          "maxLength": 5,
+          "pattern": "^[a-z]+$"
+        },
+        {
+          "id": "n",
+          "code": "n",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        },
+        {
+          "id": "i",
+          "code": "i",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "t": "abcdef"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"t\",\"code\":\"t\",\"type\":\"text\",\"minLength\":3,\"maxLength\":5,\"pattern\":\"^[a-z]+$\"},\n{\"id\":\"n\",\"code\":\"n\",\"type\":\"number\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5},\n{\"id\":\"i\",\"code\":\"i\",\"type\":\"integer\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"t\":\"abcdef\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "CONSTRAINT_VIOLATION",
+          "path": "/fields/0",
+          "message": "Field 't' must be at most 5 characters."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "constraint-pattern",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "t",
+          "code": "t",
+          "type": "text",
+          "minLength": 3,
+          "maxLength": 5,
+          "pattern": "^[a-z]+$"
+        },
+        {
+          "id": "n",
+          "code": "n",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        },
+        {
+          "id": "i",
+          "code": "i",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "t": "AB1"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"t\",\"code\":\"t\",\"type\":\"text\",\"minLength\":3,\"maxLength\":5,\"pattern\":\"^[a-z]+$\"},\n{\"id\":\"n\",\"code\":\"n\",\"type\":\"number\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5},\n{\"id\":\"i\",\"code\":\"i\",\"type\":\"integer\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"t\":\"AB1\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "CONSTRAINT_VIOLATION",
+          "path": "/fields/0",
+          "message": "Field 't' does not match the required pattern."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "constraint-pattern-ok",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "t",
+          "code": "t",
+          "type": "text",
+          "minLength": 3,
+          "maxLength": 5,
+          "pattern": "^[a-z]+$"
+        },
+        {
+          "id": "n",
+          "code": "n",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        },
+        {
+          "id": "i",
+          "code": "i",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "t": "abc"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"t\",\"code\":\"t\",\"type\":\"text\",\"minLength\":3,\"maxLength\":5,\"pattern\":\"^[a-z]+$\"},\n{\"id\":\"n\",\"code\":\"n\",\"type\":\"number\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5},\n{\"id\":\"i\",\"code\":\"i\",\"type\":\"integer\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"t\":\"abc\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"t\":\"abc\"}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "constraint-minimum",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "t",
+          "code": "t",
+          "type": "text",
+          "minLength": 3,
+          "maxLength": 5,
+          "pattern": "^[a-z]+$"
+        },
+        {
+          "id": "n",
+          "code": "n",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        },
+        {
+          "id": "i",
+          "code": "i",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "n": 0.5
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"t\",\"code\":\"t\",\"type\":\"text\",\"minLength\":3,\"maxLength\":5,\"pattern\":\"^[a-z]+$\"},\n{\"id\":\"n\",\"code\":\"n\",\"type\":\"number\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5},\n{\"id\":\"i\",\"code\":\"i\",\"type\":\"integer\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"n\":0.5}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "CONSTRAINT_VIOLATION",
+          "path": "/fields/1",
+          "message": "Field 'n' must be greater than or equal to 1."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "constraint-maximum",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "t",
+          "code": "t",
+          "type": "text",
+          "minLength": 3,
+          "maxLength": 5,
+          "pattern": "^[a-z]+$"
+        },
+        {
+          "id": "n",
+          "code": "n",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        },
+        {
+          "id": "i",
+          "code": "i",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "n": 10.5
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"t\",\"code\":\"t\",\"type\":\"text\",\"minLength\":3,\"maxLength\":5,\"pattern\":\"^[a-z]+$\"},\n{\"id\":\"n\",\"code\":\"n\",\"type\":\"number\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5},\n{\"id\":\"i\",\"code\":\"i\",\"type\":\"integer\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"n\":10.5}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "CONSTRAINT_VIOLATION",
+          "path": "/fields/1",
+          "message": "Field 'n' must be less than or equal to 10."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "constraint-multipleof-number",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "t",
+          "code": "t",
+          "type": "text",
+          "minLength": 3,
+          "maxLength": 5,
+          "pattern": "^[a-z]+$"
+        },
+        {
+          "id": "n",
+          "code": "n",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        },
+        {
+          "id": "i",
+          "code": "i",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "n": 0.3
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"t\",\"code\":\"t\",\"type\":\"text\",\"minLength\":3,\"maxLength\":5,\"pattern\":\"^[a-z]+$\"},\n{\"id\":\"n\",\"code\":\"n\",\"type\":\"number\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5},\n{\"id\":\"i\",\"code\":\"i\",\"type\":\"integer\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"n\":0.3}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "CONSTRAINT_VIOLATION",
+          "path": "/fields/1",
+          "message": "Field 'n' must be greater than or equal to 1."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "constraint-multipleof-number-in-range",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "t",
+          "code": "t",
+          "type": "text",
+          "minLength": 3,
+          "maxLength": 5,
+          "pattern": "^[a-z]+$"
+        },
+        {
+          "id": "n",
+          "code": "n",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        },
+        {
+          "id": "i",
+          "code": "i",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "n": 1.3
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"t\",\"code\":\"t\",\"type\":\"text\",\"minLength\":3,\"maxLength\":5,\"pattern\":\"^[a-z]+$\"},\n{\"id\":\"n\",\"code\":\"n\",\"type\":\"number\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5},\n{\"id\":\"i\",\"code\":\"i\",\"type\":\"integer\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"n\":1.3}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "CONSTRAINT_VIOLATION",
+          "path": "/fields/1",
+          "message": "Field 'n' must be a multiple of 0.5."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "constraint-multipleof-integer",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "t",
+          "code": "t",
+          "type": "text",
+          "minLength": 3,
+          "maxLength": 5,
+          "pattern": "^[a-z]+$"
+        },
+        {
+          "id": "n",
+          "code": "n",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        },
+        {
+          "id": "i",
+          "code": "i",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "i": 3
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"t\",\"code\":\"t\",\"type\":\"text\",\"minLength\":3,\"maxLength\":5,\"pattern\":\"^[a-z]+$\"},\n{\"id\":\"n\",\"code\":\"n\",\"type\":\"number\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5},\n{\"id\":\"i\",\"code\":\"i\",\"type\":\"integer\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"i\":3}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"i\":3}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "constraint-multipleof-integer-ok",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "t",
+          "code": "t",
+          "type": "text",
+          "minLength": 3,
+          "maxLength": 5,
+          "pattern": "^[a-z]+$"
+        },
+        {
+          "id": "n",
+          "code": "n",
+          "type": "number",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        },
+        {
+          "id": "i",
+          "code": "i",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10,
+          "multipleOf": 0.5
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "i": 4
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"t\",\"code\":\"t\",\"type\":\"text\",\"minLength\":3,\"maxLength\":5,\"pattern\":\"^[a-z]+$\"},\n{\"id\":\"n\",\"code\":\"n\",\"type\":\"number\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5},\n{\"id\":\"i\",\"code\":\"i\",\"type\":\"integer\",\"minimum\":1,\"maximum\":10,\"multipleOf\":0.5}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"i\":4}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"i\":4}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "group-child-value",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "vitals",
+          "code": "vitals",
+          "type": "group",
+          "items": [
+            {
+              "id": "sys",
+              "code": "vitals.sys",
+              "type": "integer"
+            },
+            {
+              "id": "dia",
+              "code": "vitals.dia",
+              "type": "integer",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "vitals.sys": 120,
+      "vitals.dia": 80
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"vitals\",\"code\":\"vitals\",\"type\":\"group\",\"items\":[\n{\"id\":\"sys\",\"code\":\"vitals.sys\",\"type\":\"integer\"},\n{\"id\":\"dia\",\"code\":\"vitals.dia\",\"type\":\"integer\",\"required\":true}]}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"vitals.sys\":120,\"vitals.dia\":80}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"vitals.sys\":120,\"vitals.dia\":80}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "group-child-required-missing",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "vitals",
+          "code": "vitals",
+          "type": "group",
+          "items": [
+            {
+              "id": "sys",
+              "code": "vitals.sys",
+              "type": "integer"
+            },
+            {
+              "id": "dia",
+              "code": "vitals.dia",
+              "type": "integer",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "vitals.sys": 120
+    },
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"vitals\",\"code\":\"vitals\",\"type\":\"group\",\"items\":[\n{\"id\":\"sys\",\"code\":\"vitals.sys\",\"type\":\"integer\"},\n{\"id\":\"dia\",\"code\":\"vitals.dia\",\"type\":\"integer\",\"required\":true}]}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"vitals.sys\":120}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"vitals.sys\":120}",
+      "errors": [
+        {
+          "code": "REQUIRED_FIELD_MISSING",
+          "path": "/fields/0/items/1",
+          "message": "Field 'vitals.dia' is required."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "group-not-an-object-answer-key",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "vitals",
+          "code": "vitals",
+          "type": "group",
+          "items": [
+            {
+              "id": "sys",
+              "code": "vitals.sys",
+              "type": "integer"
+            },
+            {
+              "id": "dia",
+              "code": "vitals.dia",
+              "type": "integer",
+              "required": true
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "vitals": {
+        "vitals.sys": 120
+      }
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"vitals\",\"code\":\"vitals\",\"type\":\"group\",\"items\":[\n{\"id\":\"sys\",\"code\":\"vitals.sys\",\"type\":\"integer\"},\n{\"id\":\"dia\",\"code\":\"vitals.dia\",\"type\":\"integer\",\"required\":true}]}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"vitals\":{\"vitals.sys\":120}}"
+    },
+    "expected": null,
+    "error": "NotSupportedException: Nested JSON objects are not supported as answer values."
+  },
+  {
+    "name": "repeater-valid",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "rows",
+          "code": "rows",
+          "type": "repeater",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": [
+            {
+              "id": "rn",
+              "code": "rows.name",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "rq",
+              "code": "rows.qty",
+              "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "rows": [
+        {
+          "rows.name": "a",
+          "rows.qty": 1
+        },
+        {
+          "rows.name": "b"
+        }
+      ]
+    },
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"rows\",\"code\":\"rows\",\"type\":\"repeater\",\"minItems\":1,\"maxItems\":2,\"items\":[\n{\"id\":\"rn\",\"code\":\"rows.name\",\"type\":\"text\",\"required\":true},\n{\"id\":\"rq\",\"code\":\"rows.qty\",\"type\":\"integer\"}]}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"rows\":[{\"rows.name\":\"a\",\"rows.qty\":1},{\"rows.name\":\"b\"}]}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"rows\":[{\"rows.name\":\"a\",\"rows.qty\":1},{\"rows.name\":\"b\"}]}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "repeater-min-items",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "rows",
+          "code": "rows",
+          "type": "repeater",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": [
+            {
+              "id": "rn",
+              "code": "rows.name",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "rq",
+              "code": "rows.qty",
+              "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "rows": []
+    },
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"rows\",\"code\":\"rows\",\"type\":\"repeater\",\"minItems\":1,\"maxItems\":2,\"items\":[\n{\"id\":\"rn\",\"code\":\"rows.name\",\"type\":\"text\",\"required\":true},\n{\"id\":\"rq\",\"code\":\"rows.qty\",\"type\":\"integer\"}]}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"rows\":[]}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"rows\":[]}",
+      "errors": [
+        {
+          "code": "REPEATER_MIN_ITEMS",
+          "path": "/fields/0",
+          "message": "Repeater 'rows' requires at least 1 items."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "repeater-max-items",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "rows",
+          "code": "rows",
+          "type": "repeater",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": [
+            {
+              "id": "rn",
+              "code": "rows.name",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "rq",
+              "code": "rows.qty",
+              "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "rows": [
+        {
+          "rows.name": "a"
+        },
+        {
+          "rows.name": "b"
+        },
+        {
+          "rows.name": "c"
+        }
+      ]
+    },
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"rows\",\"code\":\"rows\",\"type\":\"repeater\",\"minItems\":1,\"maxItems\":2,\"items\":[\n{\"id\":\"rn\",\"code\":\"rows.name\",\"type\":\"text\",\"required\":true},\n{\"id\":\"rq\",\"code\":\"rows.qty\",\"type\":\"integer\"}]}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"rows\":[{\"rows.name\":\"a\"},{\"rows.name\":\"b\"},{\"rows.name\":\"c\"}]}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"rows\":[{\"rows.name\":\"a\"},{\"rows.name\":\"b\"},{\"rows.name\":\"c\"}]}",
+      "errors": [
+        {
+          "code": "REPEATER_MAX_ITEMS",
+          "path": "/fields/0",
+          "message": "Repeater 'rows' allows at most 2 items."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "repeater-min-items-draft",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "rows",
+          "code": "rows",
+          "type": "repeater",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": [
+            {
+              "id": "rn",
+              "code": "rows.name",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "rq",
+              "code": "rows.qty",
+              "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "rows": []
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"rows\",\"code\":\"rows\",\"type\":\"repeater\",\"minItems\":1,\"maxItems\":2,\"items\":[\n{\"id\":\"rn\",\"code\":\"rows.name\",\"type\":\"text\",\"required\":true},\n{\"id\":\"rq\",\"code\":\"rows.qty\",\"type\":\"integer\"}]}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"rows\":[]}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"rows\":[]}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "repeater-unknown-row-field",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "rows",
+          "code": "rows",
+          "type": "repeater",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": [
+            {
+              "id": "rn",
+              "code": "rows.name",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "rq",
+              "code": "rows.qty",
+              "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "rows": [
+        {
+          "nope": 1,
+          "rows.name": "a"
+        }
+      ]
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"rows\",\"code\":\"rows\",\"type\":\"repeater\",\"minItems\":1,\"maxItems\":2,\"items\":[\n{\"id\":\"rn\",\"code\":\"rows.name\",\"type\":\"text\",\"required\":true},\n{\"id\":\"rq\",\"code\":\"rows.qty\",\"type\":\"integer\"}]}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"rows\":[{\"nope\":1,\"rows.name\":\"a\"}]}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"rows\":[{\"rows.name\":\"a\"}]}",
+      "errors": [
+        {
+          "code": "UNKNOWN_FIELD",
+          "path": "/fields/0/0/nope",
+          "message": "Unknown repeater field 'nope'."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "repeater-row-not-object",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "rows",
+          "code": "rows",
+          "type": "repeater",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": [
+            {
+              "id": "rn",
+              "code": "rows.name",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "rq",
+              "code": "rows.qty",
+              "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "rows": [
+        1,
+        2
+      ]
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"rows\",\"code\":\"rows\",\"type\":\"repeater\",\"minItems\":1,\"maxItems\":2,\"items\":[\n{\"id\":\"rn\",\"code\":\"rows.name\",\"type\":\"text\",\"required\":true},\n{\"id\":\"rq\",\"code\":\"rows.qty\",\"type\":\"integer\"}]}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"rows\":[1,2]}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"rows\":[]}",
+      "errors": [
+        {
+          "code": "INVALID_TYPE",
+          "path": "/fields/0/0",
+          "message": "Repeater row 0 must be an object."
+        },
+        {
+          "code": "INVALID_TYPE",
+          "path": "/fields/0/1",
+          "message": "Repeater row 1 must be an object."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "repeater-value-not-array",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "rows",
+          "code": "rows",
+          "type": "repeater",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": [
+            {
+              "id": "rn",
+              "code": "rows.name",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "rq",
+              "code": "rows.qty",
+              "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "rows": {
+        "a": 1
+      }
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"rows\",\"code\":\"rows\",\"type\":\"repeater\",\"minItems\":1,\"maxItems\":2,\"items\":[\n{\"id\":\"rn\",\"code\":\"rows.name\",\"type\":\"text\",\"required\":true},\n{\"id\":\"rq\",\"code\":\"rows.qty\",\"type\":\"integer\"}]}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"rows\":{\"a\":1}}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"rows\":[]}",
+      "errors": [
+        {
+          "code": "INVALID_TYPE",
+          "path": "/fields/0",
+          "message": "Repeater 'rows' must be an array."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "repeater-hidden-with-rows",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "rows",
+          "code": "rows",
+          "type": "repeater",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": [
+            {
+              "id": "rn",
+              "code": "rows.name",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "rq",
+              "code": "rows.qty",
+              "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    "ui": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "rows": {
+          "hidden": true
+        }
+      }
+    },
+    "rules": null,
+    "answers": {
+      "rows": [
+        {
+          "rows.name": "a"
+        }
+      ]
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"rows\",\"code\":\"rows\",\"type\":\"repeater\",\"minItems\":1,\"maxItems\":2,\"items\":[\n{\"id\":\"rn\",\"code\":\"rows.name\",\"type\":\"text\",\"required\":true},\n{\"id\":\"rq\",\"code\":\"rows.qty\",\"type\":\"integer\"}]}\n]}",
+      "uiRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"rows\":{\"hidden\":true}}}",
+      "rulesRaw": null,
+      "answersRaw": "{\"rows\":[{\"rows.name\":\"a\"}]}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"rows\":[]}",
+      "errors": [
+        {
+          "code": "HIDDEN_FIELD_VALUE",
+          "path": "/fields/0",
+          "message": "Repeater 'rows' cannot accept values while hidden or disabled."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "repeater-child-required-missing",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "rows",
+          "code": "rows",
+          "type": "repeater",
+          "minItems": 1,
+          "maxItems": 2,
+          "items": [
+            {
+              "id": "rn",
+              "code": "rows.name",
+              "type": "text",
+              "required": true
+            },
+            {
+              "id": "rq",
+              "code": "rows.qty",
+              "type": "integer"
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "rows": [
+        {
+          "rows.qty": 1
+        }
+      ]
+    },
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"rows\",\"code\":\"rows\",\"type\":\"repeater\",\"minItems\":1,\"maxItems\":2,\"items\":[\n{\"id\":\"rn\",\"code\":\"rows.name\",\"type\":\"text\",\"required\":true},\n{\"id\":\"rq\",\"code\":\"rows.qty\",\"type\":\"integer\"}]}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"rows\":[{\"rows.qty\":1}]}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"rows\":[{\"rows.qty\":1}]}",
+      "errors": [
+        {
+          "code": "REQUIRED_FIELD_MISSING",
+          "path": "/fields/0/0/rn",
+          "message": "Field 'rows.name' is required."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "rules-null-default-path",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "sign",
+          "code": "sign",
+          "type": "choice",
+          "options": [
+            {
+              "value": "aries",
+              "label": "Aries"
+            },
+            {
+              "value": "taurus",
+              "label": "Taurus"
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "sign": "aries"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"sign\",\"code\":\"sign\",\"type\":\"choice\",\"options\":[{\"value\":\"aries\",\"label\":\"Aries\"},{\"value\":\"taurus\",\"label\":\"Taurus\"}]}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"sign\":\"aries\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"sign\":\"aries\"}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "rules-null-required-missing",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "r",
+          "code": "r",
+          "type": "text",
+          "required": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {},
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"r\",\"code\":\"r\",\"type\":\"text\",\"required\":true}]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "REQUIRED_FIELD_MISSING",
+          "path": "/fields/0",
+          "message": "Field 'r' is required."
+        }
+      ]
+    },
+    "error": null
+  },
+  {
+    "name": "rules-unknown-field-id",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "sign",
+          "code": "sign",
+          "type": "choice",
+          "options": [
+            {
+              "value": "aries",
+              "label": "Aries"
+            },
+            {
+              "value": "taurus",
+              "label": "Taurus"
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "ghost": {
+          "visibleWhen": {
+            "lit": false
+          }
+        }
+      }
+    },
+    "answers": {
+      "sign": "aries"
+    },
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"sign\",\"code\":\"sign\",\"type\":\"choice\",\"options\":[{\"value\":\"aries\",\"label\":\"Aries\"},{\"value\":\"taurus\",\"label\":\"Taurus\"}]}\n]}",
+      "uiRaw": null,
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"ghost\":{\"visibleWhen\":{\"lit\":false}}}}",
+      "answersRaw": "{\"sign\":\"aries\"}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"sign\":\"aries\"}",
+      "errors": []
+    },
+    "error": null
+  },
+  {
+    "name": "answers-not-object",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": [
+      1,
+      2
+    ],
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "[1,2]"
+    },
+    "expected": null,
+    "error": "ValidationException: Answers must be a JSON object."
+  },
+  {
+    "name": "answers-invalid-json",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": "{\"patient.name\":",
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"patient.name\":"
+    },
+    "expected": null,
+    "error": "ValidationException: Answers must be valid JSON: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 16."
+  },
+  {
+    "name": "form-invalid-json",
+    "form": "{\"fields\":[",
+    "ui": null,
+    "rules": null,
+    "answers": {},
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"fields\":[",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{}"
+    },
+    "expected": null,
+    "error": "ValidationException: Invalid form schema: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 11."
+  },
+  {
+    "name": "ui-invalid-json",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": "{\"fields\":",
+    "rules": null,
+    "answers": {},
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": "{\"fields\":",
+      "rulesRaw": null,
+      "answersRaw": "{}"
+    },
+    "expected": null,
+    "error": "ValidationException: Invalid UI schema: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 10."
+  },
+  {
+    "name": "rules-invalid-json",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "name",
+          "code": "patient.name",
+          "type": "text"
+        },
+        {
+          "id": "age",
+          "code": "patient.age",
+          "type": "integer"
+        },
+        {
+          "id": "weight",
+          "code": "patient.weight",
+          "type": "number"
+        },
+        {
+          "id": "active",
+          "code": "patient.active",
+          "type": "boolean"
+        },
+        {
+          "id": "dob",
+          "code": "patient.dob",
+          "type": "date"
+        },
+        {
+          "id": "seen",
+          "code": "patient.seen",
+          "type": "datetime"
+        },
+        {
+          "id": "clock",
+          "code": "patient.clock",
+          "type": "time"
+        },
+        {
+          "id": "color",
+          "code": "patient.color",
+          "type": "choice",
+          "options": [
+            {
+              "value": "red",
+              "label": "Red"
+            },
+            {
+              "value": "blue",
+              "label": "Blue"
+            }
+          ]
+        },
+        {
+          "id": "noopts",
+          "code": "patient.noopts",
+          "type": "choice"
+        },
+        {
+          "id": "tags",
+          "code": "patient.tags",
+          "type": "choice",
+          "allowMultiple": true,
+          "options": [
+            {
+              "value": "a",
+              "label": "A"
+            },
+            {
+              "value": "b",
+              "label": "B"
+            }
+          ]
+        },
+        {
+          "id": "req",
+          "code": "patient.req",
+          "type": "text",
+          "required": true
+        },
+        {
+          "id": "ro",
+          "code": "patient.ro",
+          "type": "text",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": "{\"fields\":{",
+    "answers": {},
+    "mode": "Draft",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"name\",\"code\":\"patient.name\",\"type\":\"text\"},\n{\"id\":\"age\",\"code\":\"patient.age\",\"type\":\"integer\"},\n{\"id\":\"weight\",\"code\":\"patient.weight\",\"type\":\"number\"},\n{\"id\":\"active\",\"code\":\"patient.active\",\"type\":\"boolean\"},\n{\"id\":\"dob\",\"code\":\"patient.dob\",\"type\":\"date\"},\n{\"id\":\"seen\",\"code\":\"patient.seen\",\"type\":\"datetime\"},\n{\"id\":\"clock\",\"code\":\"patient.clock\",\"type\":\"time\"},\n{\"id\":\"color\",\"code\":\"patient.color\",\"type\":\"choice\",\"options\":[{\"value\":\"red\",\"label\":\"Red\"},{\"value\":\"blue\",\"label\":\"Blue\"}]},\n{\"id\":\"noopts\",\"code\":\"patient.noopts\",\"type\":\"choice\"},\n{\"id\":\"tags\",\"code\":\"patient.tags\",\"type\":\"choice\",\"allowMultiple\":true,\"options\":[{\"value\":\"a\",\"label\":\"A\"},{\"value\":\"b\",\"label\":\"B\"}]},\n{\"id\":\"req\",\"code\":\"patient.req\",\"type\":\"text\",\"required\":true},\n{\"id\":\"ro\",\"code\":\"patient.ro\",\"type\":\"text\",\"readOnly\":true}\n]}",
+      "uiRaw": null,
+      "rulesRaw": "{\"fields\":{",
+      "answersRaw": "{}"
+    },
+    "expected": null,
+    "error": "ValidationException: Invalid rules schema: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 11."
+  },
+  {
+    "name": "repeater-and-scalar-mix",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "title",
+          "code": "title",
+          "type": "text"
+        },
+        {
+          "id": "rows",
+          "code": "rows",
+          "type": "repeater",
+          "items": [
+            {
+              "id": "c",
+              "code": "rows.c",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "answers": {
+      "title": "t",
+      "rows": [
+        {
+          "rows.c": "x"
+        }
+      ]
+    },
+    "mode": "Complete",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"title\",\"code\":\"title\",\"type\":\"text\"},\n{\"id\":\"rows\",\"code\":\"rows\",\"type\":\"repeater\",\"items\":[{\"id\":\"c\",\"code\":\"rows.c\",\"type\":\"text\"}]}]}",
+      "uiRaw": null,
+      "rulesRaw": null,
+      "answersRaw": "{\"title\":\"t\",\"rows\":[{\"rows.c\":\"x\"}]}"
+    },
+    "expected": {
+      "normalizedAnswersJson": "{\"title\":\"t\",\"rows\":[{\"rows.c\":\"x\"}]}",
+      "errors": []
+    },
+    "error": null
+  }
+]

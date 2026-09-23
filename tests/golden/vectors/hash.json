@@ -1,0 +1,74 @@
+[
+  {
+    "name": "compiled-form-only",
+    "form": "{\"fields\":[],\"schemaVersion\":\"1.0.0\"}",
+    "ui": null,
+    "rules": null,
+    "hash": "555a5113a5ad27343d599378cfecb55d4f07013b4f510d53b6be87b7450fbf56",
+    "error": null
+  },
+  {
+    "name": "compiled-form-and-ui",
+    "form": "{\"fields\":[{\"code\":\"body.weight.kg\",\"id\":\"weight-kg\",\"type\":\"number\"}],\"schemaVersion\":\"1.0.0\"}",
+    "ui": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"weight-kg\":{\"label\":\"Weight\",\"widget\":\"number-input\"}},\"layout\":[{\"fieldId\":\"weight-kg\",\"type\":\"field\"}],\"schemaVersion\":\"1.0.0\"}",
+    "rules": null,
+    "hash": "b34e53e203f2b9fff6bb2cb188f4e92d0236c33072934d51342ac78edfb0ad1d",
+    "error": null
+  },
+  {
+    "name": "compiled-form-ui-rules",
+    "form": "{\"fields\":[{\"code\":\"body.bmi\",\"id\":\"bmi\",\"multipleOf\":0.01,\"readOnly\":true,\"type\":\"number\"},{\"code\":\"body.height.m\",\"id\":\"height-m\",\"type\":\"number\"},{\"code\":\"body.weight.kg\",\"id\":\"weight-kg\",\"type\":\"number\"}],\"schemaVersion\":\"1.0.0\"}",
+    "ui": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"bmi\":{\"hidden\":false,\"label\":\"BMI\",\"order\":3},\"height-m\":{\"label\":\"Height\",\"order\":2},\"weight-kg\":{\"label\":\"Weight\",\"order\":1}},\"layout\":[{\"fieldId\":\"weight-kg\",\"type\":\"field\"},{\"fieldId\":\"height-m\",\"type\":\"field\"},{\"fieldId\":\"bmi\",\"type\":\"field\"}],\"schemaVersion\":\"1.0.0\"}",
+    "rules": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"bmi\":{\"calculate\":{\"args\":[{\"ref\":\"body.weight.kg\"},{\"args\":[{\"ref\":\"body.height.m\"},{\"ref\":\"body.height.m\"}],\"op\":\"mul\"}],\"op\":\"div\"}}},\"schemaVersion\":\"1.0.0\"}",
+    "hash": "fc22daa720825f2e9f26fa51fe5ed8027eb578af7c40693dc70c24834d8dcf9f",
+    "error": null
+  },
+  {
+    "name": "raw-unsorted-non-ascii-and-1.50",
+    "form": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"code\":\"peso.kg\",\"type\":\"number\",\"default\":1.50,\"label\":\"Presión Arterial\"}],\"notes\":\"ñ Ø \uD83D\uDE00\"}",
+    "ui": "{\"fields\":{\"f1\":{\"width\":\"half\",\"hidden\":false,\"label\":\"Presión\"}},\"schemaVersion\":\"1.0.0\"}",
+    "rules": "{\"fields\":{\"f1\":{\"visibleWhen\":{\"args\":[{\"ref\":\"peso.kg\"},{\"lit\":1.50}],\"op\":\"gt\"}}},\"schemaVersion\":\"1.0.0\"}",
+    "hash": "f9b0a0eac65ebd1168c7b220e36873267cb8f532f8ed4d52fce3c09072ece2d7",
+    "error": null
+  },
+  {
+    "name": "empty-objects",
+    "form": "{}",
+    "ui": "{}",
+    "rules": "{}",
+    "hash": "385c43cbaf95b3386b39dc39a11f51a79e6bf29cd972e8807ac27d038887a612",
+    "error": null
+  },
+  {
+    "name": "ui-null-rules-null-explicit",
+    "form": "{\"fields\":[],\"schemaVersion\":\"1.0.0\"}",
+    "ui": null,
+    "rules": null,
+    "hash": "555a5113a5ad27343d599378cfecb55d4f07013b4f510d53b6be87b7450fbf56",
+    "error": null
+  },
+  {
+    "name": "null-vs-absent-ui",
+    "form": "{\"fields\":[],\"schemaVersion\":\"1.0.0\"}",
+    "ui": "null",
+    "rules": null,
+    "hash": "555a5113a5ad27343d599378cfecb55d4f07013b4f510d53b6be87b7450fbf56",
+    "error": null
+  },
+  {
+    "name": "nested-arrays-preserved",
+    "form": "{\"fields\":[{\"id\":\"a\",\"type\":\"group\",\"items\":[{\"id\":\"b\",\"type\":\"text\"}]}],\"schemaVersion\":\"2.0.0\"}",
+    "ui": "{\"fields\":{},\"layout\":[{\"children\":[{\"fieldId\":\"a\",\"type\":\"field\"}],\"type\":\"section\"}],\"schemaVersion\":\"2.0.0\"}",
+    "rules": "{\"fields\":{},\"validations\":[{\"assert\":{\"args\":[{\"ref\":\"a.b\"},{\"lit\":\"x\"}],\"op\":\"eq\"},\"code\":\"V1\",\"message\":\"m\"}],\"schemaVersion\":\"2.0.0\"}",
+    "hash": "65f5af5287d256745f7dc78c6115f629525780bffeae8ce1312f8ef64aefc03d",
+    "error": null
+  },
+  {
+    "name": "invalid-form-json",
+    "form": "{\"fields\":[",
+    "ui": null,
+    "rules": null,
+    "hash": null,
+    "error": "JsonReaderException: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 11."
+  }
+]

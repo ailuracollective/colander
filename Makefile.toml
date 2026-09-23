@@ -1,0 +1,107 @@
+# Task runner for colander.
+#
+# This file is the single source of truth for the command lines a contributor
+# runs. The git hooks in hk.pkl invoke these tasks by name; they never restate the
+# underlying command line.
+#
+# Formatting covers two languages: Rust through rustfmt and Markdown through
+# dprint. `fmt` and `fmt-check` are composites that run both, while
+# `rust-fmt`/`rust-fmt-check` and `md-fmt`/`md-check` stay available on their own.
+#
+# The crate declares no sibling dependency, so every task below runs from a clean
+# clone with nothing but crates.io — no checkout of ../slate-ai is needed.
+
+[config]
+# Cargo.toml declares an empty [workspace] with no members, so there is nothing
+# to fan out to. Run every task once, in this directory.
+default_to_workspace = false
+
+[tasks.rust-fmt]
+description = "Formats the tree with rustfmt."
+category = "Format"
+command = "cargo"
+args = ["fmt", "--all"]
+
+[tasks.rust-fmt-check]
+description = "Checks Rust formatting and fails with a diff when the tree is unformatted."
+category = "Format"
+command = "cargo"
+args = ["fmt", "--all", "--", "--check"]
+
+[tasks.md-fmt]
+description = "Formats the Markdown in the tree with dprint."
+category = "Format"
+command = "dprint"
+args = ["fmt"]
+
+[tasks.md-check]
+description = "Checks Markdown formatting and fails when the tree is unformatted; writes nothing."
+category = "Format"
+command = "dprint"
+args = ["check"]
+
+[tasks.fmt]
+description = "Formats both languages: rust-fmt and md-fmt."
+category = "Format"
+dependencies = ["rust-fmt", "md-fmt"]
+
+[tasks.fmt-check]
+description = "Checks both languages: rust-fmt-check and md-check."
+category = "Format"
+dependencies = ["rust-fmt-check", "md-check"]
+
+[tasks.lint]
+description = "Runs clippy across all targets and denies warnings."
+category = "Lint"
+command = "cargo"
+args = ["clippy", "--all-targets", "--", "-D", "warnings"]
+
+[tasks.check]
+description = "Type-checks all targets without producing a binary."
+category = "Build"
+clear = true
+command = "cargo"
+args = ["check", "--all-targets"]
+
+[tasks.test]
+description = "Runs the unit tests and the frozen golden-vector suite."
+category = "Test"
+clear = true
+command = "cargo"
+args = ["test"]
+
+[tasks.build]
+description = "Builds the release cdylib/rlib."
+category = "Build"
+clear = true
+command = "cargo"
+args = ["build", "--release"]
+
+[tasks.clean]
+description = "Removes the target directory."
+category = "Build"
+clear = true
+command = "cargo"
+args = ["clean"]
+
+[tasks.ci]
+description = "Runs the full local CI set: fmt-check, lint, check, test, build."
+category = "CI"
+dependencies = ["fmt-check", "lint", "check", "test", "build"]
+
+[tasks.precommit]
+description = "Runs the fast checks the pre-commit hook delegates to."
+category = "Hooks"
+dependencies = ["fmt-check", "lint"]
+
+[tasks.prepush]
+description = "Runs the checks the pre-push hook delegates to."
+category = "Hooks"
+dependencies = ["test"]
+
+[tasks.default]
+description = "Lists the available tasks. Run `cargo make <task>` to run one."
+category = "Help"
+clear = true
+command = "cargo"
+args = ["make", "--list-all-steps"]

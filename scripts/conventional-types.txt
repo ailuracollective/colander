@@ -1,0 +1,10 @@
+# Conventional Commits vocabulary used by the commit-message and branch validators.
+feat
+fix
+docs
+chore
+refactor
+test
+ci
+build
+perf

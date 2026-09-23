@@ -1,0 +1,1114 @@
+[
+  {
+    "name": "no-refs-form-only",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "text"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"text\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": {
+      "formSchemaJson": "{\"fields\":[{\"code\":\"a\",\"id\":\"a\",\"type\":\"text\"}],\"schemaVersion\":\"1.0.0\"}",
+      "uiSchemaJson": null,
+      "rulesSchemaJson": null,
+      "dependencyMetadataJson": "{\"components\":[]}",
+      "contentHash": "aeb1c6c933e89f339676bb5423083f77a6e214006d21f196235dec8b065eaef6"
+    },
+    "error": null
+  },
+  {
+    "name": "no-refs-form-and-ui",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "text"
+        },
+        {
+          "id": "b",
+          "code": "b",
+          "type": "number"
+        }
+      ]
+    },
+    "ui": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "b": {
+          "widget": "number-input"
+        },
+        "a": {
+          "label": "A"
+        }
+      },
+      "layout": [
+        {
+          "type": "field",
+          "fieldId": "a"
+        },
+        {
+          "type": "field",
+          "fieldId": "b"
+        }
+      ]
+    },
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"text\"},{\"id\":\"b\",\"code\":\"b\",\"type\":\"number\"}]}",
+      "uiRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"b\":{\"widget\":\"number-input\"},\"a\":{\"label\":\"A\"}},\"layout\":[{\"type\":\"field\",\"fieldId\":\"a\"},{\"type\":\"field\",\"fieldId\":\"b\"}]}",
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": {
+      "formSchemaJson": "{\"fields\":[{\"code\":\"a\",\"id\":\"a\",\"type\":\"text\"},{\"code\":\"b\",\"id\":\"b\",\"type\":\"number\"}],\"schemaVersion\":\"1.0.0\"}",
+      "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"a\":{\"label\":\"A\"},\"b\":{\"widget\":\"number-input\"}},\"layout\":[{\"fieldId\":\"a\",\"type\":\"field\"},{\"fieldId\":\"b\",\"type\":\"field\"}],\"schemaVersion\":\"1.0.0\"}",
+      "rulesSchemaJson": null,
+      "dependencyMetadataJson": "{\"components\":[]}",
+      "contentHash": "0cb40af49a2eb2f36ae6e39ef79ef117553bb42e7a9dd488041a45e7b93e938e"
+    },
+    "error": null
+  },
+  {
+    "name": "no-refs-form-ui-rules",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number"
+        },
+        {
+          "id": "c",
+          "code": "c",
+          "type": "number",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {},
+      "layout": []
+    },
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "c": {
+          "calculate": {
+            "ref": "a"
+          }
+        }
+      },
+      "validations": [
+        {
+          "code": "V1",
+          "message": "m",
+          "assert": {
+            "ref": "a"
+          }
+        }
+      ]
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"},{\"id\":\"c\",\"code\":\"c\",\"type\":\"number\",\"readOnly\":true}]}",
+      "uiRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"layout\":[]}",
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c\":{\"calculate\":{\"ref\":\"a\"}}},\"validations\":[{\"code\":\"V1\",\"message\":\"m\",\"assert\":{\"ref\":\"a\"}}]}"
+    },
+    "components": [],
+    "expected": {
+      "formSchemaJson": "{\"fields\":[{\"code\":\"a\",\"id\":\"a\",\"type\":\"number\"},{\"code\":\"c\",\"id\":\"c\",\"readOnly\":true,\"type\":\"number\"}],\"schemaVersion\":\"1.0.0\"}",
+      "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"layout\":[],\"schemaVersion\":\"1.0.0\"}",
+      "rulesSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c\":{\"calculate\":{\"ref\":\"a\"}}},\"schemaVersion\":\"1.0.0\",\"validations\":[{\"assert\":{\"ref\":\"a\"},\"code\":\"V1\",\"message\":\"m\"}]}",
+      "dependencyMetadataJson": "{\"components\":[],\"rules\":{\"calculatedFieldIds\":[\"c\"],\"evaluationOrder\":[\"c\"]}}",
+      "contentHash": "3211eec5e2de348e38a8da0ace6de7c8d88f399420f06567b8a7505293eabf91"
+    },
+    "error": null
+  },
+  {
+    "name": "component-ref-with-ui-layout",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "1.0.0"
+        }
+      ]
+    },
+    "ui": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {},
+      "layout": [
+        {
+          "type": "field",
+          "fieldId": "ref1"
+        }
+      ]
+    },
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"1.0.0\"}]}",
+      "uiRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"layout\":[{\"type\":\"field\",\"fieldId\":\"ref1\"}]}",
+      "rulesRaw": null
+    },
+    "components": [
+      {
+        "code": "comp",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
+        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\n\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\n\"layout\":[{\"type\":\"field\",\"fieldId\":\"c1\"},{\"type\":\"field\",\"fieldId\":\"c2\"}]}",
+        "contentHash": "hash-comp-1.0.0"
+      }
+    ],
+    "expected": {
+      "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
+      "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\"layout\":[{\"children\":[{\"fieldId\":\"c1\",\"type\":\"field\"},{\"fieldId\":\"c2\",\"type\":\"field\"}],\"fieldId\":\"ref1\",\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
+      "rulesSchemaJson": null,
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.0\",\"version\":\"1.0.0\"}]}",
+      "contentHash": "b93e88daf4d15fe5890eb530d58e802a30f4f85877cf9b28b888896ff792869c"
+    },
+    "error": null
+  },
+  {
+    "name": "component-ref-without-ui-schema",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "1.0.0"
+        }
+      ]
+    },
+    "ui": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {},
+      "layout": [
+        {
+          "type": "field",
+          "fieldId": "ref1"
+        }
+      ]
+    },
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"1.0.0\"}]}",
+      "uiRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"layout\":[{\"type\":\"field\",\"fieldId\":\"ref1\"}]}",
+      "rulesRaw": null
+    },
+    "components": [
+      {
+        "code": "comp",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
+        "uiSchemaJson": null,
+        "contentHash": "hash-comp-1.0.0"
+      }
+    ],
+    "expected": {
+      "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
+      "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"layout\":[{\"children\":[{\"fieldId\":\"c1\",\"type\":\"field\"},{\"fieldId\":\"c2\",\"type\":\"field\"}],\"fieldId\":\"ref1\",\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
+      "rulesSchemaJson": null,
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.0\",\"version\":\"1.0.0\"}]}",
+      "contentHash": "bad8d94df83f87cd9f6fc1ec7ca32e8410299e7e8ab898238dabc2770090402d"
+    },
+    "error": null
+  },
+  {
+    "name": "component-ref-no-ui-root",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "1.0.0"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"1.0.0\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [
+      {
+        "code": "comp",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
+        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\n\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\n\"layout\":[{\"type\":\"field\",\"fieldId\":\"c1\"},{\"type\":\"field\",\"fieldId\":\"c2\"}]}",
+        "contentHash": "hash-comp-1.0.0"
+      }
+    ],
+    "expected": {
+      "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
+      "uiSchemaJson": null,
+      "rulesSchemaJson": null,
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.0\",\"version\":\"1.0.0\"}]}",
+      "contentHash": "ba371356e6acefc795a7da7964902a78d29ffaf1014c7fe26b67639cae882533"
+    },
+    "error": null
+  },
+  {
+    "name": "nested-component-refs",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "refA",
+          "code": "refA",
+          "type": "component-ref",
+          "componentCode": "A",
+          "componentVersion": "1.0.0"
+        }
+      ]
+    },
+    "ui": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {},
+      "layout": [
+        {
+          "type": "field",
+          "fieldId": "refA"
+        }
+      ]
+    },
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"refA\",\"code\":\"refA\",\"type\":\"component-ref\",\"componentCode\":\"A\",\"componentVersion\":\"1.0.0\"}]}",
+      "uiRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"layout\":[{\"type\":\"field\",\"fieldId\":\"refA\"}]}",
+      "rulesRaw": null
+    },
+    "components": [
+      {
+        "code": "A",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a1\",\"code\":\"a.1\",\"type\":\"text\"},{\"id\":\"refB\",\"code\":\"refB\",\"type\":\"component-ref\",\"componentCode\":\"B\",\"componentVersion\":\"2.0.0\"}]}",
+        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"a1\":{\"label\":\"A1\"}},\"layout\":[{\"type\":\"field\",\"fieldId\":\"a1\"},{\"type\":\"field\",\"fieldId\":\"refB\"}]}",
+        "contentHash": "hash-A"
+      },
+      {
+        "code": "B",
+        "version": "2.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"b1\",\"code\":\"b.1\",\"type\":\"text\"}]}",
+        "uiSchemaJson": null,
+        "contentHash": "hash-B"
+      }
+    ],
+    "expected": {
+      "formSchemaJson": "{\"fields\":[{\"code\":\"refA\",\"id\":\"refA\",\"items\":[{\"code\":\"a.1\",\"id\":\"a1\",\"type\":\"text\"},{\"code\":\"refB\",\"id\":\"refB\",\"items\":[{\"code\":\"b.1\",\"id\":\"b1\",\"type\":\"text\"}],\"type\":\"group\"}],\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
+      "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"a1\":{\"label\":\"A1\"}},\"layout\":[{\"children\":[{\"fieldId\":\"a1\",\"type\":\"field\"},{\"children\":[{\"fieldId\":\"b1\",\"type\":\"field\"}],\"fieldId\":\"refB\",\"type\":\"group\"}],\"fieldId\":\"refA\",\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
+      "rulesSchemaJson": null,
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"A\",\"contentHash\":\"hash-A\",\"version\":\"1.0.0\"},{\"code\":\"B\",\"contentHash\":\"hash-B\",\"version\":\"2.0.0\"}]}",
+      "contentHash": "4c1f0c6cb62040768d4dd08ec4a32a0e482ce28706d46711e1d7f9ada458fd1d"
+    },
+    "error": null
+  },
+  {
+    "name": "duplicate-references-dedup",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "1.0.0"
+        },
+        {
+          "id": "ref2",
+          "code": "ref2",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "1.0.0"
+        }
+      ]
+    },
+    "ui": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {},
+      "layout": [
+        {
+          "type": "field",
+          "fieldId": "ref1"
+        },
+        {
+          "type": "field",
+          "fieldId": "ref2"
+        }
+      ]
+    },
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"1.0.0\"},\n{\"id\":\"ref2\",\"code\":\"ref2\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"1.0.0\"}]}",
+      "uiRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"layout\":[{\"type\":\"field\",\"fieldId\":\"ref1\"},{\"type\":\"field\",\"fieldId\":\"ref2\"}]}",
+      "rulesRaw": null
+    },
+    "components": [
+      {
+        "code": "comp",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
+        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\n\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\n\"layout\":[{\"type\":\"field\",\"fieldId\":\"c1\"},{\"type\":\"field\",\"fieldId\":\"c2\"}]}",
+        "contentHash": "hash-comp-1.0.0"
+      }
+    ],
+    "expected": {
+      "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"},{\"code\":\"ref2\",\"id\":\"ref2\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
+      "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\"layout\":[{\"children\":[{\"fieldId\":\"c1\",\"type\":\"field\"},{\"fieldId\":\"c2\",\"type\":\"field\"}],\"fieldId\":\"ref1\",\"type\":\"group\"},{\"children\":[{\"fieldId\":\"c1\",\"type\":\"field\"},{\"fieldId\":\"c2\",\"type\":\"field\"}],\"fieldId\":\"ref2\",\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
+      "rulesSchemaJson": null,
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.0\",\"version\":\"1.0.0\"}]}",
+      "contentHash": "a32eac3cdf37eee1fb8f9e224754d6ddc1f9f920098619a2692b5b06730ec03c"
+    },
+    "error": null
+  },
+  {
+    "name": "same-component-two-versions",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "1.0.0"
+        },
+        {
+          "id": "ref2",
+          "code": "ref2",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "1.0.1"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"1.0.0\"},\n{\"id\":\"ref2\",\"code\":\"ref2\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"1.0.1\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [
+      {
+        "code": "comp",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
+        "uiSchemaJson": null,
+        "contentHash": "hash-comp-1.0.0"
+      },
+      {
+        "code": "comp",
+        "version": "1.0.1",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
+        "uiSchemaJson": null,
+        "contentHash": "hash-comp-1.0.1"
+      }
+    ],
+    "expected": {
+      "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"},{\"code\":\"ref2\",\"id\":\"ref2\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
+      "uiSchemaJson": null,
+      "rulesSchemaJson": null,
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.0\",\"version\":\"1.0.0\"},{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.1\",\"version\":\"1.0.1\"}]}",
+      "contentHash": "38200a7469560dacdba64d0d4a9d67439fa21439c133be2bb117d0c122274ed5"
+    },
+    "error": null
+  },
+  {
+    "name": "component-version-required",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": null,
+    "error": "ValidationException: COMPONENT_VERSION_REQUIRED: component-ref at /fields/0 must include componentVersion before publication."
+  },
+  {
+    "name": "component-version-empty-string",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "  "
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"  \"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": null,
+    "error": "ValidationException: COMPONENT_VERSION_REQUIRED: component-ref at /fields/0 must include componentVersion before publication."
+  },
+  {
+    "name": "component-version-not-found",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "9.9.9"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"9.9.9\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": null,
+    "error": "ValidationException: COMPONENT_VERSION_NOT_FOUND: component 'comp' version '9.9.9' referenced at /fields/0 was not found or is not published."
+  },
+  {
+    "name": "component-code-not-found",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "missing",
+          "componentVersion": "1.0.0"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"missing\",\"componentVersion\":\"1.0.0\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": null,
+    "error": "ValidationException: COMPONENT_VERSION_NOT_FOUND: component 'missing' version '1.0.0' referenced at /fields/0 was not found or is not published."
+  },
+  {
+    "name": "circular-component-reference",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "refA",
+          "code": "refA",
+          "type": "component-ref",
+          "componentCode": "A",
+          "componentVersion": "1.0.0"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"refA\",\"code\":\"refA\",\"type\":\"component-ref\",\"componentCode\":\"A\",\"componentVersion\":\"1.0.0\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [
+      {
+        "code": "A",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"refB\",\"code\":\"refB\",\"type\":\"component-ref\",\"componentCode\":\"B\",\"componentVersion\":\"1.0.0\"},{\"id\":\"a1\",\"code\":\"a.1\",\"type\":\"text\"}]}",
+        "uiSchemaJson": null,
+        "contentHash": "hash-A"
+      },
+      {
+        "code": "B",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"refA\",\"code\":\"refA\",\"type\":\"component-ref\",\"componentCode\":\"A\",\"componentVersion\":\"1.0.0\"},{\"id\":\"b1\",\"code\":\"b.1\",\"type\":\"text\"}]}",
+        "uiSchemaJson": null,
+        "contentHash": "hash-B"
+      }
+    ],
+    "expected": null,
+    "error": "ValidationException: CIRCULAR_COMPONENT_REFERENCE: component 'A' references itself through B -> A -> A."
+  },
+  {
+    "name": "invalid-semver-in-component-version",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "abc"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"abc\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": null,
+    "error": "ValidationException: Invalid semantic version: abc"
+  },
+  {
+    "name": "component-with-nested-items",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "1.0.0"
+        }
+      ]
+    },
+    "ui": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {},
+      "layout": [
+        {
+          "type": "field",
+          "fieldId": "ref1"
+        }
+      ]
+    },
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"1.0.0\"}]}",
+      "uiRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"layout\":[{\"type\":\"field\",\"fieldId\":\"ref1\"}]}",
+      "rulesRaw": null
+    },
+    "components": [
+      {
+        "code": "comp",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"grp\",\"code\":\"grp\",\"type\":\"group\",\"items\":[{\"id\":\"inner\",\"code\":\"grp.inner\",\"type\":\"text\"}]}]}",
+        "uiSchemaJson": null,
+        "contentHash": "hash-grp"
+      }
+    ],
+    "expected": {
+      "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"grp\",\"id\":\"grp\",\"items\":[{\"code\":\"grp.inner\",\"id\":\"inner\",\"type\":\"text\"}],\"type\":\"group\"}],\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
+      "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"layout\":[{\"children\":[{\"fieldId\":\"grp\",\"type\":\"field\"}],\"fieldId\":\"ref1\",\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
+      "rulesSchemaJson": null,
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-grp\",\"version\":\"1.0.0\"}]}",
+      "contentHash": "926be19064fb581aa6342294590628dbe8075e8d802db6ab77904470f6345784"
+    },
+    "error": null
+  },
+  {
+    "name": "ui-layout-section-repeater-and-expanded-ref",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "1.0.0"
+        },
+        {
+          "id": "rows",
+          "code": "rows",
+          "type": "repeater",
+          "items": [
+            {
+              "id": "rn",
+              "code": "rows.n",
+              "type": "text"
+            }
+          ]
+        },
+        {
+          "id": "plain",
+          "code": "plain",
+          "type": "text"
+        }
+      ]
+    },
+    "ui": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "plain": {
+          "label": "Plain"
+        }
+      },
+      "layout": [
+        {
+          "type": "section",
+          "id": "s1",
+          "title": "Section A",
+          "description": "d",
+          "children": [
+            {
+              "type": "field",
+              "fieldId": "ref1"
+            },
+            {
+              "type": "field",
+              "fieldId": "plain"
+            }
+          ]
+        },
+        {
+          "type": "repeater",
+          "fieldId": "rows",
+          "addButtonLabel": "Add",
+          "removeButtonLabel": "Remove",
+          "itemTemplate": [
+            {
+              "type": "field",
+              "fieldId": "rn"
+            }
+          ]
+        }
+      ]
+    },
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"1.0.0\"},\n{\"id\":\"rows\",\"code\":\"rows\",\"type\":\"repeater\",\"items\":[{\"id\":\"rn\",\"code\":\"rows.n\",\"type\":\"text\"}]},\n{\"id\":\"plain\",\"code\":\"plain\",\"type\":\"text\"}]}",
+      "uiRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"plain\":{\"label\":\"Plain\"}},\n\"layout\":[\n{\"type\":\"section\",\"id\":\"s1\",\"title\":\"Section A\",\"description\":\"d\",\"children\":[{\"type\":\"field\",\"fieldId\":\"ref1\"},{\"type\":\"field\",\"fieldId\":\"plain\"}]},\n{\"type\":\"repeater\",\"fieldId\":\"rows\",\"addButtonLabel\":\"Add\",\"removeButtonLabel\":\"Remove\",\"itemTemplate\":[{\"type\":\"field\",\"fieldId\":\"rn\"}]}]}",
+      "rulesRaw": null
+    },
+    "components": [
+      {
+        "code": "comp",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
+        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\n\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\n\"layout\":[{\"type\":\"field\",\"fieldId\":\"c1\"},{\"type\":\"field\",\"fieldId\":\"c2\"}]}",
+        "contentHash": "hash-comp-1.0.0"
+      }
+    ],
+    "expected": {
+      "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"},{\"code\":\"rows\",\"id\":\"rows\",\"items\":[{\"code\":\"rows.n\",\"id\":\"rn\",\"type\":\"text\"}],\"type\":\"repeater\"},{\"code\":\"plain\",\"id\":\"plain\",\"type\":\"text\"}],\"schemaVersion\":\"1.0.0\"}",
+      "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"},\"plain\":{\"label\":\"Plain\"}},\"layout\":[{\"children\":[{\"children\":[{\"fieldId\":\"c1\",\"type\":\"field\"},{\"fieldId\":\"c2\",\"type\":\"field\"}],\"fieldId\":\"ref1\",\"type\":\"group\"},{\"fieldId\":\"plain\",\"type\":\"field\"}],\"description\":\"d\",\"id\":\"s1\",\"title\":\"Section A\",\"type\":\"section\"},{\"addButtonLabel\":\"Add\",\"fieldId\":\"rows\",\"itemTemplate\":[{\"fieldId\":\"rn\",\"type\":\"field\"}],\"removeButtonLabel\":\"Remove\",\"type\":\"repeater\"}],\"schemaVersion\":\"1.0.0\"}",
+      "rulesSchemaJson": null,
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.0\",\"version\":\"1.0.0\"}]}",
+      "contentHash": "d2fac1fce518e165ec4f51cd04136e5025c5bf3f5215a797a55c07c416fa55f7"
+    },
+    "error": null
+  },
+  {
+    "name": "root-fields-missing",
+    "form": {
+      "schemaVersion": "1.0.0"
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\"}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": null,
+    "error": "ValidationException: Expected array at /fields."
+  },
+  {
+    "name": "root-fields-not-array",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": {}
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":{}}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": null,
+    "error": "ValidationException: Expected array at /fields."
+  },
+  {
+    "name": "field-missing-type",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": null,
+    "error": "ValidationException: Expected non-empty string at /fields/0/type."
+  },
+  {
+    "name": "ref-missing-component-code",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": null,
+    "error": "ValidationException: Expected non-empty string at /fields/0/componentCode."
+  },
+  {
+    "name": "ref-missing-id",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "type": "component-ref",
+          "code": "ref1",
+          "componentCode": "comp",
+          "componentVersion": "1.0.0"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"type\":\"component-ref\",\"code\":\"ref1\",\"componentCode\":\"comp\",\"componentVersion\":\"1.0.0\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [
+      {
+        "code": "comp",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
+        "uiSchemaJson": null,
+        "contentHash": "hash-comp-1.0.0"
+      }
+    ],
+    "expected": null,
+    "error": "ValidationException: Expected non-empty string at /fields/0/id."
+  },
+  {
+    "name": "component-form-invalid",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "1.0.0"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"1.0.0\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [
+      {
+        "code": "comp",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"fields\":[",
+        "uiSchemaJson": null,
+        "contentHash": "hash-comp"
+      }
+    ],
+    "expected": null,
+    "error": "ValidationException: Invalid component 'comp' form schema: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 11."
+  },
+  {
+    "name": "component-fields-missing",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "1.0.0"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"1.0.0\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [
+      {
+        "code": "comp",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\"}",
+        "uiSchemaJson": null,
+        "contentHash": "hash-comp"
+      }
+    ],
+    "expected": null,
+    "error": "ValidationException: Expected array at /components/comp/fields."
+  },
+  {
+    "name": "component-ui-invalid",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "1.0.0"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"1.0.0\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [
+      {
+        "code": "comp",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
+        "uiSchemaJson": "{\"fields\":",
+        "contentHash": "hash-comp"
+      }
+    ],
+    "expected": null,
+    "error": "JsonReaderException: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 10."
+  },
+  {
+    "name": "invalid-form-json",
+    "form": "{\"fields\":[",
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"fields\":[",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": null,
+    "error": "ValidationException: Invalid form schema: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 11."
+  },
+  {
+    "name": "invalid-ui-json",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": []
+    },
+    "ui": "{\"fields\":",
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[]}",
+      "uiRaw": "{\"fields\":",
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": null,
+    "error": "ValidationException: Invalid UI schema: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 10."
+  },
+  {
+    "name": "invalid-rules-json",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": []
+    },
+    "ui": null,
+    "rules": "{\"fields\":{",
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[]}",
+      "uiRaw": null,
+      "rulesRaw": "{\"fields\":{"
+    },
+    "components": [],
+    "expected": null,
+    "error": "ValidationException: Invalid rules schema: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 11."
+  },
+  {
+    "name": "rules-schema-version-absent",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "a",
+          "code": "a",
+          "type": "number"
+        }
+      ]
+    },
+    "ui": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {},
+      "layout": []
+    },
+    "rules": {
+      "fields": {}
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"}]}",
+      "uiRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"layout\":[]}",
+      "rulesRaw": "{\"fields\":{}}"
+    },
+    "components": [],
+    "expected": {
+      "formSchemaJson": "{\"fields\":[{\"code\":\"a\",\"id\":\"a\",\"type\":\"number\"}],\"schemaVersion\":\"1.0.0\"}",
+      "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"layout\":[],\"schemaVersion\":\"1.0.0\"}",
+      "rulesSchemaJson": "{\"formSchemaVersion\":null,\"fields\":{},\"schemaVersion\":null}",
+      "dependencyMetadataJson": "{\"components\":[],\"rules\":{\"calculatedFieldIds\":[],\"evaluationOrder\":[]}}",
+      "contentHash": "6df6c265ee1a586297b4c9a026f68aae430446b4e1c12f00f6f3c4e71ce34b15"
+    },
+    "error": null
+  },
+  {
+    "name": "dependency-metadata-with-rules",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref1",
+          "code": "ref1",
+          "type": "component-ref",
+          "componentCode": "comp",
+          "componentVersion": "1.0.0"
+        },
+        {
+          "id": "calc",
+          "code": "calc",
+          "type": "number",
+          "readOnly": true
+        }
+      ]
+    },
+    "ui": null,
+    "rules": {
+      "schemaVersion": "1.0.0",
+      "formSchemaVersion": "1.0.0",
+      "fields": {
+        "calc": {
+          "calculate": {
+            "op": "add",
+            "args": [
+              {
+                "ref": "component.c2"
+              },
+              {
+                "lit": 1
+              }
+            ]
+          }
+        }
+      }
+    },
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n   {\"id\":\"ref1\",\"code\":\"ref1\",\"type\":\"component-ref\",\"componentCode\":\"comp\",\"componentVersion\":\"1.0.0\"},\n   {\"id\":\"calc\",\"code\":\"calc\",\"type\":\"number\",\"readOnly\":true}]}",
+      "uiRaw": null,
+      "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"calc\":{\"calculate\":{\"op\":\"add\",\"args\":[{\"ref\":\"component.c2\"},{\"lit\":1}]}}}}"
+    },
+    "components": [
+      {
+        "code": "comp",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
+        "uiSchemaJson": null,
+        "contentHash": "hash-comp-1.0.0"
+      }
+    ],
+    "expected": {
+      "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"},{\"code\":\"calc\",\"id\":\"calc\",\"readOnly\":true,\"type\":\"number\"}],\"schemaVersion\":\"1.0.0\"}",
+      "uiSchemaJson": null,
+      "rulesSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"calc\":{\"calculate\":{\"args\":[{\"ref\":\"component.c2\"},{\"lit\":1}],\"op\":\"add\"}}},\"schemaVersion\":\"1.0.0\"}",
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.0\",\"version\":\"1.0.0\"}],\"rules\":{\"calculatedFieldIds\":[\"calc\"],\"evaluationOrder\":[\"calc\"]}}",
+      "contentHash": "f7a33473decbc4edaaa5de392b46818353491714cac6455500051d747884e67d"
+    },
+    "error": null
+  }
+]

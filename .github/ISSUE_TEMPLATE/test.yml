@@ -1,0 +1,86 @@
+name: Test
+description: Coverage for a behaviour that already exists.
+title: 'test: '
+labels: [test]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        The golden vectors under `tests/golden/vectors/` are frozen. They were
+        recorded once from an external implementation and cannot be
+        regenerated. A failing vector means colander's behaviour moved, not that
+        the fixture is stale, so a vector file is a read-only input and is
+        never edited to make a test pass.
+
+  - type: textarea
+    id: objective
+    attributes:
+      label: Objective
+      description: What gets covered once this is done, and why.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: vector-involvement
+    attributes:
+      label: Golden vector involvement
+      description: How this change relates to the frozen vectors.
+      options:
+        - New coverage, no golden vector affected
+        - A golden vector fails
+        - A golden vector file would need to change
+        - Not sure yet
+    validations:
+      required: true
+
+  - type: dropdown
+    id: vector-group
+    attributes:
+      label: Vector group
+      description: The group involved, if any.
+      options:
+        - canonical
+        - hash
+        - semver
+        - rules
+        - validate
+        - compile
+        - errors
+        - Not applicable
+    validations:
+      required: false
+
+  - type: textarea
+    id: constraints
+    attributes:
+      label: Constraints
+      description: Technical rules the implementation must respect.
+    validations:
+      required: false
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: One testable statement per line, each starting with a dash.
+      placeholder: |
+        - The new test fails when the behaviour is reversed.
+        - `cargo test` passes with the vector files untouched.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Test evidence
+      description: Which test or group this touches, and what it currently prints, not merely that it passes.
+    validations:
+      required: true
+
+  - type: textarea
+    id: out-of-scope
+    attributes:
+      label: Out of scope
+      description: What this explicitly does not cover, so the boundary is clear.
+    validations:
+      required: false
