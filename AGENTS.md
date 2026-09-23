@@ -16,9 +16,9 @@ dev-dependencies. Do not reintroduce one.
 depends on this crate; the reverse is a defect, not a convenience. Adding any
 edge from here onto `slate-ai` is what caused the outage above.
 
-**The repository has no commits and no remote.** `master` is unborn, so `git log`,
-`git show` and `git diff HEAD` all fail. Do not create commits, branches or
-remotes unless explicitly asked.
+**The repository has an `origin` remote and commits.** `v0.1.0` is tagged and
+0.1.0 is published on crates.io. Do not create commits, branches or remotes
+unless explicitly asked.
 
 ## Commands
 
@@ -81,9 +81,11 @@ hand-editing the header.
 
 - Tests live in `tests/`, one file per domain.
 - The stated limit is **no file over 400 lines**; `src/json/parse.rs` is already
-  at 541. Do not widen that gap.
-- Deliberately **no trait, no generic abstraction, no plugin layer**. A second
-  use is what would justify extracting anything.
+  at 540. Do not widen that gap.
+- Deliberately flat and free of a plugin layer; the single deliberate trait is
+  the `Codec` seam in `src/codec.rs`, which the envelope boundary is generic
+  over so the wire format is injectable. A second use is what would justify
+  extracting anything else.
 - Exactly **three runtime dependencies**: `indexmap`, `regex`, `sha2`. The JSON
   parser and writer are handwritten on purpose, to keep number spelling and key
   order intact. Adding a dependency is a decision to raise, not a convenience.

@@ -74,9 +74,8 @@ It checks out this repository only, because the crate is self-contained and
 declares no dev-dependency. It uses GitHub's own actions plus the toolchain
 preinstalled on the runner — no third-party action is pulled in.
 
-The workflow has not been exercised: both this repository and `slate-ai` are
-still unborn with no remote. It runs the same tasks you run locally, so a change
-that passes `cargo make ci` here is expected to pass there.
+It runs the same tasks you run locally, so a change that passes `cargo make ci`
+here is expected to pass there.
 
 ## Git hooks
 
@@ -109,8 +108,10 @@ The full documentation lives under `docs/`, split by task:
 | [docs/rules.md](docs/rules.md)                     | Rule operators, evaluation order and analysis errors.                        |
 | [docs/validation.md](docs/validation.md)           | Response validation and every error code.                                    |
 | [docs/abi.md](docs/abi.md)                         | The wire contract: envelope, memory, panics, escaping, header gaps.          |
+| [docs/codecs.md](docs/codecs.md)                   | The codec seam: JSON and MessagePack, and why injection is static.           |
 | [docs/gotchas.md](docs/gotchas.md)                 | Behaviour worth knowing.                                                     |
 | [docs/vectors.md](docs/vectors.md)                 | What the frozen golden vectors assert.                                       |
+| [docs/releases.md](docs/releases.md)               | The release pipeline, header guard and manual crates.io publish.             |
 
 ## The ABI in one paragraph
 
@@ -173,21 +174,25 @@ docs/
   concepts.md             the mental model
   glossary.md             plain-language terms
   abi.md                  the wire contract
-  entry-points.md         all twelve exported symbols
+  entry-points.md         all eleven exported symbols
   documents.md            form, UI and rules schemas
   rules.md                operators, evaluation order, analysis errors
   validation.md           response validation and error codes
   json-schema.md          supported Draft 2020-12 subset
   json.md                 parser, limits, number output, canonical form
+  codecs.md               the codec seam
   gotchas.md              behaviour worth knowing
   dependencies.md         what stays hand-written, and why
   vectors.md              what the frozen vectors assert
+  releases.md             the release pipeline
 ```
 
 Tests never sit inside a source file: the crate keeps its tests under `tests/`,
-and no file exceeds 400 lines. There is deliberately no trait, no generic
-abstraction and no plugin layer — the files are flat, grouped by domain, and a
-second use is what would justify extracting anything.
+and no file exceeds 400 lines. The crate is deliberately flat — one file per
+domain, one file per concern. The single deliberate trait is the `Codec` seam in
+`src/codec.rs`, which the envelope boundary is generic over so the wire format is
+injectable; there is no plugin layer, and a second use is what would justify
+extracting anything else.
 
 ## Testing
 

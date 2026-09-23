@@ -76,8 +76,9 @@ maintainer did not explicitly decide to publish.
 
 ## Manual crates.io publish
 
-crates.io versions are permanent and irreversible, so the publish is a human
-decision run locally from a clean checkout of the tag, never from CI. To
+A published crates.io version is discouraged from deletion and can be removed
+only in narrow cases (no dependents, very low downloads), so the publish is a
+human decision run locally from a clean checkout of the tag, never from CI. To
 publish the version behind a tag:
 
 ```sh
@@ -108,12 +109,13 @@ deliberate act (`cog bump --major`).
 
 ## First-release notes
 
-The current 0.1.0 has no tag and will never be published: `from_latest_tag = true` makes cocogitto compute the first version from the accumulated
-commits, so the first `cog bump --auto` produces the first tag and the
-first CHANGELOG section in one step. Creating the GitHub Release (on
-demand) and publishing that version to crates.io are separate manual
-decisions; published versions cannot be deleted, so the first publish
-decides the crate's public history.
+Tag `v0.1.0` exists and 0.1.0 is published on crates.io, so the first release has
+already happened. `from_latest_tag = true` makes cocogitto compute each
+subsequent version from the commits accumulated since the last tag. Creating a
+GitHub Release (on demand) and publishing each new version to crates.io are
+separate manual decisions; crates.io discourages deleting a published version
+and permits it only in narrow cases (no dependents, very low downloads), so
+treat every publish as lasting.
 
 ## Recovery
 

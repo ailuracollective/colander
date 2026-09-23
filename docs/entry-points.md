@@ -1,14 +1,14 @@
 # Entry points
 
 This page is the reference for the entire exported surface of colander: the
-twelve symbols the shared library exposes, the request keys each one accepts,
+eleven symbols the shared library exposes, the request keys each one accepts,
 the response it returns and the errors it can produce. Read it when you need the
 exact request or response shape for one call.
 
 Every `char *`-returning function returns the envelope described in
 [abi.md](abi.md) — `{"ok":true,"result":{…}}` on success or
 `{"ok":false,"error":{"kind":"…","message":"…"}}` on failure. Check `ok` before
-reading `result`; no function returns NULL.
+reading `result`; no `char *`-returning entry point returns NULL.
 
 ## Entry points at a glance
 
@@ -201,7 +201,7 @@ for accepting a submission.
 | ----------------- | ------ | -------- | ------------------------------------------------ |
 | `formSchemaJson`  | string | yes      | JSON text; must parse to an object               |
 | `answersJson`     | string | yes      | JSON text; must parse to an **object**           |
-| `uiSchemaJson`    | string | no       | Not read by this entry point                     |
+| `uiSchemaJson`    | string | no       | Only `fields.<id>.hidden` is read                |
 | `rulesSchemaJson` | string | no       | Absent or whitespace-only is treated as no rules |
 | `mode`            | string | no       | `"Draft"` (default) or `"Complete"`              |
 

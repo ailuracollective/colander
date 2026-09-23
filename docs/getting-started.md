@@ -57,9 +57,9 @@ Every `char *`-returning function produces exactly one of these two shapes:
 
 The single most important rule: **check `ok` before touching `result`, and
 release every returned string with `colander_free_string()` — never `free()`.** No
-function returns NULL, so NULL is never a valid "is this an error?" test. The
-full contract, including memory ownership and panic behaviour, is in
-[abi.md](abi.md).
+`char *`-returning entry point returns NULL, so NULL is never a valid
+"is this an error?" test. The full contract, including memory ownership and
+panic behaviour, is in [abi.md](abi.md).
 
 ## Entry points at a glance
 

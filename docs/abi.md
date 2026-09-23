@@ -28,8 +28,9 @@ serialized with the core's JSON writer (document key order, no whitespace):
 
 Rules that always hold:
 
-- **No function returns NULL.** Failure is always the failure envelope, so NULL
-  is never a valid "is this an error?" test — check `ok`.
+- **No `char *`-returning entry point returns NULL.** Failure is always the
+  failure envelope, so NULL is never a valid "is this an error?" test — check
+  `ok`.
 - **The returned string is yours.** Release it with `colander_free_string()`.
   Freeing it twice, or passing a pointer this library did not produce, is
   undefined behaviour. `colander_free_string(NULL)` is a no-op.
@@ -54,9 +55,9 @@ The returned string is yours. Release it with `colander_free_string()`. Freeing 
 twice, or passing a pointer this library did not produce, is undefined
 behaviour. `colander_free_string(NULL)` is a no-op.
 
-No function returns NULL, so NULL is never a valid "is this an error?" test:
-check `ok`. The full set of functions and their signatures is in
-[entry-points.md](entry-points.md).
+No `char *`-returning entry point returns NULL, so NULL is never a valid
+"is this an error?" test: check `ok`. The full set of functions and their
+signatures is in [entry-points.md](entry-points.md).
 
 ## The allocator pair
 
