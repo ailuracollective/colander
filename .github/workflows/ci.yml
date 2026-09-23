@@ -31,7 +31,7 @@ jobs:
           curl -fsSL -o hk.tar.gz \
             https://github.com/jdx/hk/releases/download/v2.0.1/hk-x86_64-unknown-linux-gnu.tar.gz
           tar -xzf hk.tar.gz hk
-          install -m 755 hk "${HOME}/.local/bin/hk"
+          install -m 755 hk "${HOME}/.cargo/bin/hk"
           rm hk.tar.gz hk
           hk --version
 

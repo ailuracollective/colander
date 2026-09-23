@@ -23,7 +23,7 @@ by task, so you can read only what you need before your first call.
 | [gotchas.md](gotchas.md)                 | Behaviour worth knowing, most of it inherited rather than chosen.                                                     | Something surprised you.                                            |
 | [dependencies.md](dependencies.md)       | What stays hand-written, and why.                                                                                     | You wonder why the crate has so few dependencies.                   |
 | [vectors.md](vectors.md)                 | What the frozen golden vectors assert.                                                                                | You are running or extending the test suite.                        |
-| [releases.md](releases.md)               | The release pipeline: cocogitto bumps, the header guard, and what CI publishes.                                       | You are cutting a release or provisioning the crates.io token.      |
+| [releases.md](releases.md)               | The release pipeline: cocogitto bumps, the header guard, what CI releases, and the manual crates.io publish.          | You are cutting a release or publishing to crates.io.               |
 
 ## Reading paths
 

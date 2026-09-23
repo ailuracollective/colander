@@ -1,13 +1,12 @@
 # Release workflow: fires on the version tag pushed by `cog bump`'s post-bump
 # hooks (a v* tag on master). It verifies the tree with the full CI task set,
-# builds the cdylib, publishes to crates.io and creates the GitHub Release
-# with changelog notes and the built artifact.
+# builds the cdylib and creates the GitHub Release with changelog notes and the
+# built artifact.
 #
-# Order matters: crates.io publishing is irreversible and permanent, so it
-# runs BEFORE the GitHub Release creation; if publish fails the job fails and
-# no release is advertised. The version commit and tag were created locally by
-# `cog bump` (the post-bump hooks only push), so this workflow only verifies
-# and publishes.
+# Publishing to crates.io is intentionally NOT part of this workflow (see
+# docs/releases.md): it stays a manual, human decision run locally from a clean
+# checkout. The version commit and tag were created locally by `cog bump` (the
+# post-bump hooks only push), so this workflow only verifies and releases.
 
 name: Release
 
@@ -23,7 +22,7 @@ env:
 
 jobs:
   release:
-    name: Verify, publish, release
+    name: Verify and release
     runs-on: ubuntu-latest
     steps:
       - name: Check out the repository
@@ -62,11 +61,6 @@ jobs:
 
       - name: Build the native library
         run: cargo build --release
-
-      - name: Publish to crates.io
-        env:
-          CARGO_REGISTRY_TOKEN: ${{ secrets.CARGO_REGISTRY_TOKEN }}
-        run: cargo publish --locked
 
       - name: Create the GitHub Release
         env:

@@ -1,11 +1,12 @@
 # Releases
 
-Releasing colander is a deterministic pipeline with one human input: the
-**when**. You run `cog bump --auto` locally on `master` with a clean tree;
-cocogitto computes the next version from Conventional Commits, and every
-following step — header guard, version bump, changelog, commit, tag, push,
-CI verification, crates.io publish, GitHub Release — is automation that
-either succeeds or fails loudly.
+Releasing colander is a deterministic pipeline with two human inputs: the
+**when** and, for now, the **crates.io publish**. You run `cog bump --auto`
+locally on `master` with a clean tree; cocogitto computes the next version
+from Conventional Commits, and every following step — header guard, version
+bump, changelog, commit, tag, push, CI verification, GitHub Release — is
+automation that either succeeds or fails loudly. Publishing to crates.io is
+the one step that stays manual until the maintainer re-enables it in CI.
 
 ## Purpose
 
@@ -54,29 +55,30 @@ order:
    build), proving the tree is releasable.
 2. `cargo build --release` — the cdylib `target/release/libcolander.so`
    that becomes the GitHub Release artifact.
-3. `cargo publish --locked` — publishes to crates.io with the
-   `CARGO_REGISTRY_TOKEN` secret.
-4. `gh release create` — creates the GitHub Release with the CHANGELOG
+3. `gh release create` — creates the GitHub Release with the CHANGELOG
    section for the tag (extracted by `scripts/release-notes.sh`) plus the
    cdylib.
 
-Publishing runs BEFORE the GitHub Release on purpose: crates.io versions
-are permanent and irreversible, while the GitHub Release is re-runnable and
-can be recreated by hand. If the publish fails, the job fails and nothing is
-advertised; if only the Release step fails, the publish already stuck and
-only the release needs to be recreated.
+The workflow does NOT publish to crates.io. Publishing is a deliberate
+manual step (see below) so the automation can never push a version that the
+maintainer did not explicitly decide to publish.
 
-## Token setup
+## Manual crates.io publish
 
-crates.io authentication is a one-time user action; the flow cannot publish
-without it:
+crates.io versions are permanent and irreversible, so the publish is a human
+decision run locally from a clean checkout of the tag, never from CI. To
+publish the version behind a tag:
 
-1. Create a token at <https://crates.io/me> (scope: publish).
-2. Add it as the repository secret `CARGO_REGISTRY_TOKEN`
-   (Settings -> Secrets and variables -> Actions).
-3. Done. Cargo reads the token from the `CARGO_REGISTRY_TOKEN` environment
-   variable set by the workflow; the token never touches a developer
-   machine.
+```sh
+cargo login                 # one-time: token from https://crates.io/me (scope: publish)
+git checkout vX.Y.Z
+cargo make ci               # same proof CI ran on the tag
+cargo publish --locked      # uploads the exact tagged tree
+```
+
+If the workflow's release step fails after a manual publish (or vice versa),
+either half can be redone independently: the release is re-runnable with
+`gh release create` and the publish is idempotent until the version is taken.
 
 ## Versioning policy
 
@@ -95,9 +97,9 @@ deliberate act (`cog bump --major`).
 
 The current 0.1.0 has no tag and will never be published: `from_latest_tag = true` makes cocogitto compute the first version from the accumulated
 commits, so the first `cog bump --auto` produces the first tag, the first
-CHANGELOG section and the first crates.io version in one step. Published
-crates.io versions cannot be deleted, so the first publish decides the
-crate's public history.
+CHANGELOG section and the first GitHub Release in one step. Publishing that
+version to crates.io is a separate manual decision; published versions
+cannot be deleted, so the first publish decides the crate's public history.
 
 ## Recovery
 
@@ -105,10 +107,8 @@ crate's public history.
   changes under `cog_bump_<version>`; `git stash apply` restores them.
 - Post-bump hooks have no rollback, so they only push: a failed push leaves
   the local commit and tag intact and recoverable.
-- If the CI publish fails, nothing is released: the workflow fails loudly
-  and the tag push can be retried after fixing the cause.
-- If the GitHub Release step fails after a successful publish, create the
-  release manually with `gh release create` — do not re-run the whole job,
-  because `cargo publish` fails on the already-published version. The
-  `gh release create` step itself is idempotent for a missing release, so a
-  manual run needs no special care.
+- If the workflow's Release step fails, create the release manually with
+  `gh release create` — the step is idempotent for a missing release.
+- A failed manual `cargo publish` leaves no half-state: fix the cause and
+  re-run; the only permanent case is a version that was already published,
+  which is why `cargo make ci` runs before every publish attempt.
