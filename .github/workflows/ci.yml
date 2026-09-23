@@ -3,6 +3,9 @@ name: CI
 on:
   push:
     branches: [master, main]
+    # A v* tag push is verified but never released (see release.yml, which
+    # only runs on demand).
+    tags: ['v*']
   pull_request:
     # `edited` re-checks the title, mirroring the reference project.
     types: [opened, synchronize, reopened, edited]

@@ -1,12 +1,14 @@
 # Releases
 
-Releasing colander is a deterministic pipeline with two human inputs: the
-**when** and, for now, the **crates.io publish**. You run `cog bump --auto`
-locally on `master` with a clean tree; cocogitto computes the next version
-from Conventional Commits, and every following step — header guard, version
-bump, changelog, commit, tag, push, CI verification, GitHub Release — is
-automation that either succeeds or fails loudly. Publishing to crates.io is
-the one step that stays manual until the maintainer re-enables it in CI.
+Releasing colander is a deterministic pipeline with deliberate human
+decision points: the **when** (the bump that creates the tag), the **GitHub
+Release** (created only on demand, never from the tag push alone) and, for
+now, the **crates.io publish**. You run `cog bump --auto` locally on
+`master` with a clean tree; cocogitto computes the next version from
+Conventional Commits, and every following step — header guard, version bump,
+changelog, commit, tag, push, CI verification — is automation that either
+succeeds or fails loudly. Creating the GitHub Release and publishing to
+crates.io are the two steps that stay manual until you run them.
 
 ## Purpose
 
@@ -14,8 +16,8 @@ Conventions and the frozen contract make releases repeatable and
 reviewable. Leaving the version in human hands after the first release
 means drift: CHANGELOG sections that mismatch the tag, a Cargo.toml version
 that disagrees with `CARGO_PKG_VERSION`, a stale generated header shipped in
-the artifact. The human decides WHEN; automation does the deterministic
-parts.
+the artifact. The human decides WHEN and WHAT gets published; automation
+does the deterministic parts.
 
 ## The flow
 
@@ -28,7 +30,8 @@ mutates nothing. When the version looks right, run the real bump:
 | Changelog       | Cocogitto appends the new section to CHANGELOG.md                                                                                                                                      |
 | Commit and tag  | A `chore(version): X.Y.Z` commit, then tag `vX.Y.Z`                                                                                                                                    |
 | Post-bump hooks | `git push origin master` and `git push origin vX.Y.Z`                                                                                                                                  |
-| CI              | The `v*` tag push triggers `.github/workflows/release.yml`                                                                                                                             |
+| CI              | The `v*` tag push runs the full CI set (`ci.yml`) as verification only — it never creates a Release                                                                                    |
+| GitHub Release  | Created only when you run the `Release` workflow on demand (see below)                                                                                                                 |
 
 Cocogitto aborts the bump when the tree is dirty or a pre-bump hook fails,
 so a failed run leaves no half-released state behind (see Recovery).
@@ -46,16 +49,24 @@ regenerate it after an ABI change, run:
 
 and commit the result before bumping.
 
-## What CI does on the tag
+## Creating the GitHub Release (only when you say so)
 
-`.github/workflows/release.yml` runs on the pushed `v*` tag and does, in
-order:
+Pushing the tag never creates a GitHub Release. The Release is a separate,
+deliberate step; run `.github/workflows/release.yml` when you want it, from
+the Actions UI (Actions -> Release -> Run workflow -> tag) or with:
 
-1. `cargo make ci` — the full local CI set (fmt-check, lint, check, test,
+```sh
+gh workflow run release.yml -f tag=vX.Y.Z
+```
+
+The workflow does, in order:
+
+1. Checks out the requested tag and confirms it exists.
+2. `cargo make ci` — the full local CI set (fmt-check, lint, check, test,
    build), proving the tree is releasable.
-2. `cargo build --release` — the cdylib `target/release/libcolander.so`
+3. `cargo build --release` — the cdylib `target/release/libcolander.so`
    that becomes the GitHub Release artifact.
-3. `gh release create` — creates the GitHub Release with the CHANGELOG
+4. `gh release create` — creates the GitHub Release with the CHANGELOG
    section for the tag (extracted by `scripts/release-notes.sh`) plus the
    cdylib.
 
@@ -77,8 +88,10 @@ cargo publish --locked      # uploads the exact tagged tree
 ```
 
 If the workflow's release step fails after a manual publish (or vice versa),
-either half can be redone independently: the release is re-runnable with
-`gh release create` and the publish is idempotent until the version is taken.
+either half can be redone independently: re-run the workflow with
+`gh workflow run release.yml -f tag=vX.Y.Z` (idempotent for a missing
+release) or create the release manually with `gh release create`, and the
+publish is idempotent until the version is taken.
 
 ## Versioning policy
 
@@ -96,10 +109,11 @@ deliberate act (`cog bump --major`).
 ## First-release notes
 
 The current 0.1.0 has no tag and will never be published: `from_latest_tag = true` makes cocogitto compute the first version from the accumulated
-commits, so the first `cog bump --auto` produces the first tag, the first
-CHANGELOG section and the first GitHub Release in one step. Publishing that
-version to crates.io is a separate manual decision; published versions
-cannot be deleted, so the first publish decides the crate's public history.
+commits, so the first `cog bump --auto` produces the first tag and the
+first CHANGELOG section in one step. Creating the GitHub Release (on
+demand) and publishing that version to crates.io are separate manual
+decisions; published versions cannot be deleted, so the first publish
+decides the crate's public history.
 
 ## Recovery
 

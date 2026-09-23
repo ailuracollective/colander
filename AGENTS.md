@@ -124,8 +124,10 @@ Releases are created locally on `master` with a clean tree: preview with
 `cog bump --dry-run --auto`, then `cog bump --auto`. The pre-bump hooks
 guard the generated header (`scripts/check-header.sh`) and bump the single
 version source (`scripts/bump-version.sh`, Cargo.toml -> CARGO_PKG_VERSION);
-the post-bump hooks push `master` and the `v*` tag. That tag push triggers
-`.github/workflows/release.yml`, which verifies via `cargo make ci`, builds
+the post-bump hooks push `master` and the `v*` tag. The tag push runs the
+full CI verification only (`ci.yml`); it NEVER creates a GitHub Release. To
+create the Release, run the `Release` workflow yourself (Actions UI or
+`gh workflow run release.yml -f tag=vX.Y.Z`) — it verifies again, builds
 the cdylib, and creates the GitHub Release with changelog notes and the
 artifact. Publishing to crates.io is a manual step for now (see
 [docs/releases.md](docs/releases.md)). Version

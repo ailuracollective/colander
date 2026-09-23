@@ -1,18 +1,25 @@
-# Release workflow: fires on the version tag pushed by `cog bump`'s post-bump
-# hooks (a v* tag on master). It verifies the tree with the full CI task set,
-# builds the cdylib and creates the GitHub Release with changelog notes and the
-# built artifact.
+# Release workflow: runs ONLY when a maintainer asks for it, from the Actions
+# UI or with `gh workflow run release.yml -f tag=vX.Y.Z`. It checks out the
+# requested tag, verifies the tree with the full CI task set, builds the cdylib
+# and creates the GitHub Release with changelog notes and the built artifact.
+#
+# Pushing a `v*` tag alone NEVER creates a Release: `cog bump`'s post-bump
+# hooks push the tag, and CI verifies it (see ci.yml), but the Release is a
+# separate, deliberate, human-triggered action.
 #
 # Publishing to crates.io is intentionally NOT part of this workflow (see
 # docs/releases.md): it stays a manual, human decision run locally from a clean
-# checkout. The version commit and tag were created locally by `cog bump` (the
-# post-bump hooks only push), so this workflow only verifies and releases.
+# checkout.
 
 name: Release
 
 on:
-  push:
-    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag to release (for example v0.1.1)'
+        required: true
+        type: string
 
 permissions:
   contents: write
@@ -27,6 +34,16 @@ jobs:
     steps:
       - name: Check out the repository
         uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Check the tag exists
+        run: |
+          if ! git tag -l "${{ inputs.tag }}" | grep -qx "${{ inputs.tag }}"; then
+            echo "error: tag '${{ inputs.tag }}' not found" >&2
+            exit 1
+          fi
+          echo "Releasing ${{ inputs.tag }}"
 
       - name: Install the Rust toolchain
         run: |
@@ -67,7 +84,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           NOTES_FILE: /tmp/release-notes
         run: |
-          VERSION="$GITHUB_REF_NAME"
+          VERSION="${{ inputs.tag }}"
           sh scripts/release-notes.sh "$VERSION" > "$NOTES_FILE"
           gh release create "$VERSION" \
             --title "colander $VERSION" \
