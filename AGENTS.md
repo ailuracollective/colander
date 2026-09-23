@@ -126,8 +126,9 @@ guard the generated header (`scripts/check-header.sh`) and bump the single
 version source (`scripts/bump-version.sh`, Cargo.toml -> CARGO_PKG_VERSION);
 the post-bump hooks push `master` and the `v*` tag. That tag push triggers
 `.github/workflows/release.yml`, which verifies via `cargo make ci`, builds
-the cdylib, publishes to crates.io (secret `CARGO_REGISTRY_TOKEN`), and
-creates the GitHub Release with changelog notes and the artifact. Version
+the cdylib, and creates the GitHub Release with changelog notes and the
+artifact. Publishing to crates.io is a manual step for now (see
+[docs/releases.md](docs/releases.md)). Version
 policy: `fix` -> patch, `feat` -> minor, breaking -> major;
 `cog bump --auto` never auto-bumps 0.y.z to 1.0.0. See
 [docs/releases.md](docs/releases.md) for the full flow.
