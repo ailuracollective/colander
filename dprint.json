@@ -4,7 +4,8 @@
   },
   "excludes": [
     "**/.atl/**",
-    "**/target/**"
+    "**/target/**",
+    "CHANGELOG.md"
   ],
   "plugins": [
     "https://plugins.dprint.dev/markdown-0.24.0.wasm"
