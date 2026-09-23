@@ -2,6 +2,7 @@
 
 use std::ffi::c_char;
 
+use crate::codec::json::JsonCodec;
 use crate::compile;
 use crate::error::{ColanderError, Result};
 use crate::json::{self, Json, JsonMap};
@@ -15,7 +16,7 @@ use super::envelope::{dispatch, optional_string, optional_text, require_string};
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn colander_compile(request: *const c_char) -> *mut c_char {
     unsafe {
-        dispatch(request, |request| {
+        dispatch(&JsonCodec, request, |request| {
             let form = require_string(request, "formSchemaJson")?;
             let ui = optional_string(request, "uiSchemaJson");
             let rules_json = optional_string(request, "rulesSchemaJson");

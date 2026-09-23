@@ -3,6 +3,7 @@
 use std::ffi::{CStr, CString, c_char};
 use std::panic::{AssertUnwindSafe, catch_unwind};
 
+use crate::codec::Codec;
 use crate::error::{ColanderError, Result};
 use crate::json::{self, Json, JsonMap};
 
@@ -76,6 +77,35 @@ pub fn optional_text(value: Option<String>) -> Json {
     value.map_or(Json::Null, Json::String)
 }
 
+/// Decode `bytes` with `codec` and require the result to be a request object.
+///
+/// The two failure shapes are the ones `json::parse_object` produced before the
+/// seam: a codec failure (syntax or encoding), or the `expected a JSON object`
+/// message for a document of the wrong type.
+fn request_object<C: Codec>(codec: &C, bytes: &[u8]) -> Result<JsonMap> {
+    let value = codec.decode(bytes, "request")?;
+    match value {
+        Json::Object(map) => Ok(map),
+        _ => Err(ColanderError::new(
+            "Invalid request: expected a JSON object.",
+        )),
+    }
+}
+
+/// The codec-generic entry point: decode `bytes`, require a request object, and
+/// run `body`.
+///
+/// The FFI shares [`request_object`] with it so the two boundaries cannot drift,
+/// and Rust callers can drive an alternate codec end to end (binary cannot cross
+/// the NUL-terminated `char *` ABI).
+pub fn run<C: Codec, F>(codec: &C, bytes: &[u8], body: F) -> Result<Json>
+where
+    F: FnOnce(&JsonMap) -> Result<Json>,
+{
+    let request = request_object(codec, bytes)?;
+    body(&request)
+}
+
 /// Parse the request, run `body`, and always return an envelope.
 ///
 /// The `catch_unwind` calls below contain a panic and turn it into a failure
@@ -83,44 +113,47 @@ pub fn optional_text(value: Option<String>) -> Json {
 ///
 /// # Safety
 /// `request` follows the contract of the exported entry points: it must be a
-/// valid NUL-terminated UTF-8 C string, or null.
-pub unsafe fn dispatch<F>(request: *const c_char, body: F) -> *mut c_char
+/// valid NUL-terminated C string, or null.
+pub unsafe fn dispatch<C, F>(codec: &C, request: *const c_char, body: F) -> *mut c_char
 where
+    C: Codec,
     F: FnOnce(&JsonMap) -> Result<Json>,
 {
     // Stage 1: bytes -> request object. Failures here are the caller's fault.
     let decoded = catch_unwind(AssertUnwindSafe(|| -> Result<JsonMap> {
         // SAFETY: the exported entry points forward their caller's contract.
-        let text = unsafe { read_request(request) }?;
-        json::parse_object(&text, "request")
+        let bytes = unsafe { read_request(request) }?;
+        request_object(codec, bytes)
     }));
 
     let parsed = match decoded {
         Ok(Ok(parsed)) => parsed,
-        Ok(Err(error)) => return into_envelope_with_kind(Err(error), ErrorKind::InvalidRequest),
+        Ok(Err(error)) => {
+            return into_envelope_with_kind(codec, Err(error), ErrorKind::InvalidRequest);
+        }
         Err(payload) => {
-            return into_envelope_with_kind(Err(panic_message(payload)), ErrorKind::Panic);
+            return into_envelope_with_kind(codec, Err(panic_message(payload)), ErrorKind::Panic);
         }
     };
 
     // Stage 2: the core itself. Failures here are validation failures.
     match catch_unwind(AssertUnwindSafe(|| body(&parsed))) {
-        Ok(result) => into_envelope(result),
-        Err(payload) => into_envelope_with_kind(Err(panic_message(payload)), ErrorKind::Panic),
+        Ok(result) => into_envelope(codec, result),
+        Err(payload) => {
+            into_envelope_with_kind(codec, Err(panic_message(payload)), ErrorKind::Panic)
+        }
     }
 }
 
 /// # Safety
-/// `request` must be null or NUL-terminated valid UTF-8.
-unsafe fn read_request(request: *const c_char) -> Result<String> {
+/// `request` must be null or NUL-terminated. The returned bytes borrow the
+/// pointer's storage and must not outlive it.
+unsafe fn read_request<'a>(request: *const c_char) -> Result<&'a [u8]> {
     if request.is_null() {
         return Err(ColanderError::new("request pointer is null"));
     }
     // SAFETY: the caller guarantees a NUL-terminated string.
-    let text = unsafe { CStr::from_ptr(request) };
-    text.to_str()
-        .map(str::to_string)
-        .map_err(|_| ColanderError::new("request is not valid UTF-8"))
+    Ok(unsafe { CStr::from_ptr(request) }.to_bytes())
 }
 
 pub fn panic_message(payload: Box<dyn std::any::Any + Send>) -> ColanderError {
@@ -134,11 +167,15 @@ pub fn panic_message(payload: Box<dyn std::any::Any + Send>) -> ColanderError {
     ColanderError::new(format!("colander panicked: {message}"))
 }
 
-pub fn into_envelope(result: Result<Json>) -> *mut c_char {
-    into_envelope_with_kind(result, ErrorKind::Validation)
+pub fn into_envelope<C: Codec>(codec: &C, result: Result<Json>) -> *mut c_char {
+    into_envelope_with_kind(codec, result, ErrorKind::Validation)
 }
 
-pub fn into_envelope_with_kind(result: Result<Json>, kind: ErrorKind) -> *mut c_char {
+pub fn into_envelope_with_kind<C: Codec>(
+    codec: &C,
+    result: Result<Json>,
+    kind: ErrorKind,
+) -> *mut c_char {
     let envelope = match result {
         Ok(value) => {
             let mut out = JsonMap::new();
@@ -157,8 +194,8 @@ pub fn into_envelope_with_kind(result: Result<Json>, kind: ErrorKind) -> *mut c_
         }
     };
 
-    let text = json::ordered(&envelope);
-    match CString::new(text) {
+    let encoded = codec.encode_ordered(&envelope);
+    match CString::new(encoded) {
         Ok(value) => value.into_raw(),
         Err(_) => CString::new(
             r#"{"ok":false,"error":{"kind":"panic","message":"response contained a NUL byte"}}"#,

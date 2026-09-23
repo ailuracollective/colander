@@ -2,6 +2,7 @@
 
 use std::ffi::c_char;
 
+use crate::codec::json::JsonCodec;
 use crate::error::{ColanderError, Result};
 use crate::json::{Json, JsonMap};
 use crate::{hash, semver};
@@ -15,7 +16,7 @@ use super::envelope::{ABI_VERSION, dispatch, into_envelope, optional_string, req
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn colander_content_hash(request: *const c_char) -> *mut c_char {
     unsafe {
-        dispatch(request, |request| {
+        dispatch(&JsonCodec, request, |request| {
             let form = require_string(request, "formSchemaJson")?;
             let ui = optional_string(request, "uiSchemaJson");
             let rules_json = optional_string(request, "rulesSchemaJson");
@@ -34,7 +35,7 @@ pub unsafe extern "C" fn colander_content_hash(request: *const c_char) -> *mut c
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn colander_next_version(request: *const c_char) -> *mut c_char {
     unsafe {
-        dispatch(request, |request| {
+        dispatch(&JsonCodec, request, |request| {
             let published: Vec<String> = request
                 .get("published")
                 .and_then(Json::as_array)
@@ -71,5 +72,5 @@ pub extern "C" fn colander_version_info() -> *mut c_char {
         Json::String(env!("CARGO_PKG_VERSION").to_string()),
     );
     out.insert("abi".to_string(), Json::integer(ABI_VERSION as i64));
-    into_envelope(Ok(Json::Object(out)))
+    into_envelope(&JsonCodec, Ok(Json::Object(out)))
 }

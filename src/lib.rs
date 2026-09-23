@@ -8,6 +8,7 @@
 //! colander deliberately deviates, the deviation is documented at the site that
 //! implements it, so a behaviour change stays an explicit decision.
 
+pub mod codec;
 pub mod compile;
 pub mod error;
 pub mod ffi;
