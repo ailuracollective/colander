@@ -64,6 +64,7 @@ jobs:
 
       - name: Create the GitHub Release
         env:
+          GH_TOKEN: ${{ github.token }}
           NOTES_FILE: /tmp/release-notes
         run: |
           VERSION="$GITHUB_REF_NAME"
