@@ -338,9 +338,13 @@ requirement and then fails as a non-object schema.
 
 ## colander_content_hash
 
-Hashes a form/ui/rules triple **as given**, with no compilation. Use it to
-compare two stored documents byte-for-byte, or to reproduce the hash
-`colander_compile` reports.
+Hashes a form/ui/rules triple **as given**, with no compilation. It is a
+byte-exact fingerprint of the documents as given — key order and number spelling
+feed the digest — so it identifies stored bytes, not content, and it is not used
+for pinning. The authoritative hash of a compiled form is the `contentHash` that
+`colander_compile` reports; use this entry point to compare two stored documents
+byte-for-byte, or to reproduce that hash by feeding it the compiled documents
+(SPEC H-5).
 
 ### Request and response
 

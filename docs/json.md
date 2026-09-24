@@ -1,8 +1,8 @@
 # JSON
 
 This page covers the parser and writer at the edge of every call: the grammar
-and limits the parser accepts, how numbers are written back, and how canonical
-serialization orders keys. Read it when key order, number spelling or hashing
+and limits the parser accepts, how numbers are written back, and how the
+key-sorted form orders keys. Read it when key order, number spelling or hashing
 matters to you.
 
 The parser and writer are hand-written, and that matters: the core parses JSON
@@ -42,11 +42,13 @@ exponent form outside `[-4, 16]`:
 | `1e-5`     | `1E-05`             |
 | non-finite | `null`              |
 
-Canonical serialization sorts keys by **UTF-8 byte order**, which differs from
-UTF-16 code-unit order for some non-BMP and U+E000–U+FFFF mixes.
+The key-sorted form sorts object keys by **UTF-8 byte order**. The contract does
+not call it "canonical": it is not RFC 8785, which orders by UTF-16 code units,
+and interoperation with that standard is not offered (SPEC H-4). The two orders
+differ for some non-BMP and U+E000–U+FFFF mixes.
 
 The exact payload that `colander_content_hash` hashes — and the fact that it is
-_not_ the key-sorted canonical form — is documented with the entry point in
+_not_ the key-sorted form — is documented with the entry point in
 [entry-points.md](entry-points.md#colander_content_hash).
 
 ## Next

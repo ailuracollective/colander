@@ -34,7 +34,7 @@ satisfied when no `decided` requirement remains unresolved.
 | R     | Rules and the dependency check  | 9      | 0         | 0          |
 | V     | Response validation             | 6      | 1         | 0          |
 | S     | JSON Schema subset              | 7      | 0         | 0          |
-| H     | Canonical form and hashing      | 3      | 2         | 0          |
+| H     | Key-sorted form and hashing     | 5      | 0         | 0          |
 | P     | Compilation, components, semver | 7      | 0         | 0          |
 | X     | Retirements and reversals       | 2      | 1         | 0          |
 | F     | The frozen vectors              | 1      | 0         | 0          |
@@ -216,11 +216,11 @@ behaviour, not shape.
   hash that ignores document order.
 - **H-3** `live`. `colander_compile` returns `contentHash`, a lowercase-hex SHA-256
   of the canonical compiled triple, with `dependencyMetadataJson` excluded.
-- **H-4** `decided`. The key-sorted form defined in H-1 is called that in this
+- **H-4** `live`. The key-sorted form defined in H-1 is called that in this
   contract, not "canonical": it is not RFC 8785, which orders by UTF-16 code
   units, and interoperation with that standard is not offered. The wire names stay
   unchanged for now; renaming an export is a separate, larger contract change.
-- **H-5** `decided`. The authoritative hash for identifying a compiled form is the
+- **H-5** `live`. The authoritative hash for identifying a compiled form is the
   compiled triple's `contentHash` (H-3), which is order-insensitive.
   `colander_content_hash` (H-2) is a byte-exact fingerprint of the documents as
   given: it moves when key order or number spelling moves, and it is not used for
