@@ -29,10 +29,10 @@ satisfied when no `decided` requirement remains unresolved.
 | Group | Subject                         | `live` | `decided` | `proposed` |
 | ----- | ------------------------------- | ------ | --------- | ---------- |
 | C     | Wire contract and the ABI       | 8      | 1         | 0          |
-| E     | The six operations              | 7      | 2         | 0          |
+| E     | The six operations              | 9      | 0         | 0          |
 | D     | Documents, fields, id and code  | 3      | 0         | 0          |
 | R     | Rules and the dependency check  | 6      | 2         | 0          |
-| V     | Response validation             | 5      | 2         | 0          |
+| V     | Response validation             | 6      | 1         | 0          |
 | S     | JSON Schema subset              | 7      | 0         | 0          |
 | H     | Canonical form and hashing      | 3      | 2         | 0          |
 | P     | Compilation, components, semver | 7      | 0         | 0          |
@@ -96,13 +96,13 @@ behaviour, not shape.
   reports name, crate version and ABI version.
 - **E-7** `live`. A call is independent: a request carries every document it needs,
   and the library remembers nothing between calls.
-- **E-8** `decided`. `colander_validate_response` accepts an array answer, so a
-  `choice` with `allowMultiple` is validatable. Today the first array or object
-  answer aborts the whole call before per-field validation, which discards the
-  errors already collected and makes `INVALID_TYPE` unobservable for those
-  answers.
-- **E-9** `decided`. One unusable answer produces one error, not a failed call.
-  Today `flatten_for_rules` is fatal.
+- **E-8** `live`. `colander_validate_response` accepts an array answer, so a
+  `choice` with `allowMultiple` is validatable: arrays become lists in the rule
+  value domain, and per-field conversion normalizes them. A `choice` without
+  `allowMultiple` rejects an array answer as a field error.
+- **E-9** `live`. One unusable answer produces one error, not a failed call:
+  the flattening step records a missing rule value and the per-field loop
+  reports the type error, so errors collected earlier survive.
 
 ## D — Documents, fields, `id` and `code`
 
@@ -161,9 +161,8 @@ behaviour, not shape.
   skipped in `Draft` and reports `CALCULATED_VALUE_INVALID` in `Complete`. The
   case is reachable: a `number` field rounds by scaling to its decimal places,
   and a finite value near the top of the `f64` range overflows that scale.
-- **V-6** `decided`. An answer keyed by an unknown field still reports
-  `UNKNOWN_FIELD` even when another answer in the same call is unusable. Today
-  those already-collected errors are discarded.
+- **V-6** `live`. An answer keyed by an unknown field still reports
+  `UNKNOWN_FIELD` even when another answer in the same call is unusable.
 - **V-7** `live`. A `path` is a JSON pointer into the form schema, with two
   exceptions: `/answers/<key>` for an unknown key, and `/rules/validations` for a
   failed cross-field validation.

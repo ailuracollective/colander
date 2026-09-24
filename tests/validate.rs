@@ -213,3 +213,86 @@ fn an_uncompilable_pattern_is_an_error() {
     .unwrap_err();
     assert!(error.message.contains("cannot be compiled"), "{error}");
 }
+
+// E-8: a multi-select `choice` answer validates end to end, and normalizes to
+// the selected values.
+#[test]
+fn validates_a_multi_select_answer() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"tags","code":"patient.tags","type":"choice","allowMultiple":true,
+         "options":[{"value":"a","label":"A"},{"value":"b","label":"B"}]}]}"#;
+    let result = validate(
+        form,
+        None,
+        None,
+        r#"{"patient.tags":["a","b"]}"#,
+        FormResponseValidationMode::Complete,
+    )
+    .unwrap();
+    assert!(result.is_valid(), "{:?}", result.errors);
+    assert_eq!(
+        result.normalized_answers_json,
+        r#"{"patient.tags":["a","b"]}"#
+    );
+}
+
+// E-9: one unusable answer is one error, not a failed call. The other field
+// still validates and normalizes.
+#[test]
+fn an_unusable_answer_does_not_abort_the_call() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"a","code":"a","type":"text"},
+        {"id":"b","code":"b","type":"text"}]}"#;
+    let result = validate(
+        form,
+        None,
+        None,
+        r#"{"a":{"x":1},"b":"ok"}"#,
+        FormResponseValidationMode::Draft,
+    )
+    .unwrap();
+    assert!(!result.is_valid());
+    assert_eq!(result.errors.len(), 1);
+    assert_eq!(result.errors[0].code, "INVALID_TYPE");
+    assert_eq!(result.normalized_answers_json, r#"{"b":"ok"}"#);
+}
+
+// V-6: an unknown answer key still reports when another answer is unusable.
+#[test]
+fn an_unknown_key_survives_an_unusable_answer() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"a","code":"a","type":"text"},
+        {"id":"b","code":"b","type":"text"}]}"#;
+    let result = validate(
+        form,
+        None,
+        None,
+        r#"{"nope":1,"a":{"x":1},"b":"ok"}"#,
+        FormResponseValidationMode::Draft,
+    )
+    .unwrap();
+    assert!(!result.is_valid());
+    assert_eq!(result.errors[0].code, "UNKNOWN_FIELD");
+    assert_eq!(result.errors[0].path, "/answers/nope");
+    assert_eq!(result.errors[1].code, "INVALID_TYPE");
+    assert_eq!(result.normalized_answers_json, r#"{"b":"ok"}"#);
+}
+
+// E-8: a single-select `choice` still rejects an array answer, as a field
+// error rather than a failed call.
+#[test]
+fn a_single_select_choice_rejects_an_array_answer() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"color","code":"color","type":"choice",
+         "options":[{"value":"red","label":"Red"}]}]}"#;
+    let result = validate(
+        form,
+        None,
+        None,
+        r#"{"color":["red"]}"#,
+        FormResponseValidationMode::Draft,
+    )
+    .unwrap();
+    assert!(!result.is_valid());
+    assert_eq!(result.errors[0].code, "INVALID_TYPE");
+}

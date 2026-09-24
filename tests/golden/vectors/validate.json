@@ -3017,8 +3017,11 @@
       "rulesRaw": null,
       "answersRaw": "{\"patient.tags\":[\"a\",\"b\"]}"
     },
-    "expected": null,
-    "error": "NotSupportedException: Nested JSON arrays are not supported as answer values."
+    "expected": {
+      "normalizedAnswersJson": "{\"patient.tags\":[\"a\",\"b\"]}",
+      "errors": []
+    },
+    "error": null
   },
   {
     "name": "choice-allow-multiple-single-string",
@@ -3238,8 +3241,17 @@
       "rulesRaw": null,
       "answersRaw": "{\"patient.tags\":[\"z\"]}"
     },
-    "expected": null,
-    "error": "NotSupportedException: Nested JSON arrays are not supported as answer values."
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "CONSTRAINT_VIOLATION",
+          "path": "/fields/9",
+          "message": "Field 'patient.tags' contains an invalid choice value."
+        }
+      ]
+    },
+    "error": null
   },
   {
     "name": "date-normalization",
@@ -4446,8 +4458,17 @@
       "rulesRaw": null,
       "answersRaw": "{\"vitals\":{\"vitals.sys\":120}}"
     },
-    "expected": null,
-    "error": "NotSupportedException: Nested JSON objects are not supported as answer values."
+    "expected": {
+      "normalizedAnswersJson": "{}",
+      "errors": [
+        {
+          "code": "UNKNOWN_FIELD",
+          "path": "/answers/vitals",
+          "message": "Unknown answer field 'vitals'."
+        }
+      ]
+    },
+    "error": null
   },
   {
     "name": "repeater-valid",

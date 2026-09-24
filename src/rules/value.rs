@@ -93,8 +93,11 @@ impl Val {
         }
     }
 
-    /// Stricter conversion used for submitted answers: nested arrays and objects
-    /// are rejected, which makes multi-select answers fail.
+    /// Conversion used for submitted answers: nested arrays become lists, so a
+    /// multi-select answer is validatable; nested objects are still rejected.
+    /// A rejection never aborts the call — the flattening step records a null
+    /// rule value instead, and the per-field loop reports the type error
+    /// (SPEC E-8, E-9).
     pub fn from_json_element(node: &Json) -> Result<Val> {
         match node {
             Json::Null => Ok(Val::Null),
@@ -104,9 +107,11 @@ impl Val {
                 Some(value) => Val::Int(value),
                 None => Val::Double(node.as_f64().unwrap_or(0.0)),
             }),
-            Json::Array(_) => Err(ColanderError::new(
-                "Nested JSON arrays are not supported as answer values.",
-            )),
+            Json::Array(items) => items
+                .iter()
+                .map(Val::from_json_element)
+                .collect::<Result<Vec<_>>>()
+                .map(Val::List),
             Json::Object(_) => Err(ColanderError::new(
                 "Nested JSON objects are not supported as answer values.",
             )),

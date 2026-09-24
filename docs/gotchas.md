@@ -3,15 +3,12 @@
 These are real behaviours, most of them inherited rather than chosen. Each one
 has surprised someone.
 
-1. **A multi-select answer fails the whole call.** Before per-field validation,
-   every answer is converted to the rule value domain, which rejects arrays and
-   objects: a `choice` with `allowMultiple` (or any array answer) makes
-   `colander_validate_response` fail with `Nested JSON arrays are not supported as
-   answer values.` An object answer — a group or `component-ref` code — fails the
-   same way with `Nested JSON objects are not supported as answer values.` Both
-   aborts happen before per-field validation, so `INVALID_TYPE` is never
-   observable for an array or object answer, and the `allowMultiple` conversion
-   path is unreachable through this entry point.
+1. **A multi-select answer validates, and one bad answer does not abort the
+   call.** A `choice` with `allowMultiple` accepts an array and normalizes it to
+   the selected values. Any answer the value domain cannot hold — an object, or
+   a nested object inside an array — contributes a missing rule value instead of
+   failing the call, and per-field validation reports it as `INVALID_TYPE`. An
+   unknown key keeps the `UNKNOWN_FIELD` it collected. (SPEC E-8, E-9, V-6.)
 2. **`readOnly` shows up as `enabled: false`.** A read-only field with a
    submitted value reports `DISABLED_FIELD_VALUE`, not
    `READONLY_FIELD_MODIFIED`. The latter only appears when a rule enables a

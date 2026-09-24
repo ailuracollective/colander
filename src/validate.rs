@@ -43,7 +43,7 @@ pub fn validate(
 
     validate_known_top_level_keys(&answers, &fields_by_code, &mut errors);
 
-    let rule_values = flatten_for_rules(&answers, &fields_by_code)?;
+    let rule_values = flatten_for_rules(&answers, &fields_by_code);
     let evaluation = evaluate_rules(&form_root, rules_schema_json, ui_schema_json, &rule_values)?;
 
     let mut normalized: IndexMap<String, Val> = IndexMap::new();

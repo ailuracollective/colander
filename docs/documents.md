@@ -178,10 +178,9 @@ The operators and their semantics are in [rules.md](rules.md).
 ## Groups, repeaters and their codes
 
 A `group` is `{"type":"group","items":[…]}`. Its own code is **not** an answer
-key: submitting a scalar under it reports `UNKNOWN_FIELD`, while its children are
-accepted as ordinary top-level answers. An **object** under a group code aborts
-the whole call before that error can be returned — see the first item of
-[Behaviour worth knowing](gotchas.md).
+key: submitting under it reports `UNKNOWN_FIELD`, while its children are
+accepted as ordinary top-level answers. No submitted object aborts the call: an
+object on a scalar field reports `INVALID_TYPE` from per-field validation.
 
 A `repeater` is `{"type":"repeater","items":[…]}` plus optional `minItems` and
 `maxItems`. Its answer is an array of row objects; each row's keys must be its

@@ -26,7 +26,17 @@ pub(super) fn apply_calculated_fields(
 
         let submitted_value = match answers.get(code) {
             None | Some(Json::Null) => None,
-            Some(value) => Some(Val::from_json_element(value)?),
+            Some(value) => match Val::from_json_element(value) {
+                Ok(converted) => Some(converted),
+                Err(_) => {
+                    errors.push(FormResponseFieldError {
+                        code: "INVALID_TYPE".to_string(),
+                        path: field.path.clone(),
+                        message: format!("Field '{}' has the wrong JSON type.", field.code),
+                    });
+                    continue;
+                }
+            },
         };
 
         if let Some(submitted) = &submitted_value
@@ -83,7 +93,7 @@ pub(super) fn apply_calculated_fields(
 pub(super) fn flatten_for_rules(
     answers: &JsonMap,
     fields_by_code: &IndexMap<String, AnswerFieldDefinition>,
-) -> Result<IndexMap<String, Val>> {
+) -> IndexMap<String, Val> {
     let mut flat: IndexMap<String, Val> = IndexMap::new();
 
     for (code, value) in answers {
@@ -91,23 +101,26 @@ pub(super) fn flatten_for_rules(
             .get(code)
             .is_some_and(|field| field.field_type == field_type_names::REPEATER)
         {
-            flatten_repeater_answer(&mut flat, code, value)?;
+            flatten_repeater_answer(&mut flat, code, value);
             continue;
         }
-        flat.insert(code.clone(), Val::from_json_element(value)?);
+        match Val::from_json_element(value) {
+            Ok(converted) => {
+                flat.insert(code.clone(), converted);
+            }
+            Err(_) => {
+                flat.insert(code.clone(), Val::Null);
+            }
+        }
     }
 
-    Ok(flat)
+    flat
 }
 
-pub(super) fn flatten_repeater_answer(
-    flat: &mut IndexMap<String, Val>,
-    code: &str,
-    value: &Json,
-) -> Result<()> {
+pub(super) fn flatten_repeater_answer(flat: &mut IndexMap<String, Val>, code: &str, value: &Json) {
     let Some(rows) = value.as_array() else {
         flat.insert(code.to_string(), Val::Int(0));
-        return Ok(());
+        return;
     };
 
     flat.insert(code.to_string(), Val::Int(rows.len() as i64));
@@ -116,11 +129,16 @@ pub(super) fn flatten_repeater_answer(
             continue;
         };
         for (name, property) in row_object {
-            flat.insert(name.clone(), Val::from_json_element(property)?);
+            match Val::from_json_element(property) {
+                Ok(converted) => {
+                    flat.insert(name.clone(), converted);
+                }
+                Err(_) => {
+                    flat.insert(name.clone(), Val::Null);
+                }
+            }
         }
     }
-
-    Ok(())
 }
 
 pub(super) fn evaluate_rules(
