@@ -3,11 +3,10 @@
 use crate::json::{self, Json, JsonMap};
 
 use super::ErrorSink;
-use super::check::{EvalBudget, Stop, check_into, value_equal, value_hash};
+use super::check::{EvaluationContext, Stop, value_equal, value_hash};
 use super::model::SchemaError;
 
 mod combinators;
-pub(crate) use combinators::check_combinators;
 
 /// The closed set of `type` names. The structural classifier rejects anything
 /// else as a schema error, so a typo can never become an assertion that every
@@ -103,143 +102,143 @@ pub(super) fn check_enum_and_const(schema: &JsonMap, instance: &Json, errors: &m
     }
 }
 
-pub(super) fn check_object_keywords(
-    schema: &JsonMap,
-    instance: &Json,
-    root: &Json,
-    budget: &mut EvalBudget,
-    errors: &mut ErrorSink,
-) -> Option<Stop> {
-    let Json::Object(object) = instance else {
-        return None;
-    };
+impl EvaluationContext<'_> {
+    pub(super) fn check_object_keywords(
+        &mut self,
+        schema: &JsonMap,
+        instance: &Json,
+        errors: &mut ErrorSink,
+    ) -> Option<Stop> {
+        let Json::Object(object) = instance else {
+            return None;
+        };
 
-    let properties = json::get_object(schema, "properties");
-    if let Some(properties) = properties {
-        for (name, sub_schema) in properties {
-            if let Some(value) = object.get(name)
-                && let Some(stop) = check_into(sub_schema, value, root, budget, errors)
-            {
-                return Some(stop);
-            }
-        }
-    }
-
-    if let Some(required) = json::get_array(schema, "required") {
-        for name in required.iter().filter_map(Json::as_str) {
-            if !object.contains_key(name) {
-                errors.push(SchemaError {
-                    keyword: "required".to_string(),
-                    message: format!("required property '{name}' is missing"),
-                });
-            }
-        }
-    }
-
-    match schema.get("additionalProperties") {
-        Some(Json::Bool(false)) => {
-            let allowed: Vec<&str> = properties
-                .map(|map| map.keys().map(String::as_str).collect())
-                .unwrap_or_default();
-            for name in object.keys() {
-                if !allowed.contains(&name.as_str()) {
-                    errors.push(SchemaError {
-                        keyword: "additionalProperties".to_string(),
-                        message: format!("additional property '{name}' is not allowed"),
-                    });
-                }
-            }
-        }
-        Some(sub_schema @ Json::Object(_)) => {
-            let allowed: Vec<&str> = properties
-                .map(|map| map.keys().map(String::as_str).collect())
-                .unwrap_or_default();
-            for (name, value) in object {
-                if !allowed.contains(&name.as_str())
-                    && let Some(stop) = check_into(sub_schema, value, root, budget, errors)
+        let properties = json::get_object(schema, "properties");
+        if let Some(properties) = properties {
+            for (name, sub_schema) in properties {
+                if let Some(value) = object.get(name)
+                    && let Some(stop) = self.check_into(sub_schema, value, errors)
                 {
                     return Some(stop);
                 }
             }
         }
-        _ => {}
-    }
 
-    if let Some(min_properties) = json::get_i64(schema, "minProperties")
-        && (object.len() as i64) < min_properties
-    {
-        errors.push(SchemaError {
-            keyword: "minProperties".to_string(),
-            message: format!("object must have at least {min_properties} properties"),
-        });
-    }
-    if let Some(max_properties) = json::get_i64(schema, "maxProperties")
-        && (object.len() as i64) > max_properties
-    {
-        errors.push(SchemaError {
-            keyword: "maxProperties".to_string(),
-            message: format!("object must have at most {max_properties} properties"),
-        });
-    }
-    None
-}
-
-pub(super) fn check_array_keywords(
-    schema: &JsonMap,
-    instance: &Json,
-    root: &Json,
-    budget: &mut EvalBudget,
-    errors: &mut ErrorSink,
-) -> Option<Stop> {
-    let Json::Array(items) = instance else {
-        return None;
-    };
-
-    if let Some(item_schema) = json::get(schema, "items") {
-        for item in items {
-            if let Some(stop) = check_into(item_schema, item, root, budget, errors) {
-                return Some(stop);
+        if let Some(required) = json::get_array(schema, "required") {
+            for name in required.iter().filter_map(Json::as_str) {
+                if !object.contains_key(name) {
+                    errors.push(SchemaError {
+                        keyword: "required".to_string(),
+                        message: format!("required property '{name}' is missing"),
+                    });
+                }
             }
         }
-    }
 
-    if let Some(min_items) = json::get_i64(schema, "minItems")
-        && (items.len() as i64) < min_items
-    {
-        errors.push(SchemaError {
-            keyword: "minItems".to_string(),
-            message: format!("array must have at least {min_items} items"),
-        });
-    }
-    if let Some(max_items) = json::get_i64(schema, "maxItems")
-        && (items.len() as i64) > max_items
-    {
-        errors.push(SchemaError {
-            keyword: "maxItems".to_string(),
-            message: format!("array must have at most {max_items} items"),
-        });
-    }
-
-    if json::get_bool(schema, "uniqueItems").unwrap_or(false) {
-        // Hash-bucketed uniqueness: O(n) expected instead of the O(n^2)
-        // pairwise scan, with the full deep comparison kept inside a bucket
-        // so numeric equality (`1` == `1.0`) and hash collisions stay exact
-        // (SPEC S-9).
-        let mut buckets: std::collections::HashMap<u64, Vec<usize>> =
-            std::collections::HashMap::new();
-        for (index, item) in items.iter().enumerate() {
-            let bucket = buckets.entry(value_hash(item)).or_default();
-            if bucket.iter().any(|&other| value_equal(&items[other], item)) {
-                errors.push(SchemaError {
-                    keyword: "uniqueItems".to_string(),
-                    message: format!("array items must be unique (index {index} repeats)"),
-                });
-                break;
+        match schema.get("additionalProperties") {
+            Some(Json::Bool(false)) => {
+                let allowed: Vec<&str> = properties
+                    .map(|map| map.keys().map(String::as_str).collect())
+                    .unwrap_or_default();
+                for name in object.keys() {
+                    if !allowed.contains(&name.as_str()) {
+                        errors.push(SchemaError {
+                            keyword: "additionalProperties".to_string(),
+                            message: format!("additional property '{name}' is not allowed"),
+                        });
+                    }
+                }
             }
-            bucket.push(index);
+            Some(sub_schema @ Json::Object(_)) => {
+                let allowed: Vec<&str> = properties
+                    .map(|map| map.keys().map(String::as_str).collect())
+                    .unwrap_or_default();
+                for (name, value) in object {
+                    if !allowed.contains(&name.as_str())
+                        && let Some(stop) = self.check_into(sub_schema, value, errors)
+                    {
+                        return Some(stop);
+                    }
+                }
+            }
+            _ => {}
         }
+
+        if let Some(min_properties) = json::get_i64(schema, "minProperties")
+            && (object.len() as i64) < min_properties
+        {
+            errors.push(SchemaError {
+                keyword: "minProperties".to_string(),
+                message: format!("object must have at least {min_properties} properties"),
+            });
+        }
+        if let Some(max_properties) = json::get_i64(schema, "maxProperties")
+            && (object.len() as i64) > max_properties
+        {
+            errors.push(SchemaError {
+                keyword: "maxProperties".to_string(),
+                message: format!("object must have at most {max_properties} properties"),
+            });
+        }
+        None
     }
-    None
+
+    pub(super) fn check_array_keywords(
+        &mut self,
+        schema: &JsonMap,
+        instance: &Json,
+        errors: &mut ErrorSink,
+    ) -> Option<Stop> {
+        let Json::Array(items) = instance else {
+            return None;
+        };
+
+        if let Some(item_schema) = json::get(schema, "items") {
+            for item in items {
+                if let Some(stop) = self.check_into(item_schema, item, errors) {
+                    return Some(stop);
+                }
+            }
+        }
+
+        if let Some(min_items) = json::get_i64(schema, "minItems")
+            && (items.len() as i64) < min_items
+        {
+            errors.push(SchemaError {
+                keyword: "minItems".to_string(),
+                message: format!("array must have at least {min_items} items"),
+            });
+        }
+        if let Some(max_items) = json::get_i64(schema, "maxItems")
+            && (items.len() as i64) > max_items
+        {
+            errors.push(SchemaError {
+                keyword: "maxItems".to_string(),
+                message: format!("array must have at most {max_items} items"),
+            });
+        }
+
+        if json::get_bool(schema, "uniqueItems").unwrap_or(false) {
+            // Hash-bucketed uniqueness: O(n) expected instead of the O(n^2)
+            // pairwise scan, with the full deep comparison kept inside a bucket
+            // so numeric equality (`1` == `1.0`) and hash collisions stay exact
+            // (SPEC S-9).
+            let mut buckets: std::collections::HashMap<u64, Vec<usize>> =
+                std::collections::HashMap::new();
+            for (index, item) in items.iter().enumerate() {
+                let bucket = buckets.entry(value_hash(item)).or_default();
+                if bucket.iter().any(|&other| value_equal(&items[other], item)) {
+                    errors.push(SchemaError {
+                        keyword: "uniqueItems".to_string(),
+                        message: format!("array items must be unique (index {index} repeats)"),
+                    });
+                    break;
+                }
+                bucket.push(index);
+            }
+        }
+        None
+    }
 }
 
 pub(super) fn utf16_len(text: &str) -> usize {

@@ -24,6 +24,10 @@ harness = false
 name = "engine"
 harness = false
 
+[[bench]]
+name = "schema"
+harness = false
+
 [profile.release]
 lto = true
 strip = true
