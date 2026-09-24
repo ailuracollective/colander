@@ -28,7 +28,7 @@ satisfied when no `decided` requirement remains unresolved.
 
 | Group | Subject                         | `live` | `decided` | `proposed` |
 | ----- | ------------------------------- | ------ | --------- | ---------- |
-| C     | Wire contract and the ABI       | 8      | 1         | 0          |
+| C     | Wire contract and the ABI       | 9      | 0         | 0          |
 | E     | The six operations              | 9      | 0         | 0          |
 | D     | Documents, fields, id and code  | 3      | 0         | 0          |
 | R     | Rules and the dependency check  | 6      | 2         | 0          |
