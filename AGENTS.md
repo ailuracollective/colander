@@ -93,9 +93,12 @@ hand-editing the header.
   the `Codec` seam in `src/codec.rs`, which the envelope boundary is generic
   over so the wire format is injectable. A second use is what would justify
   extracting anything else.
-- Exactly **three runtime dependencies**: `indexmap`, `regex`, `sha2`. The JSON
-  parser and writer are handwritten on purpose, to keep number spelling and key
-  order intact. Adding a dependency is a decision to raise, not a convenience.
+- Exactly **three direct runtime dependencies**: `fancy-regex`, `indexmap`,
+  `sha2`, which resolve to sixteen transitive crates (nineteen in all).
+  `fancy-regex` follows ECMA-262 for `pattern` as far as the engine supports
+  (SPEC S-6). The JSON parser and writer are handwritten on purpose, to keep
+  number spelling and key order intact. Adding a dependency is a decision to
+  raise, not a convenience.
 - Flat modules: one file per domain, one submodule per concern
   (`src/json.rs` → `src/json/{parse,write}.rs`).
 - `[workspace]` is declared but has no members, so this crate is its own package

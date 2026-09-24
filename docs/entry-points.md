@@ -305,8 +305,9 @@ The subset of JSON Schema the core understands is documented in
 ```
 
 **`{"valid":false}` is never produced.** A document that fails its schema comes
-back as a failure envelope with `kind:"validation"` and a message listing the
-first five errors:
+back as a failure envelope with `kind:"validation"` and a message listing at
+most the first five errors. When there are more, the message says so with
+`(truncated: 5 of N errors shown)` (SPEC S-7):
 
 ```
 Invalid form schema: required: required property 'schemaVersion' is missing; type: expected object but found string

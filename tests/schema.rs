@@ -285,3 +285,65 @@ fn compositions_use_the_caller_supplied_schemas() {
     let error = validate_component_draft(r#"{"fields":[]}"#, None, &schemas).unwrap_err();
     assert!(error.message.contains("required"), "{error}");
 }
+
+// S-6: look-around is an ECMA-262 construct the old `regex` engine refused to
+// compile. The fancy-regex engine compiles it, so the pattern now asserts.
+#[test]
+fn pattern_uses_the_ecma_262_engine() {
+    let schema = r#"{"type":"string","pattern":"^(?=.*[a-z])(?=.*[0-9])[a-z0-9]+$"}"#;
+    validate_text(schema, r#""abc123""#, "form schema").unwrap();
+
+    let error = validate_text(schema, r#""abcdef""#, "form schema").unwrap_err();
+    assert!(
+        error.message.contains("does not match the pattern"),
+        "{error}"
+    );
+}
+
+// S-6: an uncompilable pattern is an error, never a silent non-match.
+#[test]
+fn rejects_an_uncompilable_pattern() {
+    let error = validate_text(
+        r#"{"type":"string","pattern":"("}"#,
+        r#""anything""#,
+        "form schema",
+    )
+    .unwrap_err();
+    assert!(error.message.contains("cannot be compiled"), "{error}");
+}
+
+// S-6 is structural: an uncompilable pattern is rejected even when another
+// `anyOf` branch would let the instance through.
+#[test]
+fn rejects_an_uncompilable_pattern_in_an_unreached_branch() {
+    let error = validate_text(
+        r#"{"anyOf":[{"type":"string","pattern":"("},{"type":"string"}]}"#,
+        r#""anything""#,
+        "form schema",
+    )
+    .unwrap_err();
+    assert!(error.message.contains("cannot be compiled"), "{error}");
+}
+
+// S-7: a truncated failure says that it was truncated.
+#[test]
+fn a_truncated_failure_says_it_was_truncated() {
+    let error = validate_text(
+        r#"{"type":"object","required":["a","b","c","d","e","f"]}"#,
+        r#"{}"#,
+        "form schema",
+    )
+    .unwrap_err();
+    assert!(
+        error.message.contains("truncated: 5 of 6 errors shown"),
+        "{error}"
+    );
+
+    let short = validate_text(
+        r#"{"type":"object","required":["a","b"]}"#,
+        r#"{}"#,
+        "form schema",
+    )
+    .unwrap_err();
+    assert!(!short.message.contains("truncated"), "{short}");
+}

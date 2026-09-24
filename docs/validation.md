@@ -49,9 +49,11 @@ Constraint messages name only the first violation on a field:
 | `minimum` / `maximum`     | `Field 'x' must be greater than or equal to N.` / `less than or equal to` |
 | `multipleOf`              | `Field 'x' must be a multiple of N.`                                      |
 
-`pattern` is unanchored and linear-time; a pattern the `regex` crate refuses to
-compile is treated as never matching. `multipleOf` is checked with an absolute
-tolerance of 1e-6 on the quotient, and a `multipleOf` of `0` is ignored.
+`pattern` is unanchored and follows ECMA-262 as far as the `fancy-regex` engine
+supports, look-around and backreferences included; a pattern that cannot be
+compiled fails the call instead of being treated as a non-match. `multipleOf` is
+checked with an absolute tolerance of 1e-6 on the quotient, and a `multipleOf` of
+`0` is ignored.
 
 ## Next
 

@@ -167,3 +167,49 @@ fn normalizes_dates_and_times() {
             .contains(r#""a.dt":"2024-01-05T10:00:00.0000000\u002B00:00""#)
     );
 }
+
+// S-6: the same ECMA-262 engine as the JSON Schema subset. A backreference is
+// a construct the old `regex` engine refused to compile; fancy-regex supports
+// it, so the constraint now asserts.
+#[test]
+fn pattern_constraint_uses_the_ecma_262_engine() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"code","code":"code","type":"text","pattern":"^(\\w+)-\\1$"}]}"#;
+
+    let result = validate(
+        form,
+        None,
+        None,
+        r#"{"code":"ab-ab"}"#,
+        FormResponseValidationMode::Draft,
+    )
+    .unwrap();
+    assert!(result.is_valid(), "{:?}", result.errors);
+
+    let result = validate(
+        form,
+        None,
+        None,
+        r#"{"code":"ab-cd"}"#,
+        FormResponseValidationMode::Draft,
+    )
+    .unwrap();
+    assert_eq!(result.errors[0].code, "CONSTRAINT_VIOLATION");
+}
+
+// S-6: an uncompilable pattern fails the call instead of silently never
+// matching and reporting a `CONSTRAINT_VIOLATION`.
+#[test]
+fn an_uncompilable_pattern_is_an_error() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"code","code":"code","type":"text","pattern":"("}]}"#;
+    let error = validate(
+        form,
+        None,
+        None,
+        r#"{"code":"abc"}"#,
+        FormResponseValidationMode::Draft,
+    )
+    .unwrap_err();
+    assert!(error.message.contains("cannot be compiled"), "{error}");
+}

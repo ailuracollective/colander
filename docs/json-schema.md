@@ -45,7 +45,7 @@ Each keyword falls into one of three sets:
 | `minItems` / `maxItems`                 | array      | —                                                                                        |
 | `uniqueItems`                           | array      | At most one error is reported                                                            |
 | `minLength` / `maxLength`               | string     | Length in **UTF-16 code units**                                                          |
-| `pattern`                               | string     | Unanchored; an uncompilable pattern always fails                                         |
+| `pattern`                               | string     | Unanchored, ECMA-262-style; a pattern that cannot be compiled is an error                |
 | `minimum` / `maximum`                   | number     | Inclusive                                                                                |
 | `exclusiveMinimum` / `exclusiveMaximum` | number     | The Draft-4 boolean form is a wrong type and is rejected                                 |
 | `multipleOf`                            | number     | Absolute tolerance 1e-6 on the quotient                                                  |
@@ -63,10 +63,12 @@ The known unsupported assertions include `$dynamicRef`, `$recursiveRef`,
 `additionalItems`, `contains`, `minContains`, `maxContains`, `contentEncoding`,
 `contentMediaType` and `contentSchema`; the set is not exhaustive.
 
-Still open in this subset: `format` is annotation-only (S-5), `pattern` uses the
-Rust `regex` dialect and a pattern that cannot be compiled is treated as matching
-nothing rather than as a schema error (S-6), and at most the first five errors are
-reported without saying so (S-7).
+One item remains open in this subset: `format` is annotation-only (S-5). The
+`pattern` dialect follows ECMA-262 as far as the `fancy-regex` engine supports —
+look-around and backreferences included — and a pattern that cannot be compiled
+is a schema error rather than a silent non-match (S-6). At most the first five
+assertion failures are reported, and a truncated message states how many were
+shown out of the total (S-7).
 
 Every keyword is evaluated independently, so one instance can collect several
 errors.

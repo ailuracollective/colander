@@ -1,6 +1,6 @@
 //! Constraint evaluation over converted values.
 
-use crate::error::Result;
+use crate::error::{ColanderError, Result};
 use crate::index::AnswerFieldDefinition;
 use crate::json::{self};
 use crate::keys::field_type_names;
@@ -19,7 +19,7 @@ pub(super) fn validate_constraints(
                 Val::Str(text) => text,
                 _ => return Ok(true),
             };
-            validate_string_constraints(field, text)
+            validate_string_constraints(field, text)?
         }
         field_type_names::NUMBER => match value.to_double() {
             Ok(number) => validate_numeric_constraints(field, number),
@@ -63,46 +63,43 @@ pub(super) fn utf16_len(text: &str) -> usize {
 pub(super) fn validate_string_constraints(
     field: &AnswerFieldDefinition,
     value: &str,
-) -> Option<FormResponseFieldError> {
+) -> Result<Option<FormResponseFieldError>> {
     let length = utf16_len(value);
 
     if let Some(min_length) = json::get_i64(&field.schema, "minLength")
         && (length as i64) < min_length
     {
-        return Some(constraint_error(
+        return Ok(Some(constraint_error(
             field,
             format!("must be at least {min_length} characters."),
-        ));
+        )));
     }
 
     if let Some(max_length) = json::get_i64(&field.schema, "maxLength")
         && (length as i64) > max_length
     {
-        return Some(constraint_error(
+        return Ok(Some(constraint_error(
             field,
             format!("must be at most {max_length} characters."),
-        ));
+        )));
     }
 
     if let Some(pattern) = json::get_str(&field.schema, "pattern")
         && !pattern.is_empty()
     {
-        // Patterns are matched with the linear-time `regex` crate, which
-        // rejects look-around and backreferences at compile time; a pattern
-        // that fails to compile never matches.
-        let matched = match regex::Regex::new(pattern) {
-            Ok(regex) => regex.is_match(value),
-            Err(_) => false,
-        };
+        // S-6: the same ECMA-262 engine as the JSON Schema subset, and the
+        // same rule. An uncompilable pattern fails the call instead of
+        // silently never matching.
+        let matched = crate::pattern::is_match(pattern, value).map_err(ColanderError::new)?;
         if !matched {
-            return Some(constraint_error(
+            return Ok(Some(constraint_error(
                 field,
                 "does not match the required pattern.".to_string(),
-            ));
+            )));
         }
     }
 
-    None
+    Ok(None)
 }
 
 pub(super) fn validate_numeric_constraints(

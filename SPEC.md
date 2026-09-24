@@ -33,14 +33,14 @@ satisfied when no `decided` requirement remains unresolved.
 | D     | Documents, fields, id and code  | 3      | 0         | 0          |
 | R     | Rules and the dependency check  | 5      | 3         | 0          |
 | V     | Response validation             | 5      | 2         | 0          |
-| S     | JSON Schema subset              | 4      | 3         | 0          |
+| S     | JSON Schema subset              | 6      | 1         | 0          |
 | H     | Canonical form and hashing      | 3      | 2         | 0          |
 | P     | Compilation, components, semver | 5      | 2         | 0          |
 | X     | Retirements and reversals       | 2      | 1         | 0          |
 | F     | The frozen vectors              | 1      | 0         | 0          |
 
 The counts are derived from the markers below, so move a marker and its count
-together. The ten groups hold 59 requirements: 42 `live`, 17 `decided` and 0
+together. The ten groups hold 59 requirements: 44 `live`, 15 `decided` and 0
 `proposed`.
 
 ## C — Wire contract and the ABI
@@ -174,8 +174,9 @@ behaviour, not shape.
 
 - **S-1** `live`. The supported Draft 2020-12 keywords are exactly those listed in
   `docs/json-schema.md`, with local `#` references only.
-- **S-2** `live`. `format` is annotation-only, and `pattern` uses the Rust
-  `regex` dialect, so an uncompilable pattern matches nothing.
+- **S-2** `live`. `format` is annotation-only: a schema that constrains only
+  `format` accepts every string. The `pattern` dialect and its error rule are
+  fixed by S-6.
 - **S-3** `live`. Keywords are classified in three sets: implemented;
   annotation-only (`title`, `description`, `default`, `examples`, `deprecated`,
   `$comment`, `$id`, `$schema`, `$defs`, `$anchor`, `readOnly`, `writeOnly`),
@@ -187,11 +188,12 @@ behaviour, not shape.
   `date-time`, `time`, `uuid`, `ipv4`, `ipv6`, `hostname`, `uri` — and an
   unrecognised format name is an error. Asserting `format` is a deliberate
   deviation from the annotation-only default, stated here rather than implied.
-- **S-6** `decided`. `pattern` follows ECMA-262 semantics as far as the engine
-  supports; a pattern that cannot be compiled is an error, never a silent
-  non-match.
-- **S-7** `decided`. When a failure is truncated, the response says so. Today at
-  most the first five errors are reported and the truncation is silent.
+- **S-6** `live`. `pattern` follows ECMA-262 semantics as far as the
+  `fancy-regex` engine supports; a pattern that cannot be compiled is an error,
+  never a silent non-match.
+- **S-7** `live`. When a failure is truncated, the response says so: at most the
+  first five assertion failures are rendered, and the message states how many
+  were shown out of the total.
 
 ## H — Canonical form and hashing
 

@@ -95,15 +95,24 @@ pub fn validate_json(schema: &Json, json_text: &str, label: &str) -> Result<()> 
     )))
 }
 
+/// At most this many assertion failures are rendered (SPEC S-7).
+const MAX_REPORTED_ERRORS: usize = 5;
+
 fn format_errors(errors: &[SchemaError]) -> String {
     let messages: Vec<String> = errors
         .iter()
-        .take(5)
+        .take(MAX_REPORTED_ERRORS)
         .map(|error| format!("{}: {}", error.keyword, error.message))
         .collect();
     if messages.is_empty() {
-        "schema validation failed".to_string()
-    } else {
-        messages.join("; ")
+        return "schema validation failed".to_string();
     }
+    let mut rendered = messages.join("; ");
+    if errors.len() > MAX_REPORTED_ERRORS {
+        rendered.push_str(&format!(
+            " (truncated: {MAX_REPORTED_ERRORS} of {} errors shown)",
+            errors.len()
+        ));
+    }
+    rendered
 }

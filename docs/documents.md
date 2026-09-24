@@ -38,7 +38,7 @@ Every field object:
 | `options`                 | array   | for `choice` | Each `{"value": "…"}`; other keys, including `label`, are ignored                                      |
 | `allowMultiple`           | bool    | no           | `true` makes a `choice` accept an array                                                                |
 | `minLength` / `maxLength` | integer | no           | Counted in **UTF-16 code units**                                                                       |
-| `pattern`                 | string  | no           | Unanchored `regex` crate pattern; an empty string is ignored                                           |
+| `pattern`                 | string  | no           | Unanchored ECMA-262 pattern; an empty string is ignored, an uncompilable one is an error               |
 | `minimum` / `maximum`     | number  | no           | Inclusive bounds                                                                                       |
 | `multipleOf`              | number  | no           | Step; also derives decimal places for calculations                                                     |
 | `decimalPlaces`           | integer | no           | Calculation rounding, clamped to 0–10, default 2                                                       |

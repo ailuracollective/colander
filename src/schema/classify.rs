@@ -135,7 +135,8 @@ fn visit(
             check_integer(keyword, value, errors)
         }
         "uniqueItems" => check_boolean(keyword, value, errors),
-        "pattern" | "format" => check_string(keyword, value, errors),
+        "format" => check_string(keyword, value, errors),
+        "pattern" => check_pattern(value, errors),
         "minimum" | "maximum" | "exclusiveMinimum" | "exclusiveMaximum" | "multipleOf" => {
             check_number(keyword, value, errors)
         }
@@ -234,6 +235,22 @@ fn check_boolean(keyword: &str, value: &Json, errors: &mut Vec<SchemaError>) {
 fn check_string(keyword: &str, value: &Json, errors: &mut Vec<SchemaError>) {
     if value.as_str().is_none() {
         errors.push(wrong_type(keyword, "a string"));
+    }
+}
+
+/// S-6: a `pattern` that cannot be compiled is an error. This walk runs over
+/// every subschema whether or not the instance reaches it, so a pattern behind
+/// an `anyOf` branch cannot pass by never being compiled.
+fn check_pattern(value: &Json, errors: &mut Vec<SchemaError>) {
+    let Some(pattern) = value.as_str() else {
+        errors.push(wrong_type("pattern", "a string"));
+        return;
+    };
+    if let Err(message) = crate::pattern::compile(pattern) {
+        errors.push(SchemaError {
+            keyword: "pattern".to_string(),
+            message,
+        });
     }
 }
 

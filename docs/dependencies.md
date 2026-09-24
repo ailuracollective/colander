@@ -6,14 +6,19 @@ Read it when you wonder why the crate has so few dependencies, or whether
 
 ## Runtime dependencies
 
-`Cargo.toml` declares exactly three runtime dependencies. There is no dependency
-on model-facing code, at build time or at run time.
+`Cargo.toml` declares exactly three direct runtime dependencies, which resolve to
+sixteen transitive crates — nineteen crates in the normal graph. There is no
+dependency on model-facing code, at build time or at run time.
 
-| Crate      | Version  | What it is used for                                                                                                                                                                                             |
-| ---------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `indexmap` | `2`      | Keeps JSON object members and the maps the core derives from them in insertion order. A document round-trips in its original key order, and duplicate keys keep their first position while the last value wins. |
-| `regex`    | `1.13.1` | Backs the `pattern` constraint in response validation and in the JSON Schema subset. The matching is documented as linear-time, and a pattern the crate refuses to compile is treated as never matching.        |
-| `sha2`     | `0.11.0` | Produces the lowercase-hex SHA-256 returned as `contentHash` by `colander_content_hash` and reported by `colander_compile`.                                                                                     |
+| Crate         | Version  | What it is used for                                                                                                                                                                                                                                                   |
+| ------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fancy-regex` | `0.19.2` | Backs the `pattern` constraint in response validation and in the JSON Schema subset. It follows ECMA-262 as far as the engine supports, including look-around and backreferences; a pattern that cannot be compiled is an error, never a silent non-match (SPEC S-6). |
+| `indexmap`    | `2`      | Keeps JSON object members and the maps the core derives from them in insertion order. A document round-trips in its original key order, and duplicate keys keep their first position while the last value wins.                                                       |
+| `sha2`        | `0.11.0` | Produces the lowercase-hex SHA-256 returned as `contentHash` by `colander_content_hash` and reported by `colander_compile`.                                                                                                                                           |
+
+`regex` is no longer a dependency, direct or transitive: `fancy-regex` builds on
+`regex-automata`, `regex-syntax`, `bit-set` and `bit-vec` directly and never on
+the `regex` facade.
 
 Canonical serialization is a separate, hand-written writer: it sorts keys by
 UTF-8 byte order, so its output order does not depend on the insertion order
@@ -38,9 +43,9 @@ extracting anything."
 
 ## No build edge
 
-`Cargo.toml` declares three runtime dependencies and no dev-dependency. This
-crate has no dependency on model-facing code, at build time or at run time, so a
-clone builds and tests with nothing but crates.io.
+`Cargo.toml` declares three direct runtime dependencies and no dev-dependency.
+This crate has no dependency on model-facing code, at build time or at run time,
+so a clone builds and tests with nothing but crates.io.
 
 The optional AI layer lives in its own repository, `slate-ai`, which depends on
 this one. The edge points one way, and the AI layer's tests — including the `ai`

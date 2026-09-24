@@ -16,6 +16,7 @@ pub mod hash;
 pub mod index;
 pub mod json;
 pub mod keys;
+pub mod pattern;
 pub mod rules;
 pub mod schema;
 pub mod semver;

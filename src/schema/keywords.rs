@@ -306,12 +306,21 @@ pub(super) fn check_string_keywords(
         });
     }
     if let Some(pattern) = json::get_str(schema, "pattern") {
-        let matched = regex::Regex::new(pattern).is_ok_and(|regex| regex.is_match(text));
-        if !matched {
-            errors.push(SchemaError {
-                keyword: "pattern".to_string(),
-                message: format!("string does not match the pattern '{pattern}'"),
-            });
+        // A pattern that cannot be compiled is reported once by the structural
+        // classifier (S-6). Here only the match outcome remains: a match, a
+        // non-match, or the engine's runtime failure (the backtracking limit).
+        if let Ok(regex) = crate::pattern::compile(pattern) {
+            match regex.is_match(text) {
+                Ok(true) => {}
+                Ok(false) => errors.push(SchemaError {
+                    keyword: "pattern".to_string(),
+                    message: format!("string does not match the pattern '{pattern}'"),
+                }),
+                Err(error) => errors.push(SchemaError {
+                    keyword: "pattern".to_string(),
+                    message: format!("pattern '{pattern}' could not be evaluated: {error}"),
+                }),
+            }
         }
     }
     // `format` is an annotation only: colander never asserts it, so any string
