@@ -10,7 +10,7 @@ use crate::json::{self, Json, JsonMap};
 use crate::keys::schema_json_keys;
 
 use super::model::RuleDependencyMetadata;
-use super::refs::{collect_references, validate_row_scope};
+use super::refs::{collect_references, validate_aggregate_targets, validate_row_scope};
 use super::rows::RowSet;
 use super::shape::{validate_aggregate_arguments, validate_expression_shape};
 
@@ -81,6 +81,28 @@ pub fn analyze_checked(
 
     let child_repeaters = RowSet::child_repeater_by_code(form_root);
     let repeater_parents = RowSet::repeater_parents(form_root);
+
+    // A malformed container must be an error, not a silently ignored one: a
+    // caller that sends `fields: []` and gets `ok: true` believes its rules
+    // were applied when none were (SPEC R-4).
+    if let Some(visible_value) = json::get(rules_root, schema_json_keys::FIELDS)
+        && !visible_value.is_null()
+        && visible_value.as_object().is_none()
+    {
+        return Err(ColanderError::new(format!(
+            "RULE_FIELDS_NOT_OBJECT: 'fields' must be an object keyed by field id, found {}.",
+            crate::json::type_name(visible_value)
+        )));
+    }
+    if let Some(visible_value) = json::get(rules_root, schema_json_keys::VALIDATIONS)
+        && !visible_value.is_null()
+        && visible_value.as_array().is_none()
+    {
+        return Err(ColanderError::new(format!(
+            "RULE_VALIDATIONS_NOT_ARRAY: 'validations' must be an array, found {}.",
+            crate::json::type_name(visible_value)
+        )));
+    }
 
     if let Some(field_rules) = json::get_object(rules_root, schema_json_keys::FIELDS) {
         validate_field_rules(
@@ -161,6 +183,7 @@ fn validate_field_rules(
             validate_aggregate_arguments(expression, &expression_path)?;
             validate_expression_references(expression, &expression_path, fields_by_code)?;
             validate_row_scope(expression, &expression_path, child_repeaters, None)?;
+            validate_aggregate_targets(expression, &expression_path, child_repeaters)?;
         }
         // A `calculate` on a repeater child runs in that row's scope, so it
         // may read its sibling child codes; anywhere else a child code has
@@ -174,6 +197,7 @@ fn validate_field_rules(
         validate_aggregate_arguments(calculate, &calculate_path)?;
         validate_expression_references(calculate, &calculate_path, fields_by_code)?;
         validate_row_scope(calculate, &calculate_path, child_repeaters, home)?;
+        validate_aggregate_targets(calculate, &calculate_path, child_repeaters)?;
 
         let calculate = json::get(rules, schema_json_keys::CALCULATE);
         if let Some(calculate) = calculate
@@ -246,6 +270,7 @@ fn validate_validation_entries(
             validate_aggregate_arguments(expression, &expression_path)?;
             validate_expression_references(expression, &expression_path, fields_by_code)?;
             validate_row_scope(expression, &expression_path, child_repeaters, None)?;
+            validate_aggregate_targets(expression, &expression_path, child_repeaters)?;
         }
     }
     Ok(())

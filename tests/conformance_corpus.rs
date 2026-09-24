@@ -45,6 +45,15 @@ fn shared_ref_chain(depth: usize) -> String {
     format!(r##"{{"$ref":"#/$defs/n0","$defs":{{{definitions}}}}}"##)
 }
 
+/// A pattern with `units` quantifier constructs: the shape whose compilation
+/// and evaluation cost is superlinear in the construct count.
+fn complex_pattern_schema(units: usize) -> String {
+    format!(
+        r#"{{"type":"string","pattern":"{}"}}"#,
+        "a{1,2}".repeat(units)
+    )
+}
+
 /// A chain of *distinct* references: not a cycle, so classification accepts
 /// it, but it still nests once per level.
 fn deep_ref_chain(depth: usize) -> String {
@@ -190,6 +199,17 @@ fn cross_runtime_corpus_is_byte_identical() {
                 quoted(&shared_ref_chain(26))
             ),
             r#"{"ok":false,"error":{"kind":"validation","message":"Invalid instance: schema: SCHEMA_EVALUATION_LIMIT: schema evaluation exceeded the step budget"}}"#,
+        ),
+        (
+            // S-13: an over-budget pattern is refused during classification,
+            // before anything is matched. Pinned on both runtimes.
+            "pattern_too_complex",
+            colander_validate_schema,
+            format!(
+                r#"{{"kind":"instance","schemaJson":{},"instanceJson":"\"a\""}}"#,
+                quoted(&complex_pattern_schema(600))
+            ),
+            r#"{"ok":false,"error":{"kind":"validation","message":"Invalid instance: pattern: PATTERN_TOO_COMPLEX: pattern has 600 quantifier or alternation constructs, the limit is 512"}}"#,
         ),
         (
             // S-12: nesting depth is bounded on its own, because a step

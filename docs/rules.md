@@ -54,10 +54,17 @@ Operands are checked before evaluation (SPEC R-12): the fixed-arity operators
 `sum`) take exactly their arity, and a wrong count is a rule error
 (`RULE_INVALID_EXPRESSION_ARITY`) rather than a silently ignored tail. The
 variadic operators (`and`, `or`, `coalesce`) fold over their whole list, and
-`not`/`empty` take exactly one argument. Arithmetic always produces a double:
-`add` of the integers `1` and `2` yields `3.0`, which serializes as `3`.
-Aggregate result types are fixed: `count` yields an integer, `sum` always
-yields a double (spelled without decimals when whole).
+`not`/`empty` take exactly one argument. Arithmetic produces a double whenever a
+double holds the result exactly — `add` of the integers `1` and `2` yields
+`3.0`, which serializes as `3` — and an exact integer only when a double would
+round it away. Aggregate result types are fixed: `count` yields an integer,
+`sum` always yields a double (spelled without decimals when whole).
+An aggregate's **first** argument names a repeater; `sum` then names the child
+column to accumulate across that repeater's rows. A child code in the first
+position is `RULE_AGGREGATE_NOT_REPEATER` — it used to evaluate to a silent `0`.
+`fields` and `validations` must be an object and an array when present: a
+malformed container is `RULE_FIELDS_NOT_OBJECT` / `RULE_VALIDATIONS_NOT_ARRAY`
+rather than a document that quietly applies no rules.
 
 Comparisons use this ordering:
 
@@ -77,6 +84,13 @@ Comparisons use this ordering:
   integer: `eq(9007199254740993, 9007199254740992)` is `false`, and so is
   comparing `i64::MAX` with the nearest double (`2^63`). The tolerance rule
   above applies to the double paths only, where it means what it says.
+- **Integer arithmetic is exact too.** `add`, `sub` and `mul` over two integer
+  operands are computed in `i128`. `add(9007199254740993, 1)` is
+  `9007199254740994`, and `add(9223372036854775806, 1)` is `i64::MAX` rather
+  than the `9.223372036854776e+18` a double would have produced. The result
+  _type_ only changes where the old value was wrong: an integer a double holds
+  exactly still comes back as a double, and only a value a double would round
+  stays an integer. `div` truncates toward zero, and division by zero is `null`.
 
 Truthiness (`and`, `or`, `not`, and every `when`/`visibleWhen`/… predicate):
 `null` and `false` are false, a non-empty string is true, a non-zero number is

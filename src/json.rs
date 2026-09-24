@@ -149,6 +149,19 @@ impl From<i64> for Json {
 // Accessors
 // ---------------------------------------------------------------------------
 
+/// The JSON type name, for messages that must say what was found. Lives here
+/// so every layer names a type the same way.
+pub fn type_name(value: &Json) -> &'static str {
+    match value {
+        Json::Null => "null",
+        Json::Bool(_) => "boolean",
+        Json::Number(_) => "number",
+        Json::String(_) => "string",
+        Json::Array(_) => "array",
+        Json::Object(_) => "object",
+    }
+}
+
 pub fn get<'a>(map: &'a JsonMap, key: &str) -> Option<&'a Json> {
     map.get(key)
 }

@@ -80,6 +80,26 @@ pub(super) fn apply_calculated_fields(
             });
         }
 
+        // A calculated value is still held to the field's own type and
+        // constraints. Skipping this let a rule publish `100` for a field
+        // declared `maximum: 10`, and the response reported it as valid: the
+        // client did nothing wrong, so this is reported as a calculated-value
+        // failure rather than a client error.
+        if mode == FormResponseValidationMode::Complete
+            && !calculated_value.is_empty()
+            && !calculated_value_satisfies_field(field, calculated_value)
+        {
+            errors.push(FormResponseFieldError {
+                code: "CALCULATED_VALUE_INVALID".to_string(),
+                path: field.path.clone(),
+                message: format!(
+                    "Calculated value for field '{}' does not satisfy the field's type and constraints.",
+                    field.code
+                ),
+            });
+            continue;
+        }
+
         normalized.insert(code.clone(), calculated_value.clone());
     }
 
@@ -101,6 +121,41 @@ pub(crate) fn is_representable(field: &AnswerFieldDefinition, number: f64) -> bo
 }
 // Rules input and evaluation
 // ---------------------------------------------------------------------------
+
+/// Whether a calculated value satisfies the field's declared type and its
+/// constraints. The rules that decide this are the same ones a submitted value
+/// goes through, so a calculated field cannot hold something a client could
+/// never submit.
+fn calculated_value_satisfies_field(field: &AnswerFieldDefinition, value: &Val) -> bool {
+    let number = match (field.field_type.as_str(), value) {
+        (field_type_names::NUMBER, Val::Double(number)) => Some(*number),
+        (field_type_names::NUMBER, Val::Int(number)) => Some(*number as f64),
+        (field_type_names::INTEGER, Val::Double(number)) => {
+            if number.fract() == 0.0 {
+                Some(*number)
+            } else {
+                return false;
+            }
+        }
+        (field_type_names::INTEGER, Val::Int(_)) => None,
+        (field_type_names::TEXT, Val::Str(_)) | (field_type_names::BOOLEAN, Val::Bool(_)) => {
+            return super::constraints::validate_constraints(field, value, &mut Vec::new())
+                .unwrap_or(true);
+        }
+        // An empty or absent value is handled by the required check above, and
+        // a value of another shape is a type error, not a constraint error.
+        _ => return !matches!(value, Val::List(_) | Val::Rows(_) | Val::Raw(_)),
+    };
+
+    let Some(number) = number else {
+        return true;
+    };
+    if !number.is_finite() {
+        return false;
+    }
+    super::constraints::validate_constraints(field, &Val::Double(number), &mut Vec::new())
+        .unwrap_or(true)
+}
 
 pub(super) fn flatten_for_rules(
     answers: &JsonMap,

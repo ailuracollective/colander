@@ -13,6 +13,26 @@ const DEFAULT_DECIMAL_PLACES: i32 = 2;
 /// decimal places, and non-numeric or non-finite values pass through or become
 /// `Val::Null`.
 pub fn normalize_calculated_value(value: Val, field: &FieldInfo) -> Val {
+    // An exact integer stays exact, but only where a double would round it.
+    // Converting through `f64` first made `i64::MAX - 1 + 1` normalize to
+    // `9.223372036854776e+18`, one greater than `i64::MAX`, undoing the exact
+    // arithmetic one layer later (SPEC R-16/V-11). Every value a double holds
+    // exactly still normalizes to a double, so the documented result type is
+    // unchanged wherever the old behaviour was right.
+    if let Val::Int(number) = value
+        && field.field_type == field_type_names::INTEGER
+    {
+        let as_double = number as f64;
+        return if (as_double as i128) == i128::from(number) {
+            // Lossless: keep the documented result type. The comparison goes
+            // through `i128` because `f64 as i64` saturates, which would make
+            // `i64::MAX` look like a lossless round trip.
+            Val::Double(as_double)
+        } else {
+            Val::Int(number)
+        };
+    }
+
     let numeric = match &value {
         Val::Double(number) => *number,
         Val::Int(number) => *number as f64,

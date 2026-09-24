@@ -239,9 +239,15 @@ fn a_caller_can_build_its_own_request_buffer() {
 #[test]
 fn the_allocator_refuses_a_zero_length() {
     assert!(colander_alloc(0).is_null());
-    // Freeing null or zero is a no-op rather than a double free.
+    // Freeing null is a no-op rather than a double free.
     unsafe { colander_free_buffer(std::ptr::null_mut(), 16) };
-    unsafe { colander_free_buffer(colander_alloc(16), 0) };
+    // A zero length with a real pointer is also a no-op, which means the
+    // allocation is *not* released. The test keeps the buffer so it can free
+    // it correctly afterwards; leaving it to the leak checker would make this
+    // suite fail under AddressSanitizer for a deliberate, documented no-op.
+    let buffer = colander_alloc(16);
+    unsafe { colander_free_buffer(buffer, 0) };
+    unsafe { colander_free_buffer(buffer, 16) };
 }
 
 /// A present optional key of the wrong JSON type must fail, and the failure

@@ -29,14 +29,14 @@ no `decided` requirement remains unresolved.
 | D     | Documents, fields, id and code  | 4      | 0         | 0          |
 | R     | Rules and the dependency check  | 17     | 0         | 0          |
 | V     | Response validation             | 10     | 1         | 0          |
-| S     | JSON Schema subset              | 12     | 0         | 0          |
+| S     | JSON Schema subset              | 13     | 0         | 0          |
 | H     | Key-sorted form and hashing     | 5      | 0         | 0          |
 | P     | Compilation, components, semver | 11     | 0         | 0          |
 | X     | Retirements and reversals       | 2      | 1         | 0          |
 | F     | The frozen vectors              | 1      | 0         | 0          |
 
 The counts are derived from the markers below, so move a marker and its count
-together. The ten groups hold 84 requirements: 82 `live`, 2 `decided`, 0 `proposed`.
+together. The ten groups hold 85 requirements: 83 `live`, 2 `decided`, 0 `proposed`.
 
 ## C — Wire contract and the ABI
 
@@ -312,6 +312,16 @@ behaviour, not shape.
   exhaust the stack, and a stack overflow aborts the process rather than
   returning an error. A chain of distinct references is not a cycle and stays
   legal up to that depth.
+- **S-13** `live`. A `pattern` carries a cost bound: at most 512 quantifier and
+  alternation constructs, counted structurally during classification, so an
+  over-budget pattern is refused with `PATTERN_TOO_COMPLEX` before any string is
+  matched. The count is a deterministic structural measure, never a timing
+  measurement, so it is identical on every runtime. The bound exists because the
+  engine's cost is superlinear in that count and the pattern is recompiled for
+  every string validated: measured, 1 000 constructs cost about 29 ms, 4 000
+  about 374 ms and 32 000 about 17.6 s, while the length of the text matched does
+  not change the cost once the count is fixed. Escaped metacharacters and
+  character classes are literals and do not count.
 
 ## H — Canonical form and hashing
 

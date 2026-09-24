@@ -87,6 +87,36 @@ pub fn evaluate_expression(
             if left.is_empty() || right.is_empty() {
                 return Ok(Val::Null);
             }
+            // Integer arithmetic stays exact (R-16). Routing it through `f64`
+            // made `9007199254740993 + 1` come back as `9007199254740992`, and
+            // the rounded value then passed the representability check, so a
+            // server-calculated `integer` field was silently wrong. The result
+            // type is unchanged wherever the old value was right: a double when
+            // the exact integer survives the conversion unchanged, and an
+            // integer only when a double would lose it. `div` by zero and
+            // non-finite results still become `Null`.
+            if let (Val::Int(left), Val::Int(right)) = (&left, &right) {
+                let exact = match op {
+                    "add" => i128::from(*left).checked_add(i128::from(*right)),
+                    "sub" => i128::from(*left).checked_sub(i128::from(*right)),
+                    "mul" => i128::from(*left).checked_mul(i128::from(*right)),
+                    // Truncates toward zero, like the double path; a zero
+                    // divisor has no integer answer and falls through.
+                    _ => i128::from(*left).checked_div(i128::from(*right)),
+                };
+                if let Some(exact) = exact.filter(|_| *right != 0)
+                    && let Ok(value) = i64::try_from(exact)
+                {
+                    let as_double = value as f64;
+                    return Ok(if (as_double as i128) == exact {
+                        // Lossless as a double: keep the documented result type.
+                        Val::Double(as_double)
+                    } else {
+                        // A double would round this away. Keep it exact.
+                        Val::Int(value)
+                    });
+                }
+            }
             let left = left.to_double()?;
             let right = right.to_double()?;
             let result = match op {

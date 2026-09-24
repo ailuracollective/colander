@@ -289,6 +289,22 @@ fn check_pattern(value: &Json, errors: &mut Vec<SchemaError>) {
         errors.push(wrong_type("pattern", "a string"));
         return;
     };
+    // S-13: a caller-supplied pattern is a cost, and the cost is superlinear in
+    // its quantifier/alternation count. The check is a structural count, so it
+    // is the same on native and WASM, and it runs during classification — which
+    // means an over-budget pattern is refused before anything is evaluated,
+    // rather than costing seconds inside one `is_match`.
+    if !crate::pattern::is_within_budget(pattern) {
+        errors.push(SchemaError {
+            keyword: "pattern".to_string(),
+            message: format!(
+                "PATTERN_TOO_COMPLEX: pattern has {} quantifier or alternation constructs, the limit is {}",
+                crate::pattern::complexity_units(pattern),
+                crate::pattern::MAX_PATTERN_UNITS
+            ),
+        });
+        return;
+    }
     if let Err(message) = crate::pattern::compile(pattern) {
         errors.push(SchemaError {
             keyword: "pattern".to_string(),

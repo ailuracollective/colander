@@ -66,10 +66,20 @@ Two obligations belong to the wrapper, and the core cannot enforce either:
   call, unbounded (measured: 1.5 MB → 45.5 MB over 100 000 calls). With
   correct pairing, 20 000 calls on each of five entry points grew the WASM
   heap by 0 bytes. `colander_free_buffer` must receive the _same_ length that
-  was requested; a wrong length corrupts the heap (it is undefined behaviour,
-  not a recoverable error).
+  was requested.
+- **The length is not a safety check, and it cannot become one.** The allocator
+  pair stores no length of its own, so a mismatched length is not detected and
+  is not reportable. On the platform allocator used here (glibc, Linux) a
+  non-zero wrong length frees successfully anyway — measured clean under
+  AddressSanitizer at 16 bytes and at 4 MB — because `free` is not given the
+  size. A length of `0` with a real pointer is a **silent leak**: the call
+  returns without freeing anything. So the realistic failure is an unbounded
+  leak in the wrapper, not heap corruption, and the only defence is the
+  wrapper's own bookkeeping. Nothing in the core detects a mismatch.
 - **Do not free twice, and do not free foreign memory.**
   `colander_free_string` takes only pointers from a `colander_*` return.
+  Freeing twice aborts the process (glibc detects it); a pointer from another
+  allocator is undefined behaviour the core cannot check.
 
 ## The conformance corpus
 

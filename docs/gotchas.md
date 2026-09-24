@@ -108,7 +108,19 @@ has surprised someone.
     classifier also recurses once per reference. S-12 bounds both phases at 512
     levels and reports `SCHEMA_DEPTH_LIMIT`; a 30 000-level chain of 1 MB now
     returns that error in about 110 ms.
-24. **Equal numbers must hash equally.** `uniqueItems` buckets by hash and
+24. **A calculated value is still bound by its field.** A rule that computes
+    `100` for a field declared `maximum: 10` used to produce a valid
+    submission: calculated fields skipped the ordinary constraint checks
+    entirely. It is now `CALCULATED_VALUE_INVALID`, and the offending value is
+    not published in `normalizedAnswersJson`. The client did nothing wrong, so
+    the code names the calculated value rather than blaming the answer.
+25. **A malformed rules document is an error, not an empty one.** `{"fields":[]}`
+    or `{"fields":true}` used to be accepted and to apply no rules at all, so a
+    caller believed its rules were enforced. They are now
+    `RULE_FIELDS_NOT_OBJECT` / `RULE_VALIDATIONS_NOT_ARRAY`. The same reasoning
+    applies to an aggregate aimed at a repeater child, which used to evaluate
+    to a silent `0` and is now `RULE_AGGREGATE_NOT_REPEATER`.
+26. **Equal numbers must hash equally.** `uniqueItems` buckets by hash and
     compares inside a bucket, so `-0.0` and `0.0` (the same JSON Schema value)
     must land together. Numeric equality is by mathematical value, not `f64`
     rounding, on every surface: `uniqueItems`, the comparison operators, and

@@ -88,6 +88,70 @@ fn collect_direct_references_recursive(
     }
 }
 
+/// The repeater codes an aggregate (`count`/`sum`) is pointed at: its **first**
+/// argument only. `sum` takes the repeater and then the child column to
+/// accumulate across its rows, so a child code in the second argument is the
+/// documented usage; a child code in the first is not.
+pub fn collect_aggregate_repeaters(expression: &Json) -> Vec<String> {
+    let mut references = Vec::new();
+    let mut seen = HashSet::new();
+    collect_aggregate_repeaters_recursive(expression, &mut references, &mut seen);
+    references
+}
+
+fn collect_aggregate_repeaters_recursive(
+    node: &Json,
+    references: &mut Vec<String>,
+    seen: &mut HashSet<String>,
+) {
+    let Some(object) = node.as_object() else {
+        return;
+    };
+    if matches!(json::get_str(object, "op"), Some("count" | "sum")) {
+        if let Some(args) = json::get_array(object, "args")
+            && let Some(first) = args.first()
+            && let Some(code) = first.as_object().and_then(|arg| json::get_str(arg, "ref"))
+            && !code.is_empty()
+            && seen.insert(code.to_string())
+        {
+            references.push(code.to_string());
+        }
+        return;
+    }
+    let Some(args) = json::get_array(object, "args") else {
+        return;
+    };
+    for arg in args {
+        if !arg.is_null() {
+            collect_aggregate_repeaters_recursive(arg, references, seen);
+        }
+    }
+}
+
+/// An aggregate's first argument names a repeater, never one of its children.
+/// Accepting a child code there produced a silently wrong count (0) rather than
+/// an error, because the row set has no rows for a code that is not a repeater.
+pub fn validate_aggregate_targets(
+    expression: Option<&Json>,
+    path: &str,
+    child_repeaters: &IndexMap<String, String>,
+) -> Result<()> {
+    let Some(expression) = expression else {
+        return Ok(());
+    };
+    if expression.is_null() {
+        return Ok(());
+    }
+    for code in collect_aggregate_repeaters(expression) {
+        if let Some(enclosing) = child_repeaters.get(&code) {
+            return Err(ColanderError::new(format!(
+                "RULE_AGGREGATE_NOT_REPEATER: aggregate at {path} points at repeater-child code '{code}'; an aggregate must point at the repeater '{enclosing}' itself."
+            )));
+        }
+    }
+    Ok(())
+}
+
 /// Rejects direct reads of repeater-child codes from outside their row scope.
 /// `home_repeater` is the enclosing repeater when the expression is a
 /// `calculate` on one of its children, and `None` for predicates and

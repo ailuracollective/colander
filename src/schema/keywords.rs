@@ -16,14 +16,7 @@ pub const KNOWN_TYPES: &[&str] = &[
 ];
 
 pub(super) fn type_name(value: &Json) -> &'static str {
-    match value {
-        Json::Null => "null",
-        Json::Bool(_) => "boolean",
-        Json::Number(_) => "number",
-        Json::String(_) => "string",
-        Json::Array(_) => "array",
-        Json::Object(_) => "object",
-    }
+    json::type_name(value)
 }
 
 pub(super) fn matches_type(expected: &str, instance: &Json) -> bool {
