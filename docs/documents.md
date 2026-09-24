@@ -27,23 +27,23 @@ and the call that compiles them is in [entry-points.md](entry-points.md).
 
 Every field object:
 
-| Key                       | Type    | Required     | Meaning                                                                                                |
-| ------------------------- | ------- | ------------ | ------------------------------------------------------------------------------------------------------ |
-| `type`                    | string  | yes          | See [field types](#field-types). Must be non-empty                                                     |
-| `id`                      | string  | for indexing | Stable identifier; keys the rule maps. May be empty for `compile` alone                                |
-| `code`                    | string  | for indexing | Answer key; keys `values` and `calculatedValues`. Duplicates are rejected only by the dependency check |
-| `required`                | bool    | no           | Default `false`. Seeds `required` in the evaluation                                                    |
-| `readOnly`                | bool    | no           | Default `false`. Seeds `enabled:false` in the evaluation                                               |
-| `items`                   | array   | no           | Children of a `group`, `repeater` or `component-ref`                                                   |
-| `options`                 | array   | for `choice` | Each `{"value": "…"}`; other keys, including `label`, are ignored                                      |
-| `allowMultiple`           | bool    | no           | `true` makes a `choice` accept an array                                                                |
-| `minLength` / `maxLength` | integer | no           | Counted in **UTF-16 code units**                                                                       |
-| `pattern`                 | string  | no           | Unanchored ECMA-262 pattern; an empty string is ignored, an uncompilable one is an error               |
-| `minimum` / `maximum`     | number  | no           | Inclusive bounds                                                                                       |
-| `multipleOf`              | number  | no           | Step; also derives decimal places for calculations                                                     |
-| `decimalPlaces`           | integer | no           | Calculation rounding, clamped to 0–10, default 2                                                       |
-| `minItems` / `maxItems`   | integer | no           | Repeater row count, enforced in Complete mode only                                                     |
-| `description`, `title`    | string  | no           | Copied through by `compile`; otherwise inert                                                           |
+| Key                       | Type    | Required     | Meaning                                                                                                                                          |
+| ------------------------- | ------- | ------------ | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `type`                    | string  | yes          | See [field types](#field-types). Must be non-empty                                                                                               |
+| `id`                      | string  | for indexing | Stable identifier; keys the rule maps. May be empty for `compile` alone                                                                          |
+| `code`                    | string  | for indexing | Answer key; keys `values` and `calculatedValues`. Duplicates are always rejected (`RULE_DUPLICATE_FIELD_CODE`), with or without a rules document |
+| `required`                | bool    | no           | Default `false`. Seeds `required` in the evaluation                                                                                              |
+| `readOnly`                | bool    | no           | Default `false`. Seeds `enabled:false` in the evaluation                                                                                         |
+| `items`                   | array   | no           | Children of a `group`, `repeater` or `component-ref`                                                                                             |
+| `options`                 | array   | for `choice` | Each `{"value": "…"}`; other keys, including `label`, are ignored                                                                                |
+| `allowMultiple`           | bool    | no           | `true` makes a `choice` accept an array                                                                                                          |
+| `minLength` / `maxLength` | integer | no           | Counted in **UTF-16 code units**                                                                                                                 |
+| `pattern`                 | string  | no           | Unanchored ECMA-262 pattern; an empty string is ignored, an uncompilable one is an error                                                         |
+| `minimum` / `maximum`     | number  | no           | Inclusive bounds                                                                                                                                 |
+| `multipleOf`              | number  | no           | Step; also derives decimal places for calculations                                                                                               |
+| `decimalPlaces`           | integer | no           | Calculation rounding, clamped to 0–10, default 2                                                                                                 |
+| `minItems` / `maxItems`   | integer | no           | Repeater row count, enforced in Complete mode only                                                                                               |
+| `description`, `title`    | string  | no           | Copied through by `compile`; otherwise inert                                                                                                     |
 
 Any other key is preserved verbatim by `compile` and otherwise ignored.
 `title` in particular has **no meaning on a form field** — it is a layout-node
@@ -57,20 +57,20 @@ them empty. A `null` is treated as absent, and a wrong type is an error:
 
 ## Field types
 
-| `type`          | Answer must be                                          | Converted to                              |
-| --------------- | ------------------------------------------------------- | ----------------------------------------- |
-| `text`          | string                                                  | string                                    |
-| `textarea`      | string                                                  | string                                    |
-| `number`        | JSON number                                             | double                                    |
-| `integer`       | JSON number with no fraction or exponent, fitting `i64` | integer                                   |
-| `boolean`       | `true` / `false`                                        | boolean                                   |
-| `date`          | string, ISO-like date                                   | `YYYY-MM-DD`                              |
-| `datetime`      | string, ISO-like date-time                              | `YYYY-MM-DDTHH:MM:SS.fffffff±HH:MM`       |
-| `time`          | string, `HH:MM` or `HH:MM:SS`                           | `HH:MM:SS`                                |
-| `choice`        | string (or array when `allowMultiple`)                  | string (or list)                          |
-| `group`         | —                                                       | never validated directly; its `items` are |
-| `repeater`      | array of row objects                                    | array of row objects                      |
-| `component-ref` | —                                                       | expanded to a `group` by `compile`        |
+| `type`          | Answer must be                                                                                                                            | Converted to                              |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------- |
+| `text`          | string                                                                                                                                    | string                                    |
+| `textarea`      | string                                                                                                                                    | string                                    |
+| `number`        | JSON number                                                                                                                               | double                                    |
+| `integer`       | JSON number with no fraction or exponent, fitting `i64` (stricter than the JSON Schema subset's `integer`, which accepts `1.0` and `1e3`) | integer                                   |
+| `boolean`       | `true` / `false`                                                                                                                          | boolean                                   |
+| `date`          | string, ISO-like date                                                                                                                     | `YYYY-MM-DD`                              |
+| `datetime`      | string, ISO-like date-time                                                                                                                | `YYYY-MM-DDTHH:MM:SS.fffffff±HH:MM`       |
+| `time`          | string, `HH:MM` or `HH:MM:SS`                                                                                                             | `HH:MM:SS`                                |
+| `choice`        | string (or array when `allowMultiple`)                                                                                                    | string (or list)                          |
+| `group`         | —                                                                                                                                         | never validated directly; its `items` are |
+| `repeater`      | array of row objects                                                                                                                      | array of row objects                      |
+| `component-ref` | —                                                                                                                                         | expanded to a `group` by `compile`        |
 
 Anything else yields `UNSUPPORTED_FIELD_TYPE`. The names are matched exactly and
 case-sensitively: **`colander` accepts no aliases**. If you want `email`,
@@ -83,7 +83,10 @@ Split on `-` or `/` into exactly three numbers. The first component is the year
 when it is greater than 31; otherwise the last is. So `2024-03-05`, `2024/3/5`,
 `03/05/2024` and `3-5-24` all parse. A two-digit year uses the pivot 00–29 →
 2000–2029 and 30–99 → 1930–1999. A year above 9999, a month outside 1–12, or a
-day outside the month is rejected. Output is always `YYYY-MM-DD`.
+day outside the month is rejected. Output is always `YYYY-MM-DD`. This is
+deliberately more lenient than the `format: date` assertion in
+[json-schema.md](json-schema.md), which requires strict RFC 3339: answers are
+normalized, schemas are strict.
 
 ### Date-times
 
@@ -184,7 +187,8 @@ object on a scalar field reports `INVALID_TYPE` from per-field validation.
 
 A `repeater` is `{"type":"repeater","items":[…]}` plus optional `minItems` and
 `maxItems`. Its answer is an array of row objects; each row's keys must be its
-children's codes.
+children's codes. Children must be flat scalar fields: anything with nested
+`items` under a repeater is rejected with `REPEATER_NESTED_FIELD`.
 
 ## Rule evaluation order
 
@@ -197,7 +201,8 @@ children's codes.
    with rows runs once per row instead, and its array replaces the flattened
    value everywhere downstream (SPEC R-7).
 3. `visibleWhen`, `enabledWhen` and `requiredWhen` override the baseline,
-   reading the values from step 2.
+   reading the values from step 2 — in both directions, so `requiredWhen:
+   false` unsets a schema `required: true`.
 4. Cross-field validations run last.
 
 Calculation results are normalized for their field: on an `integer` field the

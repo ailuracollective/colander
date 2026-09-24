@@ -39,10 +39,11 @@ child as 0, and is `null` with no rows. Per-row `visibility`, `enabled`,
 `required` and validations, index addressing, and other aggregates are out of
 scope.
 
-Operands beyond the second are evaluated and then ignored, so the binary
+Operands beyond the second are ignored without evaluation, so the binary
 operators take **at least** two arguments rather than exactly two. Arithmetic
 always produces a double: `add` of the integers `1` and `2` yields `3.0`, which
-serializes as `3`.
+serializes as `3`. Aggregate result types are fixed: `count` yields an integer,
+`sum` always yields a double (spelled without decimals when whole).
 
 Comparisons use this ordering:
 
@@ -58,7 +59,10 @@ Truthiness (`and`, `or`, `not`, and every `when`/`visibleWhen`/… predicate):
 true, and a list, row set or raw object is always true.
 
 Emptiness (`empty`, `coalesce`): `null`, a non-finite number, `""`, `[]` and no
-rows are empty; `false`, `0` and a raw object never are.
+rows are empty; `false`, `0` and a raw object never are. Note the asymmetry:
+an empty list or row set is empty **and** truthy, so `and([])` is `true`
+while `empty([])` is also `true` — test for emptiness explicitly instead of
+relying on truthiness for collections.
 
 Numeric conversion, used by comparisons and arithmetic: `null` → `0`, `true` →
 `1`, `false` → `0`, a string is parsed (accepting `Infinity`, `+inf`, `NaN` and
@@ -71,6 +75,17 @@ a `validation` error such as `Unsupported expression operator 'pow'.` or
 
 When any expression in a call fails, the whole call fails: there is no partial
 evaluation result.
+
+## Row scope
+
+A repeater child's code has no meaning outside a row: the flat value map
+keeps only the last row per child code, so reading a child code from a
+predicate, a cross-field validation, or a calculation that is not one of
+the same repeater's children is rejected with `RULE_INVALID_ROW_REFERENCE`
+instead of silently observing an arbitrary row. The two legal positions
+are a `calculate` on a child of the same repeater (sibling codes resolve
+to the current row) and the aggregates `count`/`sum` (whose arguments
+address the repeater and one child as the aggregate's subject).
 
 ## Rule analysis errors
 
@@ -85,21 +100,24 @@ whitespace-only `rulesSchemaJson` as no rules, so the check does not run then.
 `colander_evaluate_rules` always requires a rules document.
 
 The check includes the duplicate-`code` rejection that the code-keyed index
-performs, in addition to the messages below.
+performs — on the effective documents, with or without a rules document —
+in addition to the messages below.
 
-| Message                                                                                                           | Cause                                             |
-| ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
-| `An item with the same key has already been added. Key: x`                                                        | Two fields share a `code`                         |
-| `RULE_SCHEMA_VERSION_MISMATCH: rules formSchemaVersion 'x' does not match form schemaVersion 'y'.`                | The two versions are both present and differ      |
-| `RULE_UNKNOWN_FIELD: rules reference unknown form field id 'f9' at /fields/f9.`                                   | A `fields` key is not a form field id             |
-| `RULE_UNKNOWN_FIELD_REF: expression at /fields/f1/visibleWhen references unknown field code 'x'.`                 | An expression names a field code no field has     |
-| `RULE_CALCULATE_NOT_READONLY: calculated field 'f1' at /fields/f1/calculate must be readOnly in the form schema.` | A `calculate` on a field without `readOnly: true` |
-| `RULE_SELF_REFERENCE: calculated field 'f1' at /fields/f1/calculate must not reference its own code 'total'.`     | A calculation reading its own field               |
-| `RULE_CYCLIC_DEPENDENCY: calculated fields contain a cyclic dependency.`                                          | Calculations form a cycle                         |
-| `RULE_DUPLICATE_VALIDATION_CODE: validation code 'X' at /validations/2/code is duplicated.`                       | Two validations share a `code`                    |
-| `Expected validation object at /validations/0.`                                                                   | A `validations` element is not an object          |
-| `Expected validation code at /validations/0/code.`                                                                | A `validations` element has no `code`             |
-| `RULE_MISSING_ASSERT: validation at /validations/0 has no 'assert' to evaluate.`                                  | A `validations` element has no `assert`           |
+| Message                                                                                                                                     | Cause                                                                                                 |
+| ------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `RULE_DUPLICATE_FIELD_CODE: duplicate field code 'x'.`                                                                                      | Two fields share a `code`                                                                             |
+| `RULE_SCHEMA_VERSION_MISMATCH: rules formSchemaVersion 'x' does not match form schemaVersion 'y'.`                                          | The two versions are both present and differ                                                          |
+| `RULE_UNKNOWN_FIELD: rules reference unknown form field id 'f9' at /fields/f9.`                                                             | A `fields` key is not a form field id                                                                 |
+| `RULE_UNKNOWN_FIELD_REF: expression at /fields/f1/visibleWhen references unknown field code 'x'.`                                           | An expression names a field code no field has                                                         |
+| `RULE_CALCULATE_NOT_READONLY: calculated field 'f1' at /fields/f1/calculate must be readOnly in the form schema.`                           | A `calculate` on a field without `readOnly: true`                                                     |
+| `RULE_SELF_REFERENCE: calculated field 'f1' at /fields/f1/calculate must not reference its own code 'total'.`                               | A calculation reading its own field                                                                   |
+| `RULE_CYCLIC_DEPENDENCY: calculated fields contain a cyclic dependency.`                                                                    | Calculations form a cycle                                                                             |
+| `RULE_DUPLICATE_VALIDATION_CODE: validation code 'X' at /validations/2/code is duplicated.`                                                 | Two validations share a `code`                                                                        |
+| `RULE_UNKNOWN_RULE_KEY: rules for field 'f1' at /fields/f1/visiblewhen use an unknown rule key 'visiblewhen'.`                              | A `fields` entry carries a key other than `visibleWhen`, `enabledWhen`, `requiredWhen` or `calculate` |
+| `RULE_INVALID_ROW_REFERENCE: expression at /validations/0/assert references repeater-child code 'x' outside the row scope of repeater 'r'.` | A predicate, validation or unrelated calculation reads a repeater child                               |
+| `Expected validation object at /validations/0.`                                                                                             | A `validations` element is not an object                                                              |
+| `Expected validation code at /validations/0/code.`                                                                                          | A `validations` element has no `code`                                                                 |
+| `RULE_MISSING_ASSERT: validation at /validations/0 has no 'assert' to evaluate.`                                                            | A `validations` element has no `assert`                                                               |
 
 ## Next
 

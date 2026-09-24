@@ -31,6 +31,10 @@ pub fn validate(
     mode: FormResponseValidationMode,
 ) -> Result<FormResponseValidationResult> {
     let form_root = json::parse_object(form_schema_json, "form schema")?;
+    // R-5: duplicates are rejected even when no rules document is supplied;
+    // the answer index would otherwise validate against the last definition
+    // in silence.
+    index::ensure_unique_codes(&form_root)?;
     let fields_by_code = index::build_answer_index(&form_root)?;
     let repeaters_by_code: IndexMap<String, AnswerFieldDefinition> = fields_by_code
         .iter()

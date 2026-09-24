@@ -1,6 +1,6 @@
 # colander documentation
 
-This directory is the reference for colander, a domain-neutral form core
+This directory is the reference for colander, a portable form runtime
 exposed as a C-ABI shared library. colander compiles a form, evaluates its
 rules, validates a response against them and hashes the result; it holds no
 state, performs no I/O and ships no schemas of its own. The pages below are split
@@ -26,6 +26,7 @@ by task, so you can read only what you need before your first call.
 | [dependencies.md](dependencies.md)       | What stays hand-written, and why.                                                                                     | You wonder why the crate has so few dependencies.                   |
 | [vectors.md](vectors.md)                 | What the frozen golden vectors assert.                                                                                | You are running or extending the test suite.                        |
 | [releases.md](releases.md)               | The release pipeline: cocogitto bumps, the header guard, on-demand GitHub Release, and the manual crates.io publish.  | You are cutting a release or publishing to crates.io.               |
+| [conformance.md](conformance.md)         | Cross-language parity: the value domain, error codes and hashes a wrapper must preserve.                              | You are writing or checking a WASM, TypeScript or .NET wrapper.     |
 
 ## Reading paths
 

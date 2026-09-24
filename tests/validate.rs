@@ -103,7 +103,7 @@ fn rejects_a_duplicate_field_code_when_rules_are_present() {
     )
     .unwrap_err();
     assert!(
-        error.message.starts_with("An item with the same key"),
+        error.message.starts_with("RULE_DUPLICATE_FIELD_CODE"),
         "{error}"
     );
 }
@@ -126,14 +126,17 @@ fn rejects_a_dependency_error() {
 }
 
 #[test]
-fn a_duplicate_code_passes_when_no_rules_document_is_supplied() {
-    // Absent rules mean there is no form/rules pair to check, so the dependency
-    // check (including its duplicate-code rejection) does not run.
+fn a_duplicate_code_fails_even_when_no_rules_document_is_supplied() {
+    // R-5: duplicates are rejected on the form alone, because the answer
+    // index would otherwise validate against the last definition in silence.
     let form = r#"{"schemaVersion":"1.0.0","fields":[
         {"id":"a","code":"dup","type":"text"},
         {"id":"b","code":"dup","type":"number"}]}"#;
-    let result = validate(form, None, None, "{}", FormResponseValidationMode::Draft).unwrap();
-    assert!(result.is_valid(), "{:?}", result.errors);
+    let error = validate(form, None, None, "{}", FormResponseValidationMode::Draft).unwrap_err();
+    assert!(
+        error.message.starts_with("RULE_DUPLICATE_FIELD_CODE"),
+        "{error}"
+    );
 }
 
 #[test]

@@ -73,6 +73,10 @@ pub(super) fn validate_scalar_field(
     Ok(())
 }
 
+/// Flag resolution: the rule evaluation owns all three flags. It seeds them
+/// from the schema (`required`, `readOnly`, UI `hidden`), and a predicate
+/// overwrites its flag — including `requiredWhen: false` unsetting a schema
+/// `required: true`, symmetric with `visibleWhen`/`enabledWhen`.
 pub(super) fn resolve_field_flags(
     field: &AnswerFieldDefinition,
     evaluation: &rules::FormRuleEvaluationResult,
@@ -83,7 +87,11 @@ pub(super) fn resolve_field_flags(
         .copied()
         .unwrap_or(true);
     let enabled = evaluation.enabled.get(&field.id).copied().unwrap_or(true);
-    let required = evaluation.required.get(&field.id).copied().unwrap_or(false) || field.required;
+    let required = evaluation
+        .required
+        .get(&field.id)
+        .copied()
+        .unwrap_or(field.required);
     (visible, enabled, required)
 }
 

@@ -123,7 +123,7 @@ fn evaluate_rejects_a_duplicate_field_code() {
     );
     let error = evaluate(&form, &rules, &IndexMap::new(), None, &mut RowSet::empty()).unwrap_err();
     assert!(
-        error.message.starts_with("An item with the same key"),
+        error.message.starts_with("RULE_DUPLICATE_FIELD_CODE"),
         "{error}"
     );
 }

@@ -1,6 +1,6 @@
 # colander
 
-A domain-neutral **form core** in Rust, exposed as a C-ABI shared library.
+A portable **form runtime** in Rust, exposed as a C-ABI shared library.
 
 colander owns the pure, deterministic half of forms: schema compilation, the
 rule engine, response validation and a JSON-Schema subset validator. It does no
@@ -107,6 +107,7 @@ normative contract lives at the root:
 | [docs/concepts.md](docs/concepts.md)               | The mental model: request/response, the three documents, `id` versus `code`. |
 | [docs/entry-points.md](docs/entry-points.md)       | Full reference for every exported symbol.                                    |
 | [docs/documents.md](docs/documents.md)             | The form, UI and rules schemas.                                              |
+| [docs/ide-schemas.md](docs/ide-schemas.md)         | The `schemas/` JSON Schema templates for IDE autocomplete.                   |
 | [docs/rules.md](docs/rules.md)                     | Rule operators, evaluation order and analysis errors.                        |
 | [docs/validation.md](docs/validation.md)           | Response validation and every error code.                                    |
 | [docs/abi.md](docs/abi.md)                         | The wire contract: envelope, memory, panics, escaping, header gaps.          |
@@ -114,6 +115,7 @@ normative contract lives at the root:
 | [docs/gotchas.md](docs/gotchas.md)                 | Behaviour worth knowing.                                                     |
 | [docs/vectors.md](docs/vectors.md)                 | What the frozen golden vectors assert.                                       |
 | [docs/releases.md](docs/releases.md)               | The release pipeline, header guard and manual crates.io publish.             |
+| [docs/conformance.md](docs/conformance.md)         | Cross-language parity: what a wrapper must preserve to stay conformant.      |
 
 ## The ABI in one paragraph
 

@@ -21,6 +21,11 @@ pub enum Val {
     Raw(String),
 }
 
+/// Absolute tolerance for all double comparisons: calculated-value
+/// mismatch, `multipleOf` quotients (here and in the response validator and
+/// the JSON Schema subset share this constant).
+pub const EPSILON: f64 = 0.000001;
+
 impl Val {
     /// `null`, non-finite numbers, empty strings, lists and rows are empty;
     /// booleans, integers and `Raw` never are.
@@ -115,13 +120,24 @@ impl Val {
         }
     }
 
-    /// Doubles compare equal within an absolute tolerance of `0.000001`; every
-    /// other pair compares by value.
+    /// Doubles compare equal within [`EPSILON`] absolute tolerance.
+    /// Integers and doubles compare numerically, so a calculated `3.0`
+    /// matches a submitted integer literal `3`: the two spell different
+    /// variants of the same value, not different values. Lists compare
+    /// element-wise with the same rule.
     pub fn values_equal(left: &Val, right: &Val) -> bool {
         match (left, right) {
-            (Val::Double(left), Val::Double(right)) => (left - right).abs() < 0.000001,
+            (Val::Double(left), Val::Double(right)) => (left - right).abs() < EPSILON,
             (Val::Int(left), Val::Int(right)) => left == right,
-            (Val::List(left), Val::List(right)) => left == right,
+            (Val::Int(left), Val::Double(right)) => (*left as f64 - right).abs() < EPSILON,
+            (Val::Double(left), Val::Int(right)) => (left - *right as f64).abs() < EPSILON,
+            (Val::List(left), Val::List(right)) => {
+                left.len() == right.len()
+                    && left
+                        .iter()
+                        .zip(right.iter())
+                        .all(|(l, r)| Val::values_equal(l, r))
+            }
             _ => left == right,
         }
     }

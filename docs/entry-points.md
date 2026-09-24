@@ -135,7 +135,9 @@ A field of `type: "component-ref"` is replaced by a group:
 `required`, `readOnly` and `description` are copied only when present and
 non-null; **every other property of the reference field is dropped**.
 `componentCode` is required and must be non-empty. `componentVersion` must be
-present, non-blank and valid semver. A reference cycle is an error.
+present, non-blank and valid semver. A reference cycle is an error, keyed on
+`(code, version)` — the same code at another version is another triple, not
+a cycle. Nesting is bounded at 64 levels (`COMPONENT_DEPTH_EXCEEDED`).
 
 The UI layout node for that field is rewritten to a group node whose `children`
 come from the component's own UI `layout`; if the component has no layout, colander

@@ -5,6 +5,13 @@ use crate::json::{self, Json, JsonMap};
 use super::check::{check_into, evaluate, value_equal};
 use super::model::SchemaError;
 
+/// The closed set of `type` names. The structural classifier rejects anything
+/// else as a schema error, so a typo can never become an assertion that every
+/// instance fails.
+pub const KNOWN_TYPES: &[&str] = &[
+    "object", "array", "string", "boolean", "null", "number", "integer",
+];
+
 pub(super) fn type_name(value: &Json) -> &'static str {
     match value {
         Json::Null => "null",
@@ -386,7 +393,8 @@ pub(super) fn check_numeric_keywords(
     }
     if let Some(multiple_of) = json::get_f64(schema, "multipleOf")
         && multiple_of != 0.0
-        && ((number / multiple_of) - (number / multiple_of).round_ties_even()).abs() > 0.000001
+        && ((number / multiple_of) - (number / multiple_of).round_ties_even()).abs()
+            > crate::rules::EPSILON
     {
         errors.push(SchemaError {
             keyword: "multipleOf".to_string(),

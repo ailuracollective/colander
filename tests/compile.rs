@@ -93,7 +93,7 @@ fn rejects_a_duplicate_field_code_when_rules_are_present() {
     let rules = r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{}}"#;
     let error = compile(form, None, Some(rules), &[]).unwrap_err();
     assert!(
-        error.message.starts_with("An item with the same key"),
+        error.message.starts_with("RULE_DUPLICATE_FIELD_CODE"),
         "{error}"
     );
 }
@@ -112,11 +112,17 @@ fn rejects_a_dependency_error() {
 }
 
 #[test]
-fn accepts_a_duplicate_code_when_no_rules_document_is_supplied() {
+fn rejects_a_duplicate_code_when_no_rules_document_is_supplied() {
+    // R-5: the check runs on the effective (compiled) documents, with or
+    // without rules.
     let form = r#"{"schemaVersion":"1.0.0","fields":[
         {"id":"a","code":"dup","type":"text"},
         {"id":"b","code":"dup","type":"number"}]}"#;
-    compile(form, None, None, &[]).unwrap();
+    let error = compile(form, None, None, &[]).unwrap_err();
+    assert!(
+        error.message.starts_with("RULE_DUPLICATE_FIELD_CODE"),
+        "{error}"
+    );
 }
 
 #[test]

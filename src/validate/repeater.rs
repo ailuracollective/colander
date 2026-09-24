@@ -8,7 +8,7 @@ use crate::index::AnswerFieldDefinition;
 use crate::json::{self, Json};
 use crate::rules::{self, Val};
 
-use super::fields::{is_empty_element, validate_scalar_field};
+use super::fields::{is_empty_element, is_empty_value, validate_scalar_field};
 use super::model::{FormResponseFieldError, FormResponseValidationMode};
 
 pub(super) fn validate_repeater(
@@ -162,6 +162,26 @@ pub(super) fn validate_repeater_row(
     for child in &repeater.children {
         let mut child_field = child.clone();
         child_field.path = format!("{row_path}/{}", child.id);
+        // A calculated child is projected per row from the array R-7 stores
+        // under its code, with the same mismatch/required/invalid contract
+        // as a scalar calculated field (SPEC V-3 symmetry).
+        if let Some(calculated) = evaluation.calculated_values.get(&child.code) {
+            let element = match calculated {
+                Val::List(items) => items.get(row_index).cloned().unwrap_or(Val::Null),
+                scalar => scalar.clone(),
+            };
+            let submitted = row_answers.get(child.code.as_str()).copied();
+            apply_calculated_repeater_child(
+                &child_field,
+                submitted,
+                &element,
+                evaluation,
+                mode,
+                errors,
+                &mut normalized_row,
+            )?;
+            continue;
+        }
         let value = row_answers.get(child.code.as_str()).copied();
         validate_scalar_field(
             &child_field,
@@ -213,4 +233,78 @@ pub(super) fn validate_repeater_item_count(
             ),
         });
     }
+}
+
+/// Per-row twin of `calculated::apply_calculated_fields`: compares the
+/// submitted cell against the row's calculated element and stores the
+/// element, so calculated repeater children are neither dropped from the
+/// normalized rows nor exempt from the mismatch contract.
+#[allow(clippy::too_many_arguments)]
+fn apply_calculated_repeater_child(
+    field: &AnswerFieldDefinition,
+    submitted: Option<&Json>,
+    element: &Val,
+    evaluation: &rules::FormRuleEvaluationResult,
+    mode: FormResponseValidationMode,
+    errors: &mut Vec<FormResponseFieldError>,
+    normalized_row: &mut IndexMap<String, Val>,
+) -> Result<()> {
+    let submitted_value = match submitted {
+        None | Some(Json::Null) => None,
+        Some(value) => match Val::from_json_element(value) {
+            Ok(converted) => Some(converted),
+            Err(_) => {
+                errors.push(FormResponseFieldError {
+                    code: "INVALID_TYPE".to_string(),
+                    path: field.path.clone(),
+                    message: format!("Field '{}' has the wrong JSON type.", field.code),
+                });
+                return Ok(());
+            }
+        },
+    };
+
+    if let Some(submitted) = &submitted_value
+        && !Val::values_equal(submitted, element)
+        && mode == FormResponseValidationMode::Complete
+    {
+        errors.push(FormResponseFieldError {
+            code: "CALCULATED_VALUE_MISMATCH".to_string(),
+            path: field.path.clone(),
+            message: format!(
+                "Field '{}' must match the server-calculated value.",
+                field.code
+            ),
+        });
+    }
+
+    if let Val::Double(number) = element
+        && !number.is_finite()
+    {
+        if mode == FormResponseValidationMode::Complete {
+            errors.push(FormResponseFieldError {
+                code: "CALCULATED_VALUE_INVALID".to_string(),
+                path: field.path.clone(),
+                message: format!(
+                    "Calculated field '{}' could not be determined from the current answers.",
+                    field.code
+                ),
+            });
+        }
+        return Ok(());
+    }
+
+    if mode == FormResponseValidationMode::Complete
+        && evaluation.required.get(&field.id).copied().unwrap_or(false)
+        && is_empty_value(element)
+    {
+        errors.push(FormResponseFieldError {
+            code: "REQUIRED_FIELD_MISSING".to_string(),
+            path: field.path.clone(),
+            message: format!("Calculated field '{}' is required.", field.code),
+        });
+    }
+
+    normalized_row.insert(field.code.clone(), element.clone());
+    Ok(())
 }

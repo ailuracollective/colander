@@ -118,6 +118,21 @@ impl RowSet {
         }
         parents
     }
+
+    /// Maps every repeater-child field code to its innermost enclosing
+    /// repeater code. The analyzer uses it to reject references that would
+    /// silently read one arbitrary row (the flattening step keeps only the
+    /// last row per child code): a child code may only be referenced from
+    /// row scope — a `calculate` of the same repeater's children — or from
+    /// an aggregate (`sum`/`count`), never from a predicate, a validation,
+    /// or an unrelated calculation.
+    pub fn child_repeater_by_code(form_root: &JsonMap) -> IndexMap<String, String> {
+        let mut by_code = IndexMap::new();
+        if let Some(fields) = json::get_array(form_root, schema_json_keys::FIELDS) {
+            walk_child_codes(fields, None, &mut by_code);
+        }
+        by_code
+    }
 }
 
 /// Every repeater code in the form, in document order, including nested ones.
@@ -170,6 +185,38 @@ fn walk_fields(fields: &[Json], repeater: Option<&str>, parents: &mut IndexMap<S
         }
         if let Some(items) = json::get_array(object, schema_json_keys::ITEMS) {
             walk_fields(items, repeater, parents);
+        }
+    }
+}
+
+/// Collects `(child code, enclosing repeater code)` pairs; mirrors
+/// [`walk_fields`] but keys by answer code instead of field id.
+fn walk_child_codes(
+    fields: &[Json],
+    repeater: Option<&str>,
+    by_code: &mut IndexMap<String, String>,
+) {
+    for field in fields {
+        let Some(object) = field.as_object() else {
+            continue;
+        };
+        let (Some(code), Some(field_type)) = (
+            json::get_str(object, schema_json_keys::CODE),
+            json::get_str(object, schema_json_keys::TYPE),
+        ) else {
+            continue;
+        };
+        if field_type == field_type_names::REPEATER {
+            if let Some(items) = json::get_array(object, schema_json_keys::ITEMS) {
+                walk_child_codes(items, Some(code), by_code);
+            }
+            continue;
+        }
+        if let Some(enclosing) = repeater {
+            by_code.insert(code.to_string(), enclosing.to_string());
+        }
+        if let Some(items) = json::get_array(object, schema_json_keys::ITEMS) {
+            walk_child_codes(items, repeater, by_code);
         }
     }
 }

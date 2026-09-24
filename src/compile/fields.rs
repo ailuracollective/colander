@@ -11,6 +11,11 @@ use super::util::{
     clone_field_shell, clone_or_null, copy_if_present, require_array, require_string,
 };
 
+/// Maximum nesting of component expansion. Mirrors the JSON parser's
+/// `MAX_DEPTH`: deep but finite, and a hard error instead of a stack
+/// overflow on adversarial input.
+const MAX_COMPONENT_DEPTH: usize = 64;
+
 pub(super) fn compile_field_array(
     fields: &[Json],
     path: &str,
@@ -76,10 +81,13 @@ pub(super) fn expand_component_reference(
 
     semver::ensure_valid(component_version)?;
 
+    // The stack keys on `(code, version)`: the same code at another version
+    // is another triple, not a cycle back to this one.
+    let reference_key = format!("{component_code}@{component_version}");
     if context
         .resolution_stack
         .iter()
-        .any(|item| item == &component_code)
+        .any(|item| item == &reference_key)
     {
         // The stack is walked top-first, so the chain reads from the
         // innermost reference outward.
@@ -87,11 +95,20 @@ pub(super) fn expand_component_reference(
             .resolution_stack
             .iter()
             .rev()
-            .cloned()
+            .filter_map(|item| item.split('@').next())
             .collect::<Vec<_>>()
             .join(" -> ");
         return Err(ColanderError::new(format!(
             "CIRCULAR_COMPONENT_REFERENCE: component '{component_code}' references itself through {chain} -> {component_code}."
+        )));
+    }
+
+    // Component nesting is bounded like JSON parsing (`MAX_DEPTH` in the
+    // parser): an adversarial batch of deeply nested components would
+    // otherwise recurse one stack frame per level.
+    if context.resolution_stack.len() >= MAX_COMPONENT_DEPTH {
+        return Err(ColanderError::new(format!(
+            "COMPONENT_DEPTH_EXCEEDED: component-ref at {path} nests components deeper than {MAX_COMPONENT_DEPTH} levels."
         )));
     }
 
@@ -108,7 +125,7 @@ pub(super) fn expand_component_reference(
         &format!("/components/{component_code}/fields"),
     )?;
 
-    context.resolution_stack.push(component_code.clone());
+    context.resolution_stack.push(reference_key);
     let compiled_items = compile_field_array(
         component_fields,
         &format!("/components/{component_code}/fields"),

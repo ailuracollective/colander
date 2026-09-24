@@ -168,7 +168,7 @@ fn duplicate_field_codes_are_validation_envelopes() {
         {"id":"a","code":"dup","type":"text"},
         {"id":"b","code":"dup","type":"number"}]}"#;
     let rules = r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{}}"#;
-    assert_validation_envelope(form, rules, "same key");
+    assert_validation_envelope(form, rules, "RULE_DUPLICATE_FIELD_CODE");
 }
 
 #[test]

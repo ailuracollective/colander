@@ -73,12 +73,15 @@ pub fn compile(
         Json::Array(compiled_fields),
     );
 
+    // R-5: a duplicated field code is rejected on the effective (compiled)
+    // documents, whether or not a rules document is present.
+    crate::index::ensure_unique_codes(&compiled_form)?;
+
     let compiled_ui = match &ui_root {
         Some(root) => Some(compile_ui_schema(root, &context)?),
         None => None,
     };
     let compiled_rules = rules_root.as_ref().map(compile_rules_schema);
-
     let compiled_form_json = json::canonical(&Json::Object(compiled_form));
     let compiled_ui_json = compiled_ui.map(|value| json::canonical(&value));
     let compiled_rules_json = compiled_rules.map(|value| json::canonical(&value));

@@ -132,7 +132,8 @@ pub(super) fn validate_numeric_constraints(
 
     if let Some(multiple_of) = json::get_f64(&field.schema, "multipleOf")
         && multiple_of != 0.0
-        && ((value / multiple_of) - (value / multiple_of).round_ties_even()).abs() > 0.000001
+        && ((value / multiple_of) - (value / multiple_of).round_ties_even()).abs()
+            > crate::rules::EPSILON
     {
         return Some(constraint_error(
             field,

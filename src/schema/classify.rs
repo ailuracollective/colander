@@ -195,14 +195,29 @@ fn walk_subschema(
 }
 
 fn check_type_keyword(value: &Json, errors: &mut Vec<SchemaError>) {
-    match value {
-        Json::String(_) => {}
+    let names: Vec<&str> = match value {
+        Json::String(name) => vec![name.as_str()],
         Json::Array(names) => {
             if names.iter().any(|name| !matches!(name, Json::String(_))) {
                 errors.push(wrong_type("type", "an array of strings"));
+                return;
             }
+            names.iter().filter_map(Json::as_str).collect()
         }
-        _ => errors.push(wrong_type("type", "a string or an array of strings")),
+        _ => {
+            errors.push(wrong_type("type", "a string or an array of strings"));
+            return;
+        }
+    };
+    // A mistyped name is a schema error, not an assertion nothing can pass:
+    // `{"type":"strnig"}` must fail the schema, not every instance.
+    for name in names {
+        if !super::keywords::KNOWN_TYPES.contains(&name) {
+            errors.push(SchemaError {
+                keyword: "type".to_string(),
+                message: format!("unknown type '{name}'"),
+            });
+        }
     }
 }
 

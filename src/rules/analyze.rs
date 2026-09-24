@@ -10,6 +10,8 @@ use crate::json::{self, Json, JsonMap};
 use crate::keys::schema_json_keys;
 
 use super::model::RuleDependencyMetadata;
+use super::refs::{collect_references, validate_row_scope};
+use super::rows::RowSet;
 
 /// Builds dependency metadata: the calculated field ids in document order and
 /// their topological evaluation order.
@@ -61,12 +63,21 @@ pub fn validate_dependencies(form_root: &JsonMap, rules_root: &JsonMap) -> Resul
 
     validate_form_version_match(form_root, rules_root)?;
 
+    let child_repeaters = RowSet::child_repeater_by_code(form_root);
+    let repeater_parents = RowSet::repeater_parents(form_root);
+
     if let Some(field_rules) = json::get_object(rules_root, schema_json_keys::FIELDS) {
-        validate_field_rules(field_rules, &fields_by_id, &fields_by_code)?;
+        validate_field_rules(
+            field_rules,
+            &fields_by_id,
+            &fields_by_code,
+            &child_repeaters,
+            &repeater_parents,
+        )?;
     }
 
     if let Some(validations) = json::get_array(rules_root, schema_json_keys::VALIDATIONS) {
-        validate_validation_entries(validations, &fields_by_code)?;
+        validate_validation_entries(validations, &fields_by_code, &child_repeaters)?;
     }
 
     let metadata = analyze(form_root, rules_root)?;
@@ -76,40 +87,6 @@ pub fn validate_dependencies(form_root: &JsonMap, rules_root: &JsonMap) -> Resul
         ));
     }
     Ok(())
-}
-
-/// Collects referenced field codes in document order.
-///
-/// Callers that report "the first unknown code" always name the first one in
-/// document order.
-pub fn collect_references(expression: &Json) -> Vec<String> {
-    let mut references = Vec::new();
-    collect_references_recursive(expression, &mut references);
-    references
-}
-
-fn collect_references_recursive(node: &Json, references: &mut Vec<String>) {
-    let Some(object) = node.as_object() else {
-        return;
-    };
-
-    if let Some(code) = json::get_str(object, "ref")
-        && !code.is_empty()
-    {
-        if !references.iter().any(|item| item == code) {
-            references.push(code.to_string());
-        }
-        return;
-    }
-
-    let Some(args) = json::get_array(object, "args") else {
-        return;
-    };
-    for arg in args {
-        if !arg.is_null() {
-            collect_references_recursive(arg, references);
-        }
-    }
 }
 
 fn resolve_field_id<'a>(
@@ -139,6 +116,8 @@ fn validate_field_rules(
     field_rules: &JsonMap,
     fields_by_id: &IndexMap<String, FieldInfo>,
     fields_by_code: &IndexMap<String, FieldInfo>,
+    child_repeaters: &IndexMap<String, String>,
+    repeater_parents: &IndexMap<String, String>,
 ) -> Result<()> {
     for (field_id, rules_node) in field_rules {
         let path = format!("/fields/{field_id}");
@@ -152,17 +131,39 @@ fn validate_field_rules(
             continue;
         };
 
-        for key in ["visibleWhen", "enabledWhen", "requiredWhen"] {
-            validate_expression_references(
-                json::get(rules, key),
-                &format!("{path}/{key}"),
-                fields_by_code,
-            )?;
+        for key in rules.keys() {
+            if !matches!(
+                key.as_str(),
+                "visibleWhen" | "enabledWhen" | "requiredWhen" | "calculate"
+            ) {
+                return Err(ColanderError::new(format!(
+                    "RULE_UNKNOWN_RULE_KEY: rules for field '{field_id}' at {path}/{key} use an unknown rule key '{key}' (expected 'visibleWhen', 'enabledWhen', 'requiredWhen' or 'calculate')."
+                )));
+            }
         }
+
+        for key in ["visibleWhen", "enabledWhen", "requiredWhen"] {
+            let expression = json::get(rules, key);
+            validate_expression_references(expression, &format!("{path}/{key}"), fields_by_code)?;
+            validate_row_scope(expression, &format!("{path}/{key}"), child_repeaters, None)?;
+        }
+        // A `calculate` on a repeater child runs in that row's scope, so it
+        // may read its sibling child codes; anywhere else a child code has
+        // no defined row to read from (the flat values keep only the last
+        // row), and referencing one is an error rather than a silent
+        // last-row read.
+        let home = repeater_parents.get(field_id).map(String::as_str);
+        let calculate_path = format!("{path}/calculate");
         validate_expression_references(
             json::get(rules, schema_json_keys::CALCULATE),
-            &format!("{path}/calculate"),
+            &calculate_path,
             fields_by_code,
+        )?;
+        validate_row_scope(
+            json::get(rules, schema_json_keys::CALCULATE),
+            &calculate_path,
+            child_repeaters,
+            home,
         )?;
 
         let calculate = json::get(rules, schema_json_keys::CALCULATE);
@@ -191,6 +192,7 @@ fn validate_field_rules(
 fn validate_validation_entries(
     validations: &[Json],
     fields_by_code: &IndexMap<String, FieldInfo>,
+    child_repeaters: &IndexMap<String, String>,
 ) -> Result<()> {
     let mut seen_codes: HashSet<String> = HashSet::new();
     for (position, value) in validations.iter().enumerate() {
@@ -222,10 +224,22 @@ fn validate_validation_entries(
             &format!("{path}/when"),
             fields_by_code,
         )?;
+        validate_row_scope(
+            json::get(validation, "when"),
+            &format!("{path}/when"),
+            child_repeaters,
+            None,
+        )?;
         validate_expression_references(
             json::get(validation, "assert"),
             &format!("{path}/assert"),
             fields_by_code,
+        )?;
+        validate_row_scope(
+            json::get(validation, "assert"),
+            &format!("{path}/assert"),
+            child_repeaters,
+            None,
         )?;
     }
     Ok(())

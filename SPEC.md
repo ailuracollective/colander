@@ -30,17 +30,17 @@ satisfied when no `decided` requirement remains unresolved.
 | ----- | ------------------------------- | ------ | --------- | ---------- |
 | C     | Wire contract and the ABI       | 9      | 0         | 0          |
 | E     | The six operations              | 9      | 0         | 0          |
-| D     | Documents, fields, id and code  | 3      | 0         | 0          |
-| R     | Rules and the dependency check  | 9      | 0         | 0          |
-| V     | Response validation             | 6      | 1         | 0          |
-| S     | JSON Schema subset              | 7      | 0         | 0          |
+| D     | Documents, fields, id and code  | 4      | 0         | 0          |
+| R     | Rules and the dependency check  | 12     | 0         | 0          |
+| V     | Response validation             | 7      | 1         | 0          |
+| S     | JSON Schema subset              | 8      | 0         | 0          |
 | H     | Key-sorted form and hashing     | 5      | 0         | 0          |
 | P     | Compilation, components, semver | 7      | 0         | 0          |
 | X     | Retirements and reversals       | 2      | 1         | 0          |
 | F     | The frozen vectors              | 1      | 0         | 0          |
 
 The counts are derived from the markers below, so move a marker and its count
-together. The ten groups hold 59 requirements: 44 `live`, 15 `decided` and 0
+together. The ten groups hold 66 requirements: 64 `live`, 2 `decided` and 0
 `proposed`.
 
 ## C — Wire contract and the ABI
@@ -112,6 +112,9 @@ behaviour, not shape.
   with no aliases.
 - **D-3** `live`. Rules and the UI reference fields by `id`; answers and calculated
   values are keyed by `code`. The two are not interchangeable.
+- **D-4** `live`. Repeater children are flat scalar fields: anything with
+  nested `items` under a repeater is rejected under the code
+  `REPEATER_NESTED_FIELD`.
 
 ## R — Rules and the dependency check
 
@@ -125,10 +128,11 @@ behaviour, not shape.
   analyzer, whether or not it carries `when`, under the code
   `RULE_MISSING_ASSERT`: an entry with nothing to assert can never report
   anything.
-- **R-5** `live`. A duplicate field `code` is rejected by every entry point that
-  reads a form and rules pair. The check runs on the effective documents: for
-  `colander_compile` that is the compiled triple, because rules legitimately
-  reference fields that exist only after component expansion.
+- **R-5** `live`. A duplicate field `code` is rejected by every entry point
+  that reads a form, with or without a rules document, under the code
+  `RULE_DUPLICATE_FIELD_CODE`. The check runs on the effective documents:
+  for `colander_compile` that is the compiled triple, because rules
+  legitimately reference fields that exist only after component expansion.
 - **R-6** `live`. The dependency check runs in every entry point, rather than only
   in `colander_validate_schema` with `kind:"form"`.
 - **R-7** `live`. Repeater row scope. A `calculate` on a repeater child with rows
@@ -151,6 +155,20 @@ behaviour, not shape.
   exists: per-row `visibility`/`enabled`/`required`, per-row validations with
   row-scoped paths, index addressing such as `items[0].price`, and the aggregates
   `min`, `max`, `every` and `some`.
+- **R-9** `live`. Row-scope references fail closed. A repeater-child code read
+  directly — from a predicate, a cross-field validation, or a `calculate`
+  that is not on a child of the same repeater — is rejected under the code
+  `RULE_INVALID_ROW_REFERENCE`, because the flat values keep only the last
+  row per child code and any other row would be arbitrary. The aggregate
+  positions (`count`/`sum` arguments) and a `calculate` on a sibling child
+  of the same repeater are the legal positions.
+- **R-10** `live`. A `fields` rule entry carrying a key other than
+  `visibleWhen`, `enabledWhen`, `requiredWhen` or `calculate` is rejected
+  under the code `RULE_UNKNOWN_RULE_KEY`: an unknown key can never apply
+  anything, so accepting it would fail open to the defaults.
+- **R-11** `live`. When any expression in a call fails, the whole call fails:
+  there is no partial evaluation result. Operands beyond an operator's arity
+  are ignored without evaluation.
 
 ## V — Response validation
 
@@ -176,6 +194,13 @@ behaviour, not shape.
 - **V-7** `live`. A `path` is a JSON pointer into the form schema, with two
   exceptions: `/answers/<key>` for an unknown key, and `/rules/validations` for a
   failed cross-field validation.
+- **V-8** `live`. Flag and value semantics shared with the rule engine: a
+  `requiredWhen` predicate overwrites the schema default in both directions,
+  so `requiredWhen: false` unsets a schema `required: true`; the
+  `CALCULATED_VALUE_MISMATCH` comparison is numeric across integer and
+  double spellings within an absolute tolerance of `1e-6`; and normalization
+  is sparse — an empty scalar answer is omitted from
+  `normalizedAnswersJson`, while repeaters always serialize, even empty.
 
 ## S — JSON Schema subset
 
@@ -203,6 +228,9 @@ behaviour, not shape.
 - **S-7** `live`. When a failure is truncated, the response says so: at most the
   first five assertion failures are rendered, and the message states how many
   were shown out of the total.
+- **S-8** `live`. The `type` vocabulary is closed: `object`, `array`,
+  `string`, `boolean`, `null`, `number` and `integer`. Any other name is a
+  schema error, not an assertion that every instance fails.
 
 ## H — Canonical form and hashing
 
@@ -230,8 +258,11 @@ behaviour, not shape.
 
 - **P-1** `live`. A `component-ref` field is replaced by a group; the component is
   resolved by exact `(code, version)` match against the batch the caller supplies;
-  resolution is memoized; a reference cycle is an error. Every other property of
-  the reference field is dropped. There is no repository and no callback.
+  resolution is memoized; a reference cycle — keyed on `(code, version)`, so the
+  same code at another version is another triple, not a cycle — is an error; and
+  nesting is bounded at 64 levels (`COMPONENT_DEPTH_EXCEEDED`). The reference
+  shell keeps `required`, `readOnly` and `description` when present; every other
+  property of the reference field is dropped. There is no repository and no callback.
 - **P-2** `live`. `dependencyMetadataJson` lists the resolved components sorted by
   `code` then version, plus the calculated field ids and the evaluation order. A
   component's missing `contentHash` becomes the empty string.
@@ -276,7 +307,8 @@ behaviour, not shape.
   drift. They were recorded from an external implementation and cannot be
   regenerated. A **decided** contract change moves the affected expectation in the
   same commit and names the decision it implements; every other case stays
-  untouched. Payloads are compared byte-for-byte and an error case only by its
+  untouched. Payloads are compared canonically (key-sorted, so document order
+  is not asserted) and an error case only by its
   `SCREAMING_SNAKE` code. No automatic guard covers the vectors, so the affected
   cases are enumerated by hand before each change lands.
 

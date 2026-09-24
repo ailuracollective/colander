@@ -17,9 +17,10 @@
 //!
 //! # What it does not measure
 //!
-//! Caller-side serialization, network, UI rendering, multi-threaded contention,
-//! or repeater-heavy forms: both workloads are scalar, plus one component in
-//! the compile path. A repeater/A2 scaling study is a follow-up.
+//! Caller-side serialization, network, UI rendering, or multi-threaded
+//! contention. Scalar workloads come in three sizes; repeater-heavy forms
+//! have their own measurements below, since per-row evaluation dominates
+//! them.
 //!
 //! # Method
 //!
@@ -247,6 +248,41 @@ fn validate_request(docs: &Docs, mode: &str) -> String {
     )
 }
 
+/// A repeater-heavy form: one repeater with a per-row calculation plus an
+/// aggregate over it, answered with `row_count` rows. Exercises the per-row
+/// working-set clone and the row write-back path that scalar workloads never
+/// touch.
+fn build_repeater_docs(row_count: usize) -> Docs {
+    let form = "{\"schemaVersion\":\"1.0.0\",\"fields\":[\
+        {\"id\":\"lines\",\"code\":\"lines\",\"type\":\"repeater\",\"items\":[\
+        {\"id\":\"qty\",\"code\":\"qty\",\"type\":\"integer\"},\
+        {\"id\":\"price\",\"code\":\"price\",\"type\":\"number\"},\
+        {\"id\":\"total\",\"code\":\"total\",\"type\":\"number\",\"readOnly\":true}]},\
+        {\"id\":\"grand\",\"code\":\"grand\",\"type\":\"number\",\"readOnly\":true}]}";
+    let ui = "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{}}";
+    let rules = "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\
+        \"total\":{\"calculate\":{\"op\":\"mul\",\"args\":[{\"ref\":\"qty\"},{\"ref\":\"price\"}]}},\
+        \"grand\":{\"calculate\":{\"op\":\"sum\",\"args\":[{\"ref\":\"lines\"},{\"ref\":\"total\"}]}}}}";
+    let rows = vec!["{\"qty\":2,\"price\":10.5}"; row_count].join(",");
+    let table = format!("{{\"lines\":[{rows}]}}");
+    Docs {
+        form: form.to_string(),
+        ui: ui.to_string(),
+        rules: rules.to_string(),
+        values: table.clone(),
+        answers: table,
+    }
+}
+
+fn validate_repeater_request(docs: &Docs, mode: &str) -> String {
+    format!(
+        "{{\"formSchemaJson\":{},\"rulesSchemaJson\":{},\"answersJson\":{},\"mode\":\"{mode}\"}}",
+        quoted(&docs.form),
+        quoted(&docs.rules),
+        quoted(&docs.answers)
+    )
+}
+
 fn main() {
     println!("colander engine benchmark");
     println!(
@@ -258,7 +294,7 @@ fn main() {
         "label    operation           batch          min_us   median_us     mean_us      ops/s"
     );
 
-    for (label, count) in [("small", 30), ("medium", 150)] {
+    for (label, count) in [("small", 30), ("medium", 150), ("large", 600)] {
         let docs = build_form(count);
         measure(
             label,
@@ -279,5 +315,27 @@ fn main() {
             colander_validate_response,
         );
         measure(label, "compile", &compile_request(&docs), colander_compile);
+    }
+
+    for (label, rows) in [("rep-100", 100), ("rep-1000", 1000)] {
+        let docs = build_repeater_docs(rows);
+        measure(
+            label,
+            "evaluate_rules",
+            &evaluate_request(&docs),
+            colander_evaluate_rules,
+        );
+        measure(
+            label,
+            "validate_draft",
+            &validate_repeater_request(&docs, "Draft"),
+            colander_validate_response,
+        );
+        measure(
+            label,
+            "validate_complete",
+            &validate_repeater_request(&docs, "Complete"),
+            colander_validate_response,
+        );
     }
 }

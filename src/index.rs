@@ -27,7 +27,7 @@ pub struct FieldInfo {
 pub fn build_by_id(form_root: &JsonMap) -> Result<IndexMap<String, FieldInfo>> {
     let mut by_id = IndexMap::new();
     if let Some(fields) = json::get_array(form_root, schema_json_keys::FIELDS) {
-        index_fields(fields, "/fields", &mut by_id)?;
+        index_fields(fields, "/fields", &mut by_id, false)?;
     }
     Ok(by_id)
 }
@@ -39,7 +39,7 @@ pub fn build_by_code(form_root: &JsonMap) -> Result<IndexMap<String, FieldInfo>>
     for info in by_id.into_values() {
         if by_code.contains_key(&info.code) {
             return Err(ColanderError::new(format!(
-                "An item with the same key has already been added. Key: {}",
+                "RULE_DUPLICATE_FIELD_CODE: duplicate field code '{}'.",
                 info.code
             )));
         }
@@ -48,10 +48,19 @@ pub fn build_by_code(form_root: &JsonMap) -> Result<IndexMap<String, FieldInfo>>
     Ok(by_code)
 }
 
+/// Rejects a duplicated field code on any form, with or without a rules
+/// document. The answer index overwrites silently, so entry points that
+/// validate answers call this first: two fields sharing a code would
+/// otherwise validate against whichever definition came last.
+pub fn ensure_unique_codes(form_root: &JsonMap) -> Result<()> {
+    build_by_code(form_root).map(|_| ())
+}
+
 fn index_fields(
     fields: &[Json],
     path: &str,
     by_id: &mut IndexMap<String, FieldInfo>,
+    under_repeater: bool,
 ) -> Result<()> {
     for (index, value) in fields.iter().enumerate() {
         let field = value.as_object().ok_or_else(|| {
@@ -61,6 +70,12 @@ fn index_fields(
         let id = require_string(field, schema_json_keys::ID, &field_path)?;
         let code = require_string(field, schema_json_keys::CODE, &field_path)?;
         let field_type = require_string(field, schema_json_keys::TYPE, &field_path)?;
+
+        if under_repeater && json::get_array(field, schema_json_keys::ITEMS).is_some() {
+            return Err(ColanderError::new(format!(
+                "REPEATER_NESTED_FIELD: field '{id}' at {field_path} nests items under a repeater; repeater children must be flat scalar fields."
+            )));
+        }
 
         by_id.insert(
             id.to_string(),
@@ -77,7 +92,8 @@ fn index_fields(
         );
 
         if let Some(items) = json::get_array(field, schema_json_keys::ITEMS) {
-            index_fields(items, &format!("{field_path}/items"), by_id)?;
+            let nested = under_repeater || field_type == field_type_names::REPEATER;
+            index_fields(items, &format!("{field_path}/items"), by_id, nested)?;
         }
     }
     Ok(())
@@ -222,6 +238,12 @@ fn index_child_fields(
         let id = require_string(field, schema_json_keys::ID, &field_path)?;
         let code = require_string(field, schema_json_keys::CODE, &field_path)?;
         let field_type = require_string(field, schema_json_keys::TYPE, &field_path)?;
+
+        if json::get_array(field, schema_json_keys::ITEMS).is_some() {
+            return Err(ColanderError::new(format!(
+                "REPEATER_NESTED_FIELD: field '{id}' at {field_path} nests items under a repeater; repeater children must be flat scalar fields."
+            )));
+        }
 
         children.push(AnswerFieldDefinition {
             id: id.to_string(),
