@@ -1,4 +1,7 @@
 use colander::error::Result;
+use colander::ffi::schema::colander_validate_schema;
+use colander::ffi::session::call_with_text;
+use colander::json::{self, Json};
 use colander::schema::*;
 
 // The validator is domain-agnostic, so the tests bring their own schemas.
@@ -128,6 +131,139 @@ fn a_broken_schema_definition_is_reported_as_such() {
             .message
             .starts_with("Invalid form schema definition: "),
         "{error}"
+    );
+}
+
+// S-3: an unsupported assertion is rejected rather than passing as if it had.
+#[test]
+fn rejects_an_unsupported_top_level_keyword() {
+    let error = validate_text(
+        r#"{"type":"object","patternProperties":{"a":{"type":"string"}}}"#,
+        r#"{}"#,
+        "form schema",
+    )
+    .unwrap_err();
+    assert!(
+        error
+            .message
+            .contains("patternProperties: unsupported keyword"),
+        "{error}"
+    );
+}
+
+// S-3 is structural: the instance never reaches the property, and the nested
+// keyword is still caught.
+#[test]
+fn rejects_an_unsupported_keyword_nested_in_properties() {
+    let error = validate_text(
+        r#"{"type":"object","properties":{"name":{"type":"string",
+            "dependentRequired":{"a":["b"]}}}}"#,
+        r#"{}"#,
+        "form schema",
+    )
+    .unwrap_err();
+    assert!(
+        error
+            .message
+            .contains("dependentRequired: unsupported keyword"),
+        "{error}"
+    );
+}
+
+#[test]
+fn rejects_an_unsupported_keyword_nested_in_items() {
+    let error = validate_text(
+        r#"{"type":"array","items":{"contains":{"type":"string"}}}"#,
+        r#"[]"#,
+        "form schema",
+    )
+    .unwrap_err();
+    assert!(
+        error.message.contains("contains: unsupported keyword"),
+        "{error}"
+    );
+}
+
+// A `$defs` entry is annotation-only until a `$ref` reaches it; the check
+// follows the reference, so a keyword three levels deep is still caught.
+#[test]
+fn rejects_an_unsupported_keyword_behind_a_reference() {
+    let error = validate_text(
+        r##"{"$ref":"#/$defs/thing","$defs":{"thing":{"type":"object",
+            "properties":{"x":{"prefixItems":[]}}}}}"##,
+        r#"{}"#,
+        "form schema",
+    )
+    .unwrap_err();
+    assert!(
+        error.message.contains("prefixItems: unsupported keyword"),
+        "{error}"
+    );
+}
+
+// S-3: annotation-only keywords stay ignored, whatever their value.
+#[test]
+fn accepts_annotation_only_keywords() {
+    validate_text(
+        r#"{"title":"t","description":"d","$comment":"c","examples":[1],
+            "deprecated":true,"$defs":{"unused":{"patternProperties":{}}},
+            "type":"object"}"#,
+        r#"{}"#,
+        "form schema",
+    )
+    .unwrap();
+}
+
+// S-4: a keyword whose value has the wrong JSON type is an error.
+#[test]
+fn rejects_a_wrong_typed_min_length() {
+    let error = validate_text(
+        r#"{"type":"string","minLength":"3"}"#,
+        r#""ab""#,
+        "form schema",
+    )
+    .unwrap_err();
+    assert!(
+        error
+            .message
+            .contains("minLength: keyword value must be an integer"),
+        "{error}"
+    );
+}
+
+// S-3 and S-4 apply to `kind:"instance"`, the domain-free entry point.
+#[test]
+fn kind_instance_rejects_an_unknown_assertion() {
+    let envelope = call_with_text(
+        r#"{"kind":"instance","schemaJson":"{\"unevaluatedProperties\":false}",
+            "instanceJson":"{}"}"#,
+        colander_validate_schema,
+    );
+    let envelope: Json = json::parse(&envelope).expect("envelope is JSON");
+    let object = envelope.as_object().unwrap();
+    assert_eq!(json::get_bool(object, "ok"), Some(false));
+    let message =
+        json::get_str(object.get("error").unwrap().as_object().unwrap(), "message").unwrap();
+    assert!(
+        message.contains("unevaluatedProperties: unsupported keyword"),
+        "{message}"
+    );
+}
+
+#[test]
+fn kind_instance_rejects_a_wrong_typed_keyword() {
+    let envelope = call_with_text(
+        r#"{"kind":"instance","schemaJson":"{\"minLength\":\"3\"}","instanceJson":"\"ab\""}"#,
+        colander_validate_schema,
+    );
+    let envelope: Json = json::parse(&envelope).expect("envelope is JSON");
+    let object = envelope.as_object().unwrap();
+    assert_eq!(json::get_bool(object, "ok"), Some(false));
+    let message =
+        json::get_str(object.get("error").unwrap().as_object().unwrap(), "message").unwrap();
+    assert!(
+        message.contains("minLength: keyword value must be an integer"),
+        "{message}"
     );
 }
 

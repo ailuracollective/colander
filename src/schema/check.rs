@@ -11,7 +11,20 @@ use super::model::SchemaError;
 use super::keywords::check_type;
 
 /// Evaluate `instance` against `schema`. `root` anchors local `$ref`s.
+///
+/// The schema tree under `root` is classified first (unsupported keywords and
+/// wrong-typed values), so a malformed schema fails even when the instance
+/// never reaches the offending subschema.
 pub fn check(schema: &Json, instance: &Json, root: &Json) -> Vec<SchemaError> {
+    let mut errors = super::classify::classify(root);
+    check_into(schema, instance, root, &mut errors);
+    errors
+}
+
+/// Instance evaluation alone, without re-classifying the schema. Internal
+/// combinator probes use this so a multi-branch schema is classified once,
+/// when `check` runs.
+pub(super) fn evaluate(schema: &Json, instance: &Json, root: &Json) -> Vec<SchemaError> {
     let mut errors = Vec::new();
     check_into(schema, instance, root, &mut errors);
     errors
@@ -53,7 +66,7 @@ pub(super) fn check_into(
     check_numeric_keywords(schema, instance, errors);
 }
 
-fn resolve_ref<'a>(reference: &str, root: &'a Json) -> Option<&'a Json> {
+pub(super) fn resolve_ref<'a>(reference: &str, root: &'a Json) -> Option<&'a Json> {
     let pointer = reference.strip_prefix('#')?;
     if pointer.is_empty() {
         return Some(root);

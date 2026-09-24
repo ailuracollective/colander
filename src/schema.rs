@@ -21,6 +21,7 @@ use crate::json::{self, Json};
 use crate::rules;
 
 mod check;
+mod classify;
 mod keywords;
 mod model;
 

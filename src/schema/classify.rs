@@ -1,0 +1,273 @@
+//! Structural well-formedness of a schema document (SPEC S-3, S-4).
+//!
+//! Evaluation only descends into a subschema when the instance reaches it, so
+//! a keyword that is unsupported or wrongly typed could hide behind an absent
+//! property and never be noticed. This walk is independent of the instance: it
+//! visits every subschema position and every `$ref` target, classifies each
+//! keyword as implemented, annotation-only or unsupported, and checks the JSON
+//! type each implemented keyword expects.
+//!
+//! The rule is open: a keyword is unsupported when it is neither implemented
+//! nor annotation-only, so a keyword that is not on any list is still caught.
+
+use std::collections::HashSet;
+
+use crate::json::Json;
+
+use super::check::resolve_ref;
+use super::model::SchemaError;
+
+/// Keywords that assert something the implemented subset supports.
+const IMPLEMENTED: &[&str] = &[
+    "type",
+    "enum",
+    "const",
+    "allOf",
+    "anyOf",
+    "oneOf",
+    "not",
+    "if",
+    "then",
+    "else",
+    "properties",
+    "required",
+    "additionalProperties",
+    "minProperties",
+    "maxProperties",
+    "items",
+    "minItems",
+    "maxItems",
+    "uniqueItems",
+    "minLength",
+    "maxLength",
+    "pattern",
+    "minimum",
+    "maximum",
+    "exclusiveMinimum",
+    "exclusiveMaximum",
+    "multipleOf",
+    "format",
+    "$ref",
+];
+
+/// Keywords that only describe a schema. They never assert, so they stay
+/// ignored, whatever their value.
+const ANNOTATION_ONLY: &[&str] = &[
+    "title",
+    "description",
+    "default",
+    "examples",
+    "deprecated",
+    "$comment",
+    "$id",
+    "$schema",
+    "$defs",
+    "$anchor",
+    "readOnly",
+    "writeOnly",
+];
+
+/// Walk `root` and report every unsupported keyword and every wrong-typed
+/// implemented keyword. `root` anchors local `$ref` resolution.
+pub(super) fn classify(root: &Json) -> Vec<SchemaError> {
+    let mut errors = Vec::new();
+    if !is_schema(root) {
+        errors.push(SchemaError {
+            keyword: "schema".to_string(),
+            message: "a schema must be an object or a boolean".to_string(),
+        });
+        return errors;
+    }
+    let mut seen = HashSet::new();
+    walk(root, root, &mut errors, &mut seen);
+    errors
+}
+
+fn is_schema(value: &Json) -> bool {
+    matches!(value, Json::Object(_) | Json::Bool(_))
+}
+
+/// Visit one schema node, skipping a node already visited (which also breaks
+/// `$ref` cycles). `root` is the anchor for every `$ref`.
+fn walk(schema: &Json, root: &Json, errors: &mut Vec<SchemaError>, seen: &mut HashSet<usize>) {
+    let Json::Object(map) = schema else {
+        // A boolean schema has no keywords.
+        return;
+    };
+    let address = schema as *const Json as usize;
+    if !seen.insert(address) {
+        return;
+    }
+    for (keyword, value) in map {
+        visit(keyword, value, root, errors, seen);
+    }
+}
+
+/// Classify one keyword and recurse into the subschema positions it owns.
+fn visit(
+    keyword: &str,
+    value: &Json,
+    root: &Json,
+    errors: &mut Vec<SchemaError>,
+    seen: &mut HashSet<usize>,
+) {
+    if ANNOTATION_ONLY.contains(&keyword) {
+        return;
+    }
+    if !IMPLEMENTED.contains(&keyword) {
+        errors.push(SchemaError {
+            keyword: keyword.to_string(),
+            message: "unsupported keyword; the implemented subset does not assert it".to_string(),
+        });
+        return;
+    }
+
+    match keyword {
+        "const" => {}
+        "enum" => {
+            if !matches!(value, Json::Array(_)) {
+                errors.push(wrong_type(keyword, "an array"));
+            }
+        }
+        "type" => check_type_keyword(value, errors),
+        "required" => check_required(value, errors),
+        "minProperties" | "maxProperties" | "minItems" | "maxItems" | "minLength" | "maxLength" => {
+            check_integer(keyword, value, errors)
+        }
+        "uniqueItems" => check_boolean(keyword, value, errors),
+        "pattern" | "format" => check_string(keyword, value, errors),
+        "minimum" | "maximum" | "exclusiveMinimum" | "exclusiveMaximum" | "multipleOf" => {
+            check_number(keyword, value, errors)
+        }
+        "not" | "if" | "then" | "else" | "items" => {
+            walk_subschema(keyword, value, root, errors, seen)
+        }
+        "additionalProperties" => {
+            if matches!(value, Json::Bool(_)) {
+                return;
+            }
+            walk_subschema(keyword, value, root, errors, seen);
+        }
+        "properties" => {
+            let Some(properties) = expect_object(keyword, value, errors) else {
+                return;
+            };
+            for sub_schema in properties.values() {
+                walk_subschema(keyword, sub_schema, root, errors, seen);
+            }
+        }
+        "allOf" | "anyOf" | "oneOf" => {
+            let Some(branches) = expect_array(keyword, value, errors) else {
+                return;
+            };
+            for branch in branches {
+                walk_subschema(keyword, branch, root, errors, seen);
+            }
+        }
+        "$ref" => {
+            let Some(reference) = value.as_str() else {
+                errors.push(wrong_type(keyword, "string"));
+                return;
+            };
+            // A `$defs` entry is annotation-only until a `$ref` reaches it; the
+            // target is walked here so a nested keyword is still classified.
+            if let Some(target) = resolve_ref(reference, root) {
+                walk_subschema(keyword, target, root, errors, seen);
+            }
+        }
+        _ => unreachable!("IMPLEMENTED and the match arms move together"),
+    }
+}
+
+fn walk_subschema(
+    keyword: &str,
+    value: &Json,
+    root: &Json,
+    errors: &mut Vec<SchemaError>,
+    seen: &mut HashSet<usize>,
+) {
+    if is_schema(value) {
+        walk(value, root, errors, seen);
+    } else {
+        errors.push(wrong_type(keyword, "a schema (object or boolean)"));
+    }
+}
+
+fn check_type_keyword(value: &Json, errors: &mut Vec<SchemaError>) {
+    match value {
+        Json::String(_) => {}
+        Json::Array(names) => {
+            if names.iter().any(|name| !matches!(name, Json::String(_))) {
+                errors.push(wrong_type("type", "an array of strings"));
+            }
+        }
+        _ => errors.push(wrong_type("type", "a string or an array of strings")),
+    }
+}
+
+fn check_required(value: &Json, errors: &mut Vec<SchemaError>) {
+    let names = matches!(value, Json::Array(items)
+        if items.iter().all(|item| matches!(item, Json::String(_))));
+    if !names {
+        errors.push(wrong_type("required", "an array of strings"));
+    }
+}
+
+fn check_integer(keyword: &str, value: &Json, errors: &mut Vec<SchemaError>) {
+    if value.as_i64().is_none() {
+        errors.push(wrong_type(keyword, "an integer"));
+    }
+}
+
+fn check_number(keyword: &str, value: &Json, errors: &mut Vec<SchemaError>) {
+    if value.as_f64().is_none() {
+        errors.push(wrong_type(keyword, "a number"));
+    }
+}
+
+fn check_boolean(keyword: &str, value: &Json, errors: &mut Vec<SchemaError>) {
+    if value.as_bool().is_none() {
+        errors.push(wrong_type(keyword, "a boolean"));
+    }
+}
+
+fn check_string(keyword: &str, value: &Json, errors: &mut Vec<SchemaError>) {
+    if value.as_str().is_none() {
+        errors.push(wrong_type(keyword, "a string"));
+    }
+}
+
+fn expect_object<'a>(
+    keyword: &str,
+    value: &'a Json,
+    errors: &mut Vec<SchemaError>,
+) -> Option<&'a crate::json::JsonMap> {
+    match value.as_object() {
+        Some(map) => Some(map),
+        None => {
+            errors.push(wrong_type(keyword, "an object"));
+            None
+        }
+    }
+}
+
+fn expect_array<'a>(
+    keyword: &str,
+    value: &'a Json,
+    errors: &mut Vec<SchemaError>,
+) -> Option<&'a Vec<Json>> {
+    match value.as_array() {
+        Some(items) => Some(items),
+        None => {
+            errors.push(wrong_type(keyword, "an array"));
+            None
+        }
+    }
+}
+
+fn wrong_type(keyword: &str, expected: &str) -> SchemaError {
+    SchemaError {
+        keyword: keyword.to_string(),
+        message: format!("keyword value must be {expected}"),
+    }
+}

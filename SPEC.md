@@ -33,14 +33,14 @@ satisfied when no `decided` requirement remains unresolved.
 | D     | Documents, fields, id and code  | 3      | 0         | 0          |
 | R     | Rules and the dependency check  | 5      | 3         | 0          |
 | V     | Response validation             | 5      | 2         | 0          |
-| S     | JSON Schema subset              | 2      | 5         | 0          |
+| S     | JSON Schema subset              | 4      | 3         | 0          |
 | H     | Canonical form and hashing      | 3      | 2         | 0          |
 | P     | Compilation, components, semver | 5      | 2         | 0          |
 | X     | Retirements and reversals       | 2      | 1         | 0          |
 | F     | The frozen vectors              | 1      | 0         | 0          |
 
 The counts are derived from the markers below, so move a marker and its count
-together. The ten groups hold 59 requirements: 40 `live`, 19 `decided` and 0
+together. The ten groups hold 59 requirements: 42 `live`, 17 `decided` and 0
 `proposed`.
 
 ## C — Wire contract and the ABI
@@ -174,15 +174,14 @@ behaviour, not shape.
 
 - **S-1** `live`. The supported Draft 2020-12 keywords are exactly those listed in
   `docs/json-schema.md`, with local `#` references only.
-- **S-2** `live`. Today unknown keywords and wrong-typed keywords are ignored,
-  `format` is annotation-only, and `pattern` uses the Rust `regex` dialect, so an
-  uncompilable pattern matches nothing.
-- **S-3** `decided`. Keywords are classified in three sets: implemented;
+- **S-2** `live`. `format` is annotation-only, and `pattern` uses the Rust
+  `regex` dialect, so an uncompilable pattern matches nothing.
+- **S-3** `live`. Keywords are classified in three sets: implemented;
   annotation-only (`title`, `description`, `default`, `examples`, `deprecated`,
   `$comment`, `$id`, `$schema`, `$defs`, `$anchor`, `readOnly`, `writeOnly`),
   which stay ignored; and **unsupported assertions**, which are an error. An
   assertion keyword the core does not implement must not pass as if it had.
-- **S-4** `decided`. A keyword whose value has the wrong JSON type is an error.
+- **S-4** `live`. A keyword whose value has the wrong JSON type is an error.
   `{"minLength": "3"}` must not constrain nothing in silence.
 - **S-5** `decided`. `format` is asserted for a closed set — `email`, `date`,
   `date-time`, `time`, `uuid`, `ipv4`, `ipv6`, `hostname`, `uri` — and an

@@ -2,7 +2,7 @@
 
 use crate::json::{self, Json, JsonMap};
 
-use super::check::{check, check_into, value_equal};
+use super::check::{check_into, evaluate, value_equal};
 use super::model::SchemaError;
 
 pub(super) fn type_name(value: &Json) -> &'static str {
@@ -111,7 +111,7 @@ pub(super) fn check_combinators(
     if let Some(any_of) = json::get_array(schema, "anyOf")
         && !any_of
             .iter()
-            .any(|sub| check(sub, instance, root).is_empty())
+            .any(|sub| evaluate(sub, instance, root).is_empty())
     {
         errors.push(SchemaError {
             keyword: "anyOf".to_string(),
@@ -122,7 +122,7 @@ pub(super) fn check_combinators(
     if let Some(one_of) = json::get_array(schema, "oneOf") {
         let matches = one_of
             .iter()
-            .filter(|sub| check(sub, instance, root).is_empty())
+            .filter(|sub| evaluate(sub, instance, root).is_empty())
             .count();
         if matches != 1 {
             errors.push(SchemaError {
@@ -135,7 +135,7 @@ pub(super) fn check_combinators(
     }
 
     if let Some(negated) = json::get(schema, "not")
-        && check(negated, instance, root).is_empty()
+        && evaluate(negated, instance, root).is_empty()
     {
         errors.push(SchemaError {
             keyword: "not".to_string(),
@@ -144,7 +144,7 @@ pub(super) fn check_combinators(
     }
 
     if let Some(condition) = json::get(schema, "if") {
-        if check(condition, instance, root).is_empty() {
+        if evaluate(condition, instance, root).is_empty() {
             if let Some(then_schema) = json::get(schema, "then") {
                 check_into(then_schema, instance, root, errors);
             }
