@@ -36,20 +36,28 @@ validation, hashing, or versioning.
 
 ## The cost a wrapper inherits
 
-Measured on 2026-09-25 (same request, same library, native C ABI vs
-`wasm32-unknown-unknown` driven from Node):
+Measured on 2026-09-24 (same valid request, same library, native C ABI vs
+`wasm32-unknown-unknown` driven from Node, release build, best of three runs):
 
-| Workload             | Native | WASM (call + free) | Ratio |
-| -------------------- | -----: | -----------------: | ----: |
-| evaluate, 3 fields   | 6.0 µs |            30.9 µs |  5.2× |
-| evaluate, 300 fields | 202 µs |           1 679 µs |  8.3× |
+| Workload                  |  Native | WASM (call + free) | Ratio |
+| ------------------------- | ------: | -----------------: | ----: |
+| evaluate, 3 fields        | 22.9 µs |            35.4 µs |  1.6× |
+| evaluate, 300 fields      | 1.25 ms |            1.46 ms |  1.2× |
+| evaluate, 5 000-row chain | 6.60 ms |            8.74 ms |  1.3× |
 
 The transport is not the cost: `TextEncoder` + `TextDecoder` for the same
-payload is 1.5 µs, and the full WASM turn (encode, `colander_alloc`, call,
-read, `colander_free_string`, `colander_free_buffer`) is 34.3 µs against
-30.9 µs for the call alone. The 5–8× is the core compiled to wasm32. A
-wrapper that keeps the schema and answers hot (and recompiles rarely) pays it
-once per validation, not per keystroke.
+payload is 3.5 µs. The ratio above is the core compiled to wasm32, and it
+**narrows as the work grows** — the fixed per-call cost dominates on a small
+payload, while the real work is nearly native. A wrapper that keeps the schema
+and answers hot (and recompiles rarely) pays it once per validation, not per
+keystroke.
+
+> **Correction (2026-09-24).** An earlier version of this page reported
+> 5.2–8.3×. Those numbers measured an **error path**: the benchmark request was
+> not JSON-quoted, so `colander_evaluate_rules` rejected the unquoted object
+> with `must be a string` and the "native" baseline (6.0 µs) was the cost of
+> failing early. Re-measured with a valid quoted request on both runtimes, the
+> cost is 1.2–1.6×. Always benchmark a **successful** call.
 
 Two obligations belong to the wrapper, and the core cannot enforce either:
 

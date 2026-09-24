@@ -76,9 +76,33 @@ has surprised someone.
 18. **`sum` is row-order sensitive.** Compensated accumulation bounds the
     error, but IEEE-754 addition is not associative: the same rows in another
     order can total differently. Do not reorder rows before submitting.
-19. **WASM is 5–8× slower than native for the same call** (measured; see
-    [conformance.md](conformance.md)), and the request allocator is the
+19. **WASM is 1.2–1.6× the cost of native for the same valid call** (measured;
+    see [conformance.md](conformance.md)), and the request allocator is the
     wrapper's obligation: a forgotten `colander_free_buffer` leaks per call.
+    An earlier release documented 5–8×; that number benchmarked a rejected
+    request, not a successful one.
+20. **A recursive `$ref` is rejected, not evaluated.** `{"$ref":"#"}` is a
+    cycle; evaluating it would recurse without bound and abort the process
+    (`catch_unwind` cannot catch a stack overflow). Classification reports
+    `recursive reference '<pointer>' is not supported` first, and a schema that
+    fails classification is never evaluated. Reaching the same `$defs` entry
+    from two independent positions is a shared reference, not a cycle, and is
+    fine.
+21. **Shared `$ref`s multiply evaluation work exponentially.** A chain of `N`
+    levels where each level lists the next reference twice in `anyOf` takes
+    `2^N` evaluation steps: depth 20 (1.3 KB of schema) takes 0.75 s and
+    doubles every two levels. The schema is not recursive and is perfectly
+    legal, so no existing limit applies; the cost is bounded only by the
+    request-size cap. If a budget is ever needed, it belongs in
+    `src/schema/check.rs` as a per-call step counter threaded through
+    `check_into`, reported as an error rather than a panic.
+22. **Equal numbers must hash equally.** `uniqueItems` buckets by hash and
+    compares inside a bucket, so `-0.0` and `0.0` (the same JSON Schema value)
+    must land together. Numeric equality is by mathematical value, not `f64`
+    rounding, on every surface: `uniqueItems`, the comparison operators, and
+    the calculated-value check. `9007199254740993` and `9007199254740992.0` are
+    different values and stay different; the same integer with `.0` appended is
+    the same value and collapses.
 
 ## Next
 
