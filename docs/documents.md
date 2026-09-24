@@ -158,7 +158,8 @@ that is not a form field id is a hard error (a `RULE_UNKNOWN_FIELD` analysis
 error; see [rules.md](rules.md)).
 
 A `validations` entry is `{"code", "when", "assert", "message"}`. `code` must be
-a string and unique across the array.
+a string and unique across the array, and `assert` is required: an entry without
+one is rejected by the analyzer.
 
 ## Expressions
 

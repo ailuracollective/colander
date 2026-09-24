@@ -207,8 +207,9 @@ Every field in the form appears in the three boolean maps, whether or not it has
 any rule. Only fields with rules can change.
 
 A validation entry contributes an error when its `assert` expression evaluates
-falsy, or when it has no `assert` at all. Its `when` guards it: if `when` is
-present and evaluates falsy, the entry is skipped. An entry with no `code` is
+falsy. Its `when` guards it: if `when` is present and evaluates falsy, the entry
+is skipped. An entry with no `assert` never reaches evaluation: the analyzer
+rejects it, whether or not it carries `when`. An entry with no `code` is
 reported as `VALIDATION_<position>` and one with no `message` as
 `"Validation failed."`.
 

@@ -164,3 +164,36 @@ fn detects_cycles() {
     let error = validate_dependencies(&form, &rules).unwrap_err();
     assert!(error.message.contains("RULE_CYCLIC_DEPENDENCY"));
 }
+
+// R-4: a `validations` entry with no `assert` is rejected, with or without `when`.
+#[test]
+fn rejects_a_validation_without_assert() {
+    let form = root(
+        r#"{"schemaVersion":"1.0.0","fields":[
+             {"id":"a","code":"a","type":"text"}]}"#,
+        "form schema",
+    );
+    let no_assert = root(
+        r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{},
+             "validations":[{"code":"V1","message":"M"}]}"#,
+        "rules schema",
+    );
+    let error = validate_dependencies(&form, &no_assert).unwrap_err();
+    assert!(error.message.starts_with("RULE_MISSING_ASSERT"), "{error}");
+
+    let when_only = root(
+        r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{},
+             "validations":[{"code":"V2","when":{"lit":true}}]}"#,
+        "rules schema",
+    );
+    let error = validate_dependencies(&form, &when_only).unwrap_err();
+    assert!(error.message.starts_with("RULE_MISSING_ASSERT"), "{error}");
+
+    // An entry with `assert` still passes the check.
+    let with_assert = root(
+        r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{},
+             "validations":[{"code":"V3","assert":{"lit":true}}]}"#,
+        "rules schema",
+    );
+    validate_dependencies(&form, &with_assert).unwrap();
+}

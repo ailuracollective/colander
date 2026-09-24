@@ -31,7 +31,7 @@ satisfied when no `decided` requirement remains unresolved.
 | C     | Wire contract and the ABI       | 7      | 2         | 0          |
 | E     | The six operations              | 7      | 2         | 0          |
 | D     | Documents, fields, id and code  | 3      | 0         | 0          |
-| R     | Rules and the dependency check  | 5      | 3         | 0          |
+| R     | Rules and the dependency check  | 6      | 2         | 0          |
 | V     | Response validation             | 5      | 2         | 0          |
 | S     | JSON Schema subset              | 7      | 0         | 0          |
 | H     | Canonical form and hashing      | 3      | 2         | 0          |
@@ -121,12 +121,11 @@ behaviour, not shape.
 - **R-2** `live`. Calculations run in topological order, then predicates, then
   validations.
 - **R-3** `live`. A validation entry reports its error when `assert` is present,
-  non-null and falsy. `when`, when present, guards the entry. An entry with no
-  `assert` is inert.
-- **R-4** `decided`. A `validations` entry with no `assert` is rejected by the
-  analyzer, whether or not it carries `when`: an entry with nothing to assert can
-  never report anything, so `when` alone does not make it valid. Today it is
-  silently inert, so a mistyped key produces a validation that never runs.
+  non-null and falsy. `when`, when present, guards the entry.
+- **R-4** `live`. A `validations` entry with no `assert` is rejected by the
+  analyzer, whether or not it carries `when`, under the code
+  `RULE_MISSING_ASSERT`: an entry with nothing to assert can never report
+  anything.
 - **R-5** `live`. A duplicate field `code` is rejected by every entry point that
   reads a form and rules pair. The check runs on the effective documents: for
   `colander_compile` that is the compiled triple, because rules legitimately

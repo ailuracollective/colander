@@ -87,6 +87,7 @@ performs, in addition to the messages below.
 | `RULE_DUPLICATE_VALIDATION_CODE: validation code 'X' at /validations/2/code is duplicated.`                       | Two validations share a `code`                    |
 | `Expected validation object at /validations/0.`                                                                   | A `validations` element is not an object          |
 | `Expected validation code at /validations/0/code.`                                                                | A `validations` element has no `code`             |
+| `RULE_MISSING_ASSERT: validation at /validations/0 has no 'assert' to evaluate.`                                  | A `validations` element has no `assert`           |
 
 ## Next
 

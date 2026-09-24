@@ -201,6 +201,15 @@ fn validate_validation_entries(
         let code = json::get_str(validation, schema_json_keys::CODE).ok_or_else(|| {
             ColanderError::new(format!("Expected validation code at {path}/code."))
         })?;
+        let has_assert = matches!(
+            json::get(validation, "assert"),
+            Some(assert) if !assert.is_null()
+        );
+        if !has_assert {
+            return Err(ColanderError::new(format!(
+                "RULE_MISSING_ASSERT: validation at {path} has no 'assert' to evaluate."
+            )));
+        }
 
         if !seen_codes.insert(code.to_string()) {
             return Err(ColanderError::new(format!(

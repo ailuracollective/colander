@@ -27,8 +27,9 @@ has surprised someone.
    `colander_compile` treat absent or blank rules as no rules, the same duplicate
    passes them when `rulesSchemaJson` is absent. Two fields sharing an `id` still
    collapse to a single entry in the rule maps.
-5. **An absent `assert` does not fail a validation.** A `validations` entry with
-   no `assert` always reports its error; use `when` to guard it.
+5. **An absent `assert` fails the analysis.** A `validations` entry with no
+   `assert` is rejected by the analyzer, whether or not it carries `when`,
+   because an entry with nothing to assert can never report anything.
 6. **Repeater row values flatten into the top-level rule values.** A repeater's
    own code is visible to expressions as its row **count**, and each row's
    children are readable by their plain codes — only the last row survives.
