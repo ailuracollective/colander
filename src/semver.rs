@@ -34,36 +34,36 @@ impl PartialOrd for VersionParts {
     }
 }
 
-/// Exactly three dot-separated integer segments are required, each non-negative.
-/// Every segment is trimmed first and blank segments are dropped before counting,
-/// so extra dots do not add segments.
+/// Exactly three dot-separated numeric identifiers, under SemVer 2.0.0's rules
+/// for numeric identifiers: ASCII digits only, no sign, no whitespace, no blank
+/// segments, and no leading zero unless the segment is exactly "0".
+/// Pre-release and build metadata are not permitted on a component version.
 pub fn parse(version: &str) -> Result<VersionParts> {
-    let segments: Vec<&str> = version
-        .split('.')
-        .map(str::trim)
-        .filter(|segment| !segment.is_empty())
-        .collect();
-
-    if segments.len() == 3 {
-        let major = segments[0].parse::<i32>();
-        let minor = segments[1].parse::<i32>();
-        let patch = segments[2].parse::<i32>();
-        if let (Ok(major), Ok(minor), Ok(patch)) = (major, minor, patch)
-            && major >= 0
-            && minor >= 0
-            && patch >= 0
-        {
-            return Ok(VersionParts {
-                major,
-                minor,
-                patch,
-            });
-        }
+    let segments: Vec<&str> = version.split('.').collect();
+    if segments.len() == 3
+        && segments.iter().all(|segment| is_plain_integer(segment))
+        && let (Ok(major), Ok(minor), Ok(patch)) = (
+            segments[0].parse::<i32>(),
+            segments[1].parse::<i32>(),
+            segments[2].parse::<i32>(),
+        )
+    {
+        return Ok(VersionParts {
+            major,
+            minor,
+            patch,
+        });
     }
 
     Err(ColanderError::new(format!(
         "Invalid semantic version: {version}"
     )))
+}
+
+fn is_plain_integer(segment: &str) -> bool {
+    !segment.is_empty()
+        && segment.bytes().all(|byte| byte.is_ascii_digit())
+        && (segment.len() == 1 || !segment.starts_with('0'))
 }
 
 pub fn ensure_valid(version: &str) -> Result<()> {
@@ -75,9 +75,51 @@ pub fn compare(left: &str, right: &str) -> Result<Ordering> {
     Ok(parse(left)?.cmp(&parse(right)?))
 }
 
-/// The highest published version with its patch bumped, or `1.0.0` when nothing
+/// The intended version bump. It is always supplied by the caller and never
+/// inferred (SPEC P-6).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Bump {
+    Patch,
+    Minor,
+    Major,
+}
+
+impl Bump {
+    /// Parses a bump name; anything else is an error.
+    pub fn parse(name: &str) -> Result<Bump> {
+        match name {
+            "patch" => Ok(Bump::Patch),
+            "minor" => Ok(Bump::Minor),
+            "major" => Ok(Bump::Major),
+            other => Err(ColanderError::new(format!(
+                "Unknown bump '{other}' (expected 'patch', 'minor' or 'major')."
+            ))),
+        }
+    }
+
+    fn apply(self, parts: VersionParts) -> VersionParts {
+        match self {
+            Bump::Patch => VersionParts {
+                patch: parts.patch + 1,
+                ..parts
+            },
+            Bump::Minor => VersionParts {
+                major: parts.major,
+                minor: parts.minor + 1,
+                patch: 0,
+            },
+            Bump::Major => VersionParts {
+                major: parts.major + 1,
+                minor: 0,
+                patch: 0,
+            },
+        }
+    }
+}
+
+/// The highest published version with `bump` applied, or `1.0.0` when nothing
 /// is published.
-pub fn next_version<S: AsRef<str>>(published: &[S]) -> Result<String> {
+pub fn next_version<S: AsRef<str>>(published: &[S], bump: Bump) -> Result<String> {
     let mut latest: Option<VersionParts> = None;
     for candidate in published {
         let parts = parse(candidate.as_ref())?;
@@ -89,11 +131,7 @@ pub fn next_version<S: AsRef<str>>(published: &[S]) -> Result<String> {
 
     match latest {
         None => Ok(DEFAULT_VERSION.to_string()),
-        Some(parts) => Ok(VersionParts {
-            patch: parts.patch + 1,
-            ..parts
-        }
-        .to_string()),
+        Some(parts) => Ok(bump.apply(parts).to_string()),
     }
 }
 

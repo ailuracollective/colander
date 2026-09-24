@@ -52,10 +52,13 @@ pub unsafe extern "C" fn colander_next_version(request: *const c_char) -> *mut c
                 .transpose()?
                 .unwrap_or_default();
 
+            let bump = optional_string(request, "bump")?;
+            let bump = semver::Bump::parse(bump.as_deref().unwrap_or("patch"))?;
+
             let mut out = JsonMap::new();
             out.insert(
                 "next".to_string(),
-                Json::String(semver::next_version(&published)?),
+                Json::String(semver::next_version(&published, bump)?),
             );
             Ok(Json::Object(out))
         })

@@ -50,7 +50,7 @@
     "published": [
       "01.0.0"
     ],
-    "next": "1.0.1"
+    "error": "ValidationException: Invalid semantic version: 01.0.0"
   },
   {
     "name": "ensurevalid: 1.0.0",
@@ -80,7 +80,7 @@
   {
     "name": "ensurevalid: 01.0.0",
     "version": "01.0.0",
-    "error": null
+    "error": "ValidationException: Invalid semantic version: 01.0.0"
   },
   {
     "name": "ensurevalid: <empty>",
@@ -100,12 +100,12 @@
   {
     "name": "ensurevalid: 1..0.0",
     "version": "1..0.0",
-    "error": null
+    "error": "ValidationException: Invalid semantic version: 1..0.0"
   },
   {
     "name": "ensurevalid:   1.2.3  ",
     "version": "  1.2.3  ",
-    "error": null
+    "error": "ValidationException: Invalid semantic version:   1.2.3  "
   },
   {
     "name": "ensurevalid: 2147483647.0.0",
@@ -120,7 +120,7 @@
   {
     "name": "ensurevalid: 1.0.-0",
     "version": "1.0.-0",
-    "error": null
+    "error": "ValidationException: Invalid semantic version: 1.0.-0"
   },
   {
     "name": "compare: 1.2.3 vs 1.10.0",

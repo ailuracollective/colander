@@ -28,14 +28,14 @@ satisfied when no `decided` requirement remains unresolved.
 
 | Group | Subject                         | `live` | `decided` | `proposed` |
 | ----- | ------------------------------- | ------ | --------- | ---------- |
-| C     | Wire contract and the ABI       | 7      | 2         | 0          |
+| C     | Wire contract and the ABI       | 6      | 3         | 0          |
 | E     | The six operations              | 7      | 2         | 0          |
 | D     | Documents, fields, id and code  | 3      | 0         | 0          |
 | R     | Rules and the dependency check  | 6      | 2         | 0          |
 | V     | Response validation             | 5      | 2         | 0          |
 | S     | JSON Schema subset              | 7      | 0         | 0          |
 | H     | Canonical form and hashing      | 3      | 2         | 0          |
-| P     | Compilation, components, semver | 5      | 2         | 0          |
+| P     | Compilation, components, semver | 7      | 0         | 0          |
 | X     | Retirements and reversals       | 2      | 1         | 0          |
 | F     | The frozen vectors              | 1      | 0         | 0          |
 
@@ -236,14 +236,15 @@ behaviour, not shape.
 - **P-4** `live`. `colander_next_version` returns `"1.0.0"` when nothing is
   published, and otherwise increments the patch of the highest published version
   with no carry.
-- **P-5** `decided`. The accepted version grammar is exactly three non-negative
-  integers under SemVer 2.0.0's numeric-identifier rules: no leading zeros, no
-  blank segments, no surrounding whitespace, no `v` prefix. **Pre-release and build
-  metadata are not permitted** on a component version, so `1.0.0-beta` is rejected
-  by design and `1..0.0` is rejected as malformed.
-- **P-6** `decided`. `colander_next_version` takes the intended bump (`patch`,
-  `minor` or `major`) and applies SemVer precedence to the highest published
-  version. It never infers the bump from a list of version strings.
+- **P-5** `live`. The accepted version grammar is exactly three non-negative
+  integers under SemVer 2.0.0's numeric-identifier rules: ASCII digits only, no
+  sign, no whitespace, no blank segments, and no leading zero unless the segment
+  is exactly `0`. **Pre-release and build metadata are not permitted** on a
+  component version.
+- **P-6** `live`. `colander_next_version` takes the intended bump (`patch`,
+  `minor` or `major`), defaulting to `patch`, and applies SemVer precedence to
+  the highest published version. It never infers the bump from a list of version
+  strings. An unrecognised bump name is an error.
 - **P-7** `live`. `colander_compile` keeps a known set of top-level keys and drops
   unknown ones, while preserving unknown keys inside fields. It neither sorts nor
   inspects `fields`, and it does not check `type` against the known list. Array

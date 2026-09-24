@@ -21,7 +21,9 @@ fn golden_semver() {
                 .iter()
                 .map(|item| item.as_str().unwrap_or_default().to_string())
                 .collect();
-            let actual = semver::next_version(&published);
+            // The fixtures were recorded against the patch-only behaviour, so
+            // they replay on the patch path.
+            let actual = semver::next_version(&published, semver::Bump::Patch);
             let Some(actual) = report.expect(name, recorded_error(entry).as_deref(), actual) else {
                 continue;
             };

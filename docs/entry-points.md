@@ -389,14 +389,16 @@ The canonical form and the number-output rules are described in
 | Request key | Type             | Required |
 | ----------- | ---------------- | -------- |
 | `published` | array of strings | no       |
+| `bump`      | string           | no       |
 
 `result` is exactly `{"next":"1.2.4"}`.
 
 With nothing published — or with `published` absent — the answer is `"1.0.0"`.
-Otherwise colander parses every entry, takes the highest, and increments **only
-its patch**: `["1.2.3","1.10.0","1.9.9"]` yields `"1.10.1"`. Major and minor
-never change, and there is no carry. Ties keep the last maximal entry rather
-than the first.
+Otherwise colander parses every entry, takes the highest, and applies the
+requested bump: `["1.2.3","1.10.0","1.9.9"]` yields `"1.10.1"` for `patch`,
+`"1.11.0"` for `minor` and `"2.0.0"` for `major`. `bump` defaults to `"patch"`;
+any other name is rejected. Ties keep the last maximal entry rather than the
+first.
 
 A present `published` must be an array of strings; any other JSON type is
 rejected. Every entry is parsed, so one invalid entry fails the whole call with
@@ -404,20 +406,23 @@ rejected. Every entry is parsed, so one invalid entry fails the whole call with
 
 ### Accepted version syntax
 
-Split on `.`, trim each segment, drop empty ones, then require **exactly three**
-non-negative integers:
+Exactly three dot-separated numeric identifiers, under SemVer 2.0.0's rules:
+ASCII digits only, no sign, no whitespace, no blank segments, and no leading
+zero unless the segment is exactly `0`. Pre-release and build metadata are not
+permitted on a component version.
 
-| Input                                 | Result                                  |
-| ------------------------------------- | --------------------------------------- |
-| `1.2.3`                               | {1, 2, 3}                               |
-| `1 . 2 . 3`                           | {1, 2, 3}                               |
-| `01.0.0`                              | {1, 0, 0}                               |
-| `-0.0.0`                              | {0, 0, 0}                               |
-| `1..0.0`                              | accepted — the blank segment is dropped |
-| `1.0`                                 | rejected                                |
-| `1.0.0.0`                             | rejected                                |
-| `1.-1.0`                              | rejected                                |
-| `1.0.0-beta`, `1.0.0+build`, `v1.0.0` | rejected                                |
+| Input                                 | Result    |
+| ------------------------------------- | --------- |
+| `1.2.3`                               | {1, 2, 3} |
+| `0.0.0`                               | {0, 0, 0} |
+| `1 . 2 . 3`                           | rejected  |
+| `01.0.0`                              | rejected  |
+| `-0.0.0`, `+1.0.0`                    | rejected  |
+| `1..0.0`                              | rejected  |
+| `1.0`                                 | rejected  |
+| `1.0.0.0`                             | rejected  |
+| `1.-1.0`                              | rejected  |
+| `1.0.0-beta`, `1.0.0+build`, `v1.0.0` | rejected  |
 
 ## Version and utility functions
 

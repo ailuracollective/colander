@@ -44,8 +44,8 @@ has surprised someone.
    `f64` range overflows that scale. A calculated value that is not finite when
    it is stored is skipped in `Draft` and reports `CALCULATED_VALUE_INVALID` in
    `Complete`; it is not turned into `null`.
-10. **Version comparison is not semver-strict.** `1..0.0`, `01.0.0` and
-    `"  1.2.3  "` are valid; pre-release and build suffixes are not.
+10. **Versions are strict triplets.** `1..0.0`, `01.0.0`, `"  1.2.3  "` and
+    `-0.0.0` are rejected; pre-release and build suffixes stay rejected.
 11. **`compile` drops unknown top-level keys** from the form, UI and rules
     documents, and unknown keys from layout nodes, while preserving unknown keys
     inside fields.
