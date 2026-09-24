@@ -1,0 +1,156 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "colander rules schema",
+  "description": "Base template for the rules document colander compiles and evaluates (docs/documents.md#rules-schema, docs/rules.md). Uses only keywords from the subset colander itself implements (docs/json-schema.md, SPEC S-1..S-7), with local #/$defs references only, so this file also works when passed to colander_validate_schema.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "description": "The rules document's own version."
+    },
+    "formSchemaVersion": {
+      "type": "string",
+      "description": "Must equal the form's schemaVersion when both are present, else RULE_SCHEMA_VERSION_MISMATCH."
+    },
+    "$schema": {
+      "type": "string",
+      "description": "Copied through by compile."
+    },
+    "fields": {
+      "type": "object",
+      "description": "Keyed by field id. A key that is not a form field id is a hard RULE_UNKNOWN_FIELD error. Non-object entries are silently skipped.",
+      "additionalProperties": {
+        "anyOf": [
+          { "$ref": "#/$defs/fieldRules" },
+          { "description": "Any non-object value is tolerated and ignored by analysis." }
+        ]
+      }
+    },
+    "validations": {
+      "type": "array",
+      "description": "Cross-field checks, evaluated last.",
+      "items": { "$ref": "#/$defs/validation" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "fieldRules": {
+      "type": "object",
+      "description": "Per-field rules. Each key is a null-or-expression; null and absent are the same. Unknown keys are preserved by compile but ignored by analysis.",
+      "properties": {
+        "visibleWhen": {
+          "anyOf": [{ "$ref": "#/$defs/expression" }, { "const": null }],
+          "description": "Overrides the visibility baseline."
+        },
+        "enabledWhen": {
+          "anyOf": [{ "$ref": "#/$defs/expression" }, { "const": null }],
+          "description": "Overrides the enabled baseline."
+        },
+        "requiredWhen": {
+          "anyOf": [{ "$ref": "#/$defs/expression" }, { "const": null }],
+          "description": "Overrides the required baseline."
+        },
+        "calculate": {
+          "anyOf": [{ "$ref": "#/$defs/expression" }, { "const": null }],
+          "description": "Runs in topological dependency order before predicates. The field must be readOnly (RULE_CALCULATE_NOT_READONLY) and must not reference its own code (RULE_SELF_REFERENCE)."
+        }
+      }
+    },
+    "validation": {
+      "type": "object",
+      "description": "One cross-field check. Reports its error when assert is present, non-null and falsy; when, when present, guards the entry (SPEC R-3).",
+      "required": ["code", "assert"],
+      "properties": {
+        "code": {
+          "type": "string",
+          "description": "Required string, unique across the array (RULE_DUPLICATE_VALIDATION_CODE)."
+        },
+        "when": {
+          "anyOf": [{ "$ref": "#/$defs/expression" }, { "const": null }],
+          "description": "Optional guard; absent or null means the entry always runs."
+        },
+        "assert": {
+          "$ref": "#/$defs/expression",
+          "description": "Required: an entry with no assert is rejected with RULE_MISSING_ASSERT (SPEC R-4)."
+        },
+        "message": {
+          "type": "string",
+          "description": "Optional; defaults to Validation failed. when reported."
+        }
+      }
+    },
+    "expression": {
+      "type": "object",
+      "description": "A rule expression. A node with a non-empty ref is a reference and nothing else is read from it; otherwise a lit wins over op, even when the literal is null. An op node requires args.",
+      "anyOf": [
+        {
+          "required": ["ref"],
+          "properties": {
+            "ref": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The current value of a field, addressed by code and null when unknown. An empty ref falls through to lit/op."
+            }
+          }
+        },
+        {
+          "required": ["lit"],
+          "properties": {
+            "lit": {
+              "description": "A literal: any JSON value, including null."
+            }
+          }
+        },
+        {
+          "required": ["op", "args"],
+          "properties": {
+            "op": {
+              "type": "string",
+              "enum": [
+                "eq",
+                "neq",
+                "gt",
+                "gte",
+                "lt",
+                "lte",
+                "and",
+                "or",
+                "not",
+                "empty",
+                "coalesce",
+                "add",
+                "sub",
+                "mul",
+                "div",
+                "count",
+                "sum"
+              ],
+              "description": "The fixed operator set (SPEC R-1) plus the repeater aggregates count(code) and sum(code, childCode) (SPEC R-7). Anything else is Unsupported expression operator."
+            },
+            "args": {
+              "type": "array",
+              "description": "Operand expressions. Binary operators take at least two (extras are evaluated, then ignored); and/or/coalesce take any number, including none.",
+              "items": { "$ref": "#/$defs/expression" }
+            }
+          }
+        }
+      ],
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "op": {
+                "enum": ["eq", "neq", "gt", "gte", "lt", "lte", "add", "sub", "mul", "div", "sum"]
+              }
+            }
+          },
+          "then": { "properties": { "args": { "minItems": 2 } } }
+        },
+        {
+          "if": { "properties": { "op": { "enum": ["not", "empty", "count"] } } },
+          "then": { "properties": { "args": { "minItems": 1 } } }
+        }
+      ]
+    }
+  }
+}

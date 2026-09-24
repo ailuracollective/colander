@@ -16,6 +16,7 @@ by task, so you can read only what you need before your first call.
 | [abi.md](abi.md)                         | The wire contract: envelope, memory ownership, the allocator pair, panics, escaping, and the generated header's gaps. | You are writing a language binding or debugging the boundary.       |
 | [entry-points.md](entry-points.md)       | Full reference for all eleven exported symbols.                                                                       | You need the request and response keys for one call.                |
 | [documents.md](documents.md)             | The form, UI and rules schemas, field types and expressions.                                                          | You are authoring a form, UI or rules document.                     |
+| [ide-schemas.md](ide-schemas.md)         | The `schemas/` JSON Schema templates for IDE autocomplete.                                                            | You are authoring JSON and want completion and validation.          |
 | [rules.md](rules.md)                     | Rule operators, their semantics and the analysis errors.                                                              | You are writing `visibleWhen`, `calculate` or `assert` expressions. |
 | [validation.md](validation.md)           | Response validation, normalization and every error code.                                                              | You are accepting a submission or handling an `errors[]` result.    |
 | [json-schema.md](json-schema.md)         | The supported Draft 2020-12 subset used by `colander_validate_schema`.                                                | You are passing a JSON Schema to the core.                          |
@@ -47,6 +48,8 @@ envelope and memory problems.
 - [include/colander.h](../include/colander.h) — the generated C header; it declares nine of the eleven exports (see [abi.md](abi.md#the-generated-header-does-not-declare-every-export)).
 - [src/](../src/) — the Rust sources, one file per concern.
 - [tests/](../tests/) — the unit tests and the golden-vector suite.
+- [schemas/](../schemas/) — base JSON Schema templates for the documents
+  (see [ide-schemas.md](ide-schemas.md)).
 
 ## Next
 

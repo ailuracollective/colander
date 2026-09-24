@@ -1,0 +1,316 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "colander golden vectors",
+  "description": "Base template for tests/golden/vectors/*.json (docs/vectors.md). The files are frozen against accidental drift (SPEC F-1): this schema is reference-only for editing and validation, it never loosens a fixture. Uses only keywords from the subset colander itself implements (docs/json-schema.md, SPEC S-1..S-7), with local #/$defs references only. Each vector file is an array of one group's entries; map a single file to its #/$defs/<group>File fragment for precise checking.",
+  "anyOf": [
+    { "$ref": "#/$defs/canonicalFile" },
+    { "$ref": "#/$defs/hashFile" },
+    { "$ref": "#/$defs/semverFile" },
+    { "$ref": "#/$defs/rulesFile" },
+    { "$ref": "#/$defs/validateFile" },
+    { "$ref": "#/$defs/compileFile" },
+    { "$ref": "#/$defs/errorsFile" }
+  ],
+  "$defs": {
+    "errorProp": {
+      "type": ["string", "null"],
+      "description": "Recorded failure, shaped {Type}Exception: {message}. Error cases compare by SCREAMING_SNAKE code only; null means the fixture succeeded."
+    },
+    "rawText": {
+      "type": ["string", "null"],
+      "description": "Exact raw JSON text fed to the code under test. Null means the document was absent."
+    },
+    "parsedCopy": {
+      "description": "Redundant parsed copy of a document for readability; the harness replays the raw.* text, so this stays loosely typed on purpose."
+    },
+    "canonicalFile": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/canonicalEntry" }
+    },
+    "canonicalEntry": {
+      "type": "object",
+      "required": ["name", "rawInput", "canonical"],
+      "properties": {
+        "name": { "type": "string" },
+        "rawInput": {
+          "type": "string",
+          "description": "The raw input text parsed and key-sorted."
+        },
+        "input": {
+          "description": "The same input as parsed JSON, any value."
+        },
+        "canonical": {
+          "type": "string",
+          "description": "Expected key-sorted output text, compared byte-for-byte."
+        }
+      }
+    },
+    "hashFile": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/hashEntry" }
+    },
+    "hashEntry": {
+      "type": "object",
+      "required": ["name", "form"],
+      "properties": {
+        "name": { "type": "string" },
+        "form": {
+          "type": "string",
+          "description": "The form document text, hashed exactly as stored."
+        },
+        "ui": { "$ref": "#/$defs/rawText" },
+        "rules": { "$ref": "#/$defs/rawText" },
+        "hash": {
+          "type": ["string", "null"],
+          "description": "Expected lowercase-hex SHA-256; null when the entry records an error."
+        },
+        "error": { "$ref": "#/$defs/errorProp" }
+      }
+    },
+    "semverFile": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/semverEntry" }
+    },
+    "semverEntry": {
+      "type": "object",
+      "description": "One of three shapes: next-version (published/next), validity (version), or precedence (left/right/result). A bare name plus error is a fixture that threw before echoing.",
+      "required": ["name"],
+      "properties": {
+        "name": { "type": "string" },
+        "published": {
+          "type": "array",
+          "description": "Published versions; the harness replays the patch path.",
+          "items": { "type": "string" }
+        },
+        "next": { "type": "string" },
+        "version": {
+          "type": "string",
+          "description": "Version checked with ensure_valid."
+        },
+        "left": { "type": "string" },
+        "right": { "type": "string" },
+        "result": {
+          "type": ["integer", "null"],
+          "description": "-1, 0 or 1 from compare; null when the entry records an error."
+        },
+        "error": { "$ref": "#/$defs/errorProp" }
+      }
+    },
+    "rulesFile": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/rulesEntry" }
+    },
+    "rulesEntry": {
+      "type": "object",
+      "description": "Entries named analyze:* drive the analyzer and carry analyze instead of expected; validateDependencies:* nest the error one level down.",
+      "required": ["name", "raw"],
+      "properties": {
+        "name": { "type": "string" },
+        "form": { "$ref": "#/$defs/parsedCopy" },
+        "rules": { "$ref": "#/$defs/parsedCopy" },
+        "ui": { "$ref": "#/$defs/parsedCopy" },
+        "values": {
+          "type": "object",
+          "description": "Working values keyed by field code."
+        },
+        "raw": {
+          "type": "object",
+          "required": ["formRaw", "rulesRaw"],
+          "properties": {
+            "formRaw": { "type": "string" },
+            "rulesRaw": { "type": "string" },
+            "uiRaw": { "$ref": "#/$defs/rawText" },
+            "valuesRaw": { "type": "string" }
+          }
+        },
+        "expected": {
+          "type": ["object", "null"],
+          "properties": {
+            "visibility": { "$ref": "#/$defs/idBoolMap" },
+            "enabled": { "$ref": "#/$defs/idBoolMap" },
+            "required": { "$ref": "#/$defs/idBoolMap" },
+            "calculatedValues": {
+              "type": "object",
+              "description": "Calculated values keyed by field code."
+            },
+            "validationErrors": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "code": { "type": "string" },
+                  "message": { "type": "string" }
+                }
+              }
+            }
+          }
+        },
+        "analyze": {
+          "type": "object",
+          "properties": {
+            "calculatedFieldIds": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "evaluationOrder": {
+              "type": "array",
+              "items": { "type": "string" }
+            }
+          }
+        },
+        "validateDependencies": {
+          "type": "object",
+          "properties": {
+            "error": { "$ref": "#/$defs/errorProp" }
+          }
+        },
+        "error": { "$ref": "#/$defs/errorProp" }
+      }
+    },
+    "idBoolMap": {
+      "type": "object",
+      "description": "Maps keyed by field id.",
+      "additionalProperties": { "type": "boolean" }
+    },
+    "validateFile": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/validateEntry" }
+    },
+    "validateEntry": {
+      "type": "object",
+      "required": ["name", "raw"],
+      "properties": {
+        "name": { "type": "string" },
+        "form": { "$ref": "#/$defs/parsedCopy" },
+        "rules": { "$ref": "#/$defs/parsedCopy" },
+        "ui": { "$ref": "#/$defs/parsedCopy" },
+        "answers": {
+          "description": "Redundant parsed copy of the submitted answers; the harness replays raw.answersRaw."
+        },
+        "mode": {
+          "type": "string",
+          "enum": ["Draft", "Complete"],
+          "description": "Anything else falls back to Draft in the harness, so only these two are offered."
+        },
+        "raw": {
+          "type": "object",
+          "required": ["formRaw", "answersRaw"],
+          "properties": {
+            "formRaw": { "type": "string" },
+            "answersRaw": { "type": "string" },
+            "rulesRaw": { "$ref": "#/$defs/rawText" },
+            "uiRaw": { "$ref": "#/$defs/rawText" }
+          }
+        },
+        "expected": {
+          "anyOf": [
+            { "const": null },
+            {
+              "type": "object",
+              "required": ["normalizedAnswersJson"],
+              "properties": {
+                "normalizedAnswersJson": { "type": "string" },
+                "errors": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "code": { "type": "string" },
+                      "path": { "type": "string" },
+                      "message": { "type": "string" }
+                    }
+                  }
+                }
+              }
+            }
+          ]
+        },
+        "error": { "$ref": "#/$defs/errorProp" }
+      }
+    },
+    "compileFile": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/compileEntry" }
+    },
+    "compileEntry": {
+      "type": "object",
+      "required": ["name", "raw"],
+      "properties": {
+        "name": { "type": "string" },
+        "form": { "$ref": "#/$defs/parsedCopy" },
+        "rules": { "$ref": "#/$defs/parsedCopy" },
+        "ui": { "$ref": "#/$defs/parsedCopy" },
+        "raw": {
+          "type": "object",
+          "required": ["formRaw"],
+          "properties": {
+            "formRaw": { "type": "string" },
+            "uiRaw": { "$ref": "#/$defs/rawText" },
+            "rulesRaw": { "$ref": "#/$defs/rawText" }
+          }
+        },
+        "components": {
+          "type": "array",
+          "description": "Published components a component-ref resolves against, by exact (code, version).",
+          "items": {
+            "type": "object",
+            "required": ["code", "version", "formSchemaJson"],
+            "properties": {
+              "code": { "type": "string" },
+              "version": { "type": "string" },
+              "formSchemaJson": { "type": "string" },
+              "uiSchemaJson": { "$ref": "#/$defs/rawText" },
+              "contentHash": { "$ref": "#/$defs/rawText" }
+            }
+          }
+        },
+        "expected": {
+          "anyOf": [
+            { "const": null },
+            {
+              "type": "object",
+              "required": ["formSchemaJson", "dependencyMetadataJson", "contentHash"],
+              "properties": {
+                "formSchemaJson": { "type": "string" },
+                "uiSchemaJson": { "$ref": "#/$defs/rawText" },
+                "rulesSchemaJson": { "$ref": "#/$defs/rawText" },
+                "dependencyMetadataJson": { "type": "string" },
+                "contentHash": { "type": "string" }
+              }
+            }
+          ]
+        },
+        "error": { "$ref": "#/$defs/errorProp" }
+      }
+    },
+    "errorsFile": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/errorsEntry" }
+    },
+    "errorsEntry": {
+      "type": "object",
+      "required": ["name", "call", "input"],
+      "properties": {
+        "name": { "type": "string" },
+        "call": {
+          "type": "string",
+          "description": "The call under test: json.parseObject, index.buildById/buildByCode, rules.validateDependencies or rules.analyze."
+        },
+        "input": {
+          "type": "object",
+          "required": ["form"],
+          "properties": {
+            "name": { "type": "string" },
+            "form": {
+              "type": "string",
+              "description": "Raw form text; it may be malformed on purpose."
+            },
+            "label": { "type": "string" },
+            "rules": { "type": "string" }
+          }
+        },
+        "error": { "$ref": "#/$defs/errorProp" }
+      }
+    }
+  }
+}
