@@ -93,11 +93,8 @@ impl Val {
         }
     }
 
-    /// Conversion used for submitted answers: nested arrays become lists, so a
-    /// multi-select answer is validatable; nested objects are still rejected.
-    /// A rejection never aborts the call — the flattening step records a null
-    /// rule value instead, and the per-field loop reports the type error
-    /// (SPEC E-8, E-9).
+    /// Submitted answers: nested arrays become lists (SPEC E-8); nested objects
+    /// are rejected but never abort the call (SPEC E-9).
     pub fn from_json_element(node: &Json) -> Result<Val> {
         match node {
             Json::Null => Ok(Val::Null),

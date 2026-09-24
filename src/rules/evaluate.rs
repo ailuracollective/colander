@@ -124,12 +124,9 @@ fn apply_calculations(
             continue;
         };
 
-        // R-7: a calculated repeater child with rows evaluates once per row, in
-        // a scope holding that row over the outer values. Each result is written
-        // back into its row, so a later calculation or aggregate observes the
-        // computed values rather than the submitted ones. The array replaces the
-        // flattened value everywhere downstream, so a plain reference observes an
-        // array rather than the last surviving row.
+        // R-7: per-row evaluation in row scope; results are written back so
+        // later calculations observe computed values, and the array replaces
+        // the flattened value downstream.
         if let Some(repeater_code) = parents.get(field_id)
             && let Some(row_list) = rows.rows(repeater_code)
             && !row_list.is_empty()
