@@ -323,8 +323,18 @@ pub(super) fn check_string_keywords(
             }
         }
     }
-    // `format` is an annotation only: colander never asserts it, so any string
-    // satisfies a schema that only constrains `format`.
+    // `format` asserts the closed set in `super::format`. A name the classifier
+    // rejects is reported there, so here only a known name asserts and an unknown
+    // one is skipped rather than reported twice.
+    if let Some(name) = json::get_str(schema, "format")
+        && super::format::is_known(name)
+        && !super::format::matches(name, text)
+    {
+        errors.push(SchemaError {
+            keyword: "format".to_string(),
+            message: format!("string is not a valid {name}"),
+        });
+    }
 }
 
 pub(super) fn check_numeric_keywords(

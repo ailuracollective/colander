@@ -135,7 +135,7 @@ fn visit(
             check_integer(keyword, value, errors)
         }
         "uniqueItems" => check_boolean(keyword, value, errors),
-        "format" => check_string(keyword, value, errors),
+        "format" => check_format(value, errors),
         "pattern" => check_pattern(value, errors),
         "minimum" | "maximum" | "exclusiveMinimum" | "exclusiveMaximum" | "multipleOf" => {
             check_number(keyword, value, errors)
@@ -232,12 +232,6 @@ fn check_boolean(keyword: &str, value: &Json, errors: &mut Vec<SchemaError>) {
     }
 }
 
-fn check_string(keyword: &str, value: &Json, errors: &mut Vec<SchemaError>) {
-    if value.as_str().is_none() {
-        errors.push(wrong_type(keyword, "a string"));
-    }
-}
-
 /// S-6: a `pattern` that cannot be compiled is an error. This walk runs over
 /// every subschema whether or not the instance reaches it, so a pattern behind
 /// an `anyOf` branch cannot pass by never being compiled.
@@ -250,6 +244,22 @@ fn check_pattern(value: &Json, errors: &mut Vec<SchemaError>) {
         errors.push(SchemaError {
             keyword: "pattern".to_string(),
             message,
+        });
+    }
+}
+
+/// S-5: a `format` must belong to the closed asserted set. This walk runs over
+/// every subschema whether or not the instance reaches it, so a mistyped format
+/// name behind an `anyOf` branch is still an error, not a silent pass.
+fn check_format(value: &Json, errors: &mut Vec<SchemaError>) {
+    let Some(name) = value.as_str() else {
+        errors.push(wrong_type("format", "a string"));
+        return;
+    };
+    if !super::format::is_known(name) {
+        errors.push(SchemaError {
+            keyword: "format".to_string(),
+            message: format!("unknown format '{name}'"),
         });
     }
 }

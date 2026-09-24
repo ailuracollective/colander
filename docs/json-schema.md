@@ -49,7 +49,7 @@ Each keyword falls into one of three sets:
 | `minimum` / `maximum`                   | number     | Inclusive                                                                                |
 | `exclusiveMinimum` / `exclusiveMaximum` | number     | The Draft-4 boolean form is a wrong type and is rejected                                 |
 | `multipleOf`                            | number     | Absolute tolerance 1e-6 on the quotient                                                  |
-| `format`                                | string     | **Annotation only — never asserted**                                                     |
+| `format`                                | string     | Asserts a closed set; an unrecognised name is an error. See below.                       |
 | `$ref`                                  | —          | Local `#` pointers only, with `~0`/`~1` unescaping; no `$id`, no remote refs, no anchors |
 | `false` (boolean schema)                | —          | Nothing is valid against it; `true` accepts everything                                   |
 
@@ -63,12 +63,34 @@ The known unsupported assertions include `$dynamicRef`, `$recursiveRef`,
 `additionalItems`, `contains`, `minContains`, `maxContains`, `contentEncoding`,
 `contentMediaType` and `contentSchema`; the set is not exhaustive.
 
-One item remains open in this subset: `format` is annotation-only (S-5). The
-`pattern` dialect follows ECMA-262 as far as the `fancy-regex` engine supports —
-look-around and backreferences included — and a pattern that cannot be compiled
-is a schema error rather than a silent non-match (S-6). At most the first five
-assertion failures are reported, and a truncated message states how many were
-shown out of the total (S-7).
+Nothing in this subset remains open. `format` is asserted for the closed set
+(S-5); the `pattern` dialect follows ECMA-262 as far as the `fancy-regex` engine
+supports, and an uncompilable pattern is a schema error (S-6); at most the first
+five assertion failures are reported, and a truncated message states how many
+were shown out of the total (S-7).
+
+What each `format` asserts, and what it does not:
+
+- `email` — pragmatic, not RFC 5322: exactly one `@`, a non-empty local part
+  without whitespace, and a domain of non-empty labels ending in at least two
+  ASCII letters.
+- `date` — exact RFC 3339 `full-date`: `YYYY-MM-DD` with a valid month and day,
+  including leap years.
+- `date-time` — exact RFC 3339 `date-time` except leap seconds: a `full-date`, a
+  `T`, and a `full-time`. A space separator is not accepted.
+- `time` — exact RFC 3339 `full-time` except leap seconds: `HH:MM:SS`, an
+  optional fraction, then `Z` or `±HH:MM`.
+- `uuid` — structural: 8-4-4-4-12 hex digits, case-insensitive; the version and
+  variant nibbles are not checked, and braces are rejected.
+- `ipv4` — dotted decimal with no leading zeros except a group that is exactly
+  `0`; each group 0–255.
+- `ipv6` — RFC 4291 forms except zone IDs: eight groups, or `::` used exactly
+  once, with an embedded IPv4 address allowed in the final 32 bits.
+- `hostname` — RFC 1034 labels: 1–63 ASCII letters, digits or hyphens, never
+  starting or ending with a hyphen, at most 253 characters; a single label and a
+  numeric-looking final label are accepted.
+- `uri` — syntactic shape only: a letter-led scheme, `:`, and a non-empty
+  remainder; the authority and path are not validated.
 
 Every keyword is evaluated independently, so one instance can collect several
 errors.

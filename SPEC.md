@@ -33,7 +33,7 @@ satisfied when no `decided` requirement remains unresolved.
 | D     | Documents, fields, id and code  | 3      | 0         | 0          |
 | R     | Rules and the dependency check  | 5      | 3         | 0          |
 | V     | Response validation             | 5      | 2         | 0          |
-| S     | JSON Schema subset              | 6      | 1         | 0          |
+| S     | JSON Schema subset              | 7      | 0         | 0          |
 | H     | Canonical form and hashing      | 3      | 2         | 0          |
 | P     | Compilation, components, semver | 5      | 2         | 0          |
 | X     | Retirements and reversals       | 2      | 1         | 0          |
@@ -66,7 +66,7 @@ together. The ten groups hold 59 requirements: 44 `live`, 15 `decided` and 0
 - **C-7** `decided`. No panic reaches the caller, including the final envelope
   serialization. Today the panic boundary covers request parsing and the core
   body, but the last `encode` call runs outside it.
-- **C-8** `live`. C-6 reaches a key of an object the request carries, not only a
+- **C-8** `decided`. C-6 reaches a key of an object the request carries, not only a
   top-level key: a `components[]` entry's `uiSchemaJson` or `contentHash` with the
   wrong type is rejected, so `{"contentHash": 7}` fails instead of compiling with
   an empty hash.
@@ -184,10 +184,12 @@ behaviour, not shape.
   assertion keyword the core does not implement must not pass as if it had.
 - **S-4** `live`. A keyword whose value has the wrong JSON type is an error.
   `{"minLength": "3"}` must not constrain nothing in silence.
-- **S-5** `decided`. `format` is asserted for a closed set — `email`, `date`,
-  `date-time`, `time`, `uuid`, `ipv4`, `ipv6`, `hostname`, `uri` — and an
-  unrecognised format name is an error. Asserting `format` is a deliberate
-  deviation from the annotation-only default, stated here rather than implied.
+- **S-5** `live`. `format` is asserted for a closed set — `email`, `date`,
+  `date-time`, `time`, `uuid`, `ipv4`, `ipv6`, `hostname`, `uri` — and only for
+  string instances. An unrecognised format name is an error (see the structural
+  classifier). Asserting `format` is a deliberate deviation from the
+  annotation-only default, stated here rather than implied. Each check documents
+  whether it is exact or a pragmatic approximation.
 - **S-6** `live`. `pattern` follows ECMA-262 semantics as far as the
   `fancy-regex` engine supports; a pattern that cannot be compiled is an error,
   never a silent non-match.

@@ -22,6 +22,7 @@ use crate::rules;
 
 mod check;
 mod classify;
+mod format;
 mod keywords;
 mod model;
 
