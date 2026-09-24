@@ -28,10 +28,10 @@ satisfied when no `decided` requirement remains unresolved.
 
 | Group | Subject                         | `live` | `decided` | `proposed` |
 | ----- | ------------------------------- | ------ | --------- | ---------- |
-| C     | Wire contract and the ABI       | 5      | 2         | 0          |
+| C     | Wire contract and the ABI       | 6      | 3         | 0          |
 | E     | The six operations              | 7      | 2         | 0          |
 | D     | Documents, fields, id and code  | 3      | 0         | 0          |
-| R     | Rules and the dependency check  | 3      | 5         | 0          |
+| R     | Rules and the dependency check  | 5      | 3         | 0          |
 | V     | Response validation             | 4      | 3         | 0          |
 | S     | JSON Schema subset              | 2      | 5         | 0          |
 | H     | Canonical form and hashing      | 3      | 2         | 0          |
@@ -57,13 +57,22 @@ together.
   a shared heap.
 - **C-5** `live`. `colander_abi_version()` returns the ABI version as a
   `uint32_t`; a caller refuses to bind on a mismatch.
-- **C-6** `decided`. A present optional key of the wrong JSON type is rejected.
-  "Absent" means "use the default"; "present but wrong" is an error. Today a
-  wrong-typed optional key is silently ignored, so `{"mode": 3}` behaves like
-  `{"mode": "Draft"}`.
+- **C-6** `live`. A present optional key of the wrong JSON type is rejected.
+  "Absent" means "use the default"; "present with the wrong type" is an error. An
+  explicit `null` is a wrong type, not an absence: `{"mode": null}` is rejected, so
+  a caller that would otherwise serialise an absent value as `null` must omit the
+  key instead.
 - **C-7** `decided`. No panic reaches the caller, including the final envelope
   serialization. Today the panic boundary covers request parsing and the core
   body, but the last `encode` call runs outside it.
+- **C-8** `decided`. C-6 reaches a key of an object the request carries, not only a
+  top-level key: a `components[]` entry's `uiSchemaJson` or `contentHash` with the
+  wrong type is rejected. Today both are silently ignored, so `{"contentHash": 7}`
+  compiles with an empty hash. This lands with P-3, which reworks the same
+  function.
+- **C-9** `decided`. When `schemas` is present it must be an object, for every
+  `kind`, `instance` included. Today a wrong-typed `schemas` is ignored for
+  `kind:"instance"`.
 
 ## E — The six operations
 
@@ -114,17 +123,16 @@ behaviour, not shape.
 - **R-3** `live`. A validation entry reports its error when `assert` is present,
   non-null and falsy. `when`, when present, guards the entry. An entry with no
   `assert` is inert.
-- **R-4** `decided`. A `validations` entry with neither `assert` nor `when` is
-  rejected by the analyzer. Today it is silently inert, so a mistyped key produces
-  a validation that never runs.
-- **R-5** `decided`. A duplicate field `code` is rejected by every entry point that
-  reads a form and rules pair. Today it is rejected only by
-  `colander_validate_schema` with `kind:"form"`, and two fields sharing a `code`
-  silently overwrite each other elsewhere.
-- **R-6** `decided`. The dependency check runs in every entry point. Today
-  `colander_evaluate_rules`, `colander_validate_response` and `colander_compile`
-  run the analyzer without it, so a rules document the analyzer would reject still
-  evaluates.
+- **R-4** `decided`. A `validations` entry with no `assert` is rejected by the
+  analyzer, whether or not it carries `when`: an entry with nothing to assert can
+  never report anything, so `when` alone does not make it valid. Today it is
+  silently inert, so a mistyped key produces a validation that never runs.
+- **R-5** `live`. A duplicate field `code` is rejected by every entry point that
+  reads a form and rules pair. The check runs on the effective documents: for
+  `colander_compile` that is the compiled triple, because rules legitimately
+  reference fields that exist only after component expansion.
+- **R-6** `live`. The dependency check runs in every entry point, rather than only
+  in `colander_validate_schema` with `kind:"form"`.
 - **R-7** `decided`. Repeater row scope. A `calculate` on a repeater child
   evaluates once per row, in row scope: the row's own child codes resolve to that
   row, and fields outside the repeater resolve normally. The repeater's own code

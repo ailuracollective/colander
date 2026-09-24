@@ -32,10 +32,12 @@ Two behaviours worth memorising:
   other six do. The last two rows of the table are not entry points in that
   sense: `colander_alloc` and `colander_free_buffer` move memory rather than JSON.
 - An optional key that is **present with the wrong JSON type is rejected**, the
-  same as a required key. "Absent" means "use the default"; "present but wrong"
-  is an error, so `{"mode": 3}` fails instead of behaving like
-  `{"mode": "Draft"}`. The failure is the request failing its own type check, so
-  it comes back as `kind:"validation"`.
+  same as a required key. "Absent" means "use the default"; "present with the
+  wrong type" is an error, so `{"mode": 3}` fails instead of behaving like
+  `{"mode": "Draft"}`. An explicit `null` counts as the wrong type, not as an
+  absence, so a caller that would serialise an absent value as `null` must omit
+  the key: `{"mode": null}` fails. The failure is the request failing its own type
+  check, so it comes back as `kind:"validation"`.
 
 ## colander_compile
 

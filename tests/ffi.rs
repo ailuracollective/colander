@@ -331,6 +331,20 @@ fn next_version_rejects_a_wrong_typed_optional_key() {
 }
 
 #[test]
+fn an_explicit_null_is_a_wrong_type_not_an_absence() {
+    // C-6 treats `null` as a present value of the wrong type, so a caller that
+    // serialises an absent optional value as `null` must omit the key instead.
+    assert_validation_failure(
+        colander_validate_response,
+        r#"{"formSchemaJson":"{\"fields\":[]}","answersJson":"{}","mode":null}"#,
+    );
+    assert_validation_failure(
+        colander_validate_response,
+        r#"{"formSchemaJson":"{\"fields\":[]}","answersJson":"{}","rulesSchemaJson":null}"#,
+    );
+}
+
+#[test]
 fn absent_optional_keys_take_their_default() {
     // Absent `mode` defaults to Draft and absent rules mean "no rules".
     let envelope = call(
