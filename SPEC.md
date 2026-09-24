@@ -28,7 +28,7 @@ satisfied when no `decided` requirement remains unresolved.
 
 | Group | Subject                         | `live` | `decided` | `proposed` |
 | ----- | ------------------------------- | ------ | --------- | ---------- |
-| C     | Wire contract and the ABI       | 7      | 2         | 0          |
+| C     | Wire contract and the ABI       | 8      | 1         | 0          |
 | E     | The six operations              | 7      | 2         | 0          |
 | D     | Documents, fields, id and code  | 3      | 0         | 0          |
 | R     | Rules and the dependency check  | 6      | 2         | 0          |
@@ -63,9 +63,9 @@ together. The ten groups hold 59 requirements: 44 `live`, 15 `decided` and 0
   explicit `null` is a wrong type, not an absence: `{"mode": null}` is rejected, so
   a caller that would otherwise serialise an absent value as `null` must omit the
   key instead.
-- **C-7** `decided`. No panic reaches the caller, including the final envelope
-  serialization. Today the panic boundary covers request parsing and the core
-  body, but the last `encode` call runs outside it.
+- **C-7** `live`. No panic reaches the caller, including the final envelope
+  serialization: the encode runs inside the boundary, and a panic there returns
+  a static literal instead of unwinding.
 - **C-8** `decided`. C-6 reaches a key of an object the request carries, not only a
   top-level key: a `components[]` entry's `uiSchemaJson` or `contentHash` with the
   wrong type is rejected, so `{"contentHash": 7}` fails instead of compiling with

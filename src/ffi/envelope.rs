@@ -204,6 +204,20 @@ pub fn panic_message(payload: Box<dyn std::any::Any + Send>) -> ColanderError {
     ColanderError::new(format!("colander panicked: {message}"))
 }
 
+/// Failure envelopes that need no serialization, for the paths where there is
+/// nothing left to serialize: a response whose bytes contain NUL, or a panic
+/// inside the final encoding step itself (SPEC C-7).
+const NUL_BYTE_ENVELOPE: &str =
+    r#"{"ok":false,"error":{"kind":"panic","message":"response contained a NUL byte"}}"#;
+const ENCODE_PANIC_ENVELOPE: &str =
+    r#"{"ok":false,"error":{"kind":"panic","message":"response encoding panicked"}}"#;
+
+fn static_envelope(text: &'static str) -> *mut c_char {
+    CString::new(text)
+        .expect("static envelope has no NUL")
+        .into_raw()
+}
+
 pub fn into_envelope<C: Codec>(codec: &C, result: Result<Json>) -> *mut c_char {
     into_envelope_with_kind(codec, result, ErrorKind::Validation)
 }
@@ -231,13 +245,15 @@ pub fn into_envelope_with_kind<C: Codec>(
         }
     };
 
-    let encoded = codec.encode_ordered(&envelope);
+    // C-7: the final serialization runs inside the panic boundary too, so a
+    // panic in the codec cannot unwind into the caller. There is nothing left
+    // to serialize on that path, so a static literal is returned instead.
+    let encoded = match catch_unwind(AssertUnwindSafe(|| codec.encode_ordered(&envelope))) {
+        Ok(encoded) => encoded,
+        Err(_) => return static_envelope(ENCODE_PANIC_ENVELOPE),
+    };
     match CString::new(encoded) {
         Ok(value) => value.into_raw(),
-        Err(_) => CString::new(
-            r#"{"ok":false,"error":{"kind":"panic","message":"response contained a NUL byte"}}"#,
-        )
-        .expect("static envelope has no NUL")
-        .into_raw(),
+        Err(_) => static_envelope(NUL_BYTE_ENVELOPE),
     }
 }
