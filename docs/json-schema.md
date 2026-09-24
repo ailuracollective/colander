@@ -43,7 +43,7 @@ Each keyword falls into one of three sets:
 | `minProperties` / `maxProperties`       | object     | —                                                                                                                                                                                            |
 | `items`                                 | array      | One schema for every element; no tuple form                                                                                                                                                  |
 | `minItems` / `maxItems`                 | array      | —                                                                                                                                                                                            |
-| `uniqueItems`                           | array      | At most one error is reported                                                                                                                                                                |
+| `uniqueItems`                           | array      | At most one error is reported; numeric equality is by mathematical value (`0` and `-0.0` are duplicates, `9007199254740993` and `9007199254740992.0` are not)                                |
 | `minLength` / `maxLength`               | string     | Length in **UTF-16 code units**                                                                                                                                                              |
 | `pattern`                               | string     | Unanchored, ECMA-262-style; a pattern that cannot be compiled is an error                                                                                                                    |
 | `minimum` / `maximum`                   | number     | Inclusive                                                                                                                                                                                    |
@@ -56,6 +56,36 @@ Each keyword falls into one of three sets:
 An implemented keyword whose value has the wrong JSON type is an **error**:
 `{"minLength": "3"}` fails instead of constraining nothing. `$ref` siblings are
 still evaluated, which differs from older drafts.
+
+### Recursive references are rejected (S-10)
+
+The core does not evaluate recursive schemas, so it rejects them instead of
+running them. A `$ref` that reaches a schema already being resolved — directly
+(`{"$ref":"#"}`), indirectly (`a → b → a`), or through `anyOf`, `properties`,
+`not` or `if`/`then` — produces one deterministic error:
+
+```
+Invalid instance: $ref: recursive reference '#/$defs/node' is not supported
+```
+
+Classification runs first and a schema that fails it is **never evaluated**.
+That ordering is the safety property: a cycle can neither recurse without bound
+(a stack overflow aborts the process and `catch_unwind` cannot intercept it) nor
+depend on the instance that would drive the recursion. Reaching one `$defs`
+entry from two independent positions is a shared reference, not a cycle, and
+validates normally. A recursive _instance_ is a different matter: a
+`node`/`next` document is validated by an instance-bounded rule, not by a
+recursive schema.
+
+### Shared references multiply work
+
+A non-recursive schema can still cost exponential evaluation time. With `N`
+levels where each level lists the next reference twice in `anyOf`, evaluation
+takes `2^N` steps — depth 20 costs 0.75 s and every two extra levels double it,
+from about 1.3 KB of schema. No keyword-level limit applies to this shape, so
+the request-size cap is the only bound. A budget would belong in
+`src/schema/check.rs`, as a per-call step counter threaded through
+`check_into` and reported as an error, not a panic.
 
 The known unsupported assertions include `$dynamicRef`, `$recursiveRef`,
 `$vocabulary`, `patternProperties`, `propertyNames`, `dependentRequired`,

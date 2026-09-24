@@ -215,6 +215,22 @@ pub fn compare_values(left: &Val, right: &Val) -> Result<std::cmp::Ordering> {
         return Ok(left.cmp(right));
     }
 
+    if let (Val::Int(left), Val::Int(right)) = (left, right) {
+        return Ok(left.cmp(right));
+    }
+
+    if let Some(ordering) = match (left, right) {
+        (Val::Int(integer), Val::Double(number)) => {
+            super::value::int_compare_double(*integer, *number)
+        }
+        (Val::Double(number), Val::Int(integer)) => {
+            super::value::int_compare_double(*integer, *number).map(Ordering::reverse)
+        }
+        _ => None,
+    } {
+        return Ok(ordering);
+    }
+
     let left = left.to_double()?;
     let right = right.to_double()?;
     let ordering = match (left.is_nan(), right.is_nan()) {
@@ -228,8 +244,8 @@ pub fn compare_values(left: &Val, right: &Val) -> Result<std::cmp::Ordering> {
     // pair the same way (SPEC V-8). `eq` is also the identity used by
     // `gt`/`lt`/`gte`/`lte`, so a difference within EPSILON now reads as
     // equality there too instead of ordering on a float difference the
-    // contract considers insignificant. The tolerance is the shared
-    // `EPSILON`; the two integer paths above are exact and exempt.
+    // contract considers insignificant. The two integer paths above are exact
+    // and exempt.
     if (left - right).abs() < super::EPSILON {
         return Ok(Ordering::Equal);
     }

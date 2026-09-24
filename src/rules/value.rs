@@ -129,7 +129,13 @@ impl Val {
     /// Lists compare element-wise with the same rules.
     pub fn values_equal(left: &Val, right: &Val) -> bool {
         match (left, right) {
-            (Val::Double(left), Val::Double(right)) => (left - right).abs() < EPSILON,
+            // `inf == inf` is true in IEEE, and the tolerance form alone would
+            // call it false; a `NaN` still differs from itself here, as it must
+            // for value equality. (The total order in `compare_values` has to
+            // place two `NaN`s in the same position; no operator exposes that.)
+            (Val::Double(left), Val::Double(right)) => {
+                *left == *right || (left - right).abs() < EPSILON
+            }
             (Val::Int(left), Val::Int(right)) => left == right,
             (Val::Int(left), Val::Double(right)) => int_equals_double(*left, *right),
             (Val::Double(left), Val::Int(right)) => int_equals_double(*right, *left),
@@ -170,22 +176,38 @@ impl Val {
     }
 }
 
-/// Exact comparison of an `i64` against a double. An integral double is
-/// compared through `i128` so no precision is lost on either side; a
-/// fractional double falls back to the shared tolerance.
+/// Exact comparison of an `i64` against a double. Defined as one of the three
+/// outcomes of [`int_compare_double`], so the ordering used by the expression
+/// operators and the equality used by `Val::values_equal` cannot drift apart:
+/// they are the same rule, applied to the same pair.
 fn int_equals_double(integer: i64, number: f64) -> bool {
+    int_compare_double(integer, number) == Some(std::cmp::Ordering::Equal)
+}
+
+/// Ordering of `integer` against `number`. An integral double is compared
+/// through `i128`, so no precision is lost on either side and `i64::MAX` does
+/// not collide with the nearest double; a fractional double falls back to the
+/// shared tolerance. `None` means "no exact reading" (a non-finite double),
+/// and the caller compares as doubles instead.
+pub(crate) fn int_compare_double(integer: i64, number: f64) -> Option<std::cmp::Ordering> {
     if !number.is_finite() {
-        return false;
+        return None;
     }
     if number.fract() == 0.0 {
-        // `as i128` saturates outside the range, and the bound check keeps a
-        // saturated cast from ever comparing equal.
-        if number < i128::MIN as f64 || number > i128::MAX as f64 {
-            return false;
+        // `as i128` saturates outside the range, and the bound checks keep a
+        // saturated cast from ever comparing equal to the integer.
+        if number < i128::MIN as f64 {
+            return Some(std::cmp::Ordering::Greater);
         }
-        return number as i128 == integer as i128;
+        if number > i128::MAX as f64 {
+            return Some(std::cmp::Ordering::Less);
+        }
+        return Some((integer as i128).cmp(&(number as i128)));
     }
-    (integer as f64 - number).abs() < EPSILON
+    if (integer as f64 - number).abs() < EPSILON {
+        return Some(std::cmp::Ordering::Equal);
+    }
+    number.partial_cmp(&(integer as f64))
 }
 
 /// Parses a string as a number: signs, exponents and the `Infinity`/`NaN`

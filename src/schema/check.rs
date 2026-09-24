@@ -14,9 +14,17 @@ use super::keywords::check_type;
 ///
 /// The schema tree under `root` is classified first (unsupported keywords and
 /// wrong-typed values), so a malformed schema fails even when the instance
-/// never reaches the offending subschema.
+/// never reaches the offending subschema. A schema that fails classification
+/// is **not** evaluated: the classification already decided the document is
+/// not a usable schema, and evaluating it could follow a structure the
+/// classifier rejected (a recursive `$ref`, for instance, would otherwise
+/// recurse without bound).
 pub fn check(schema: &Json, instance: &Json, root: &Json) -> Vec<SchemaError> {
-    let mut errors = super::classify::classify(root);
+    let errors = super::classify::classify(root);
+    if !errors.is_empty() {
+        return errors;
+    }
+    let mut errors = errors;
     check_into(schema, instance, root, &mut errors);
     errors
 }
@@ -88,10 +96,7 @@ pub(super) fn resolve_ref<'a>(reference: &str, root: &'a Json) -> Option<&'a Jso
 /// JSON value equality with numeric-value semantics (`1` equals `1.0`).
 pub fn value_equal(left: &Json, right: &Json) -> bool {
     match (left, right) {
-        (Json::Number(_), Json::Number(_)) => match (left.as_f64(), right.as_f64()) {
-            (Some(left), Some(right)) => left == right,
-            _ => left.as_number_text() == right.as_number_text(),
-        },
+        (Json::Number(_), Json::Number(_)) => numbers_equal(left, right),
         (Json::Array(left), Json::Array(right)) => {
             left.len() == right.len() && left.iter().zip(right).all(|(l, r)| value_equal(l, r))
         }
@@ -104,6 +109,46 @@ pub fn value_equal(left: &Json, right: &Json) -> bool {
                 })
         }
         _ => left == right,
+    }
+}
+
+/// Numeric equality by mathematical value, not by `f64` rounding: two numbers
+/// are equal when they denote the same number, so `1` equals `1.0` but
+/// `9007199254740993` does **not** equal `9007199254740992.0` (a double cannot
+/// hold the former exactly). Integers within the exactly-representable double
+/// range are compared as integers; beyond it, the `f64` reading is the best
+/// available and is used consistently.
+fn numbers_equal(left: &Json, right: &Json) -> bool {
+    /// Exactly-known integer value, if the literal spells one. Read from the
+    /// preserved number text rather than through `f64`, so an integer that no
+    /// double can hold (`9007199254740993`) keeps its exact value, and
+    /// `9007199254740993.0` is recognised as the same integer.
+    fn exact_integer(value: &Json) -> Option<i128> {
+        let text = value.as_number_text()?;
+        let (negative, digits) = match text.strip_prefix('-') {
+            Some(rest) => (true, rest),
+            None => (false, text.strip_prefix('+').unwrap_or(text)),
+        };
+        let (whole, fraction) = match digits.split_once('.') {
+            Some((whole, fraction)) => (whole, fraction),
+            None => (digits, ""),
+        };
+        if whole.is_empty()
+            || !whole.bytes().all(|byte| byte.is_ascii_digit())
+            || !fraction.bytes().all(|byte| byte == b'0')
+        {
+            return None;
+        }
+        let magnitude = whole.parse::<i128>().ok()?;
+        Some(if negative { -magnitude } else { magnitude })
+    }
+
+    if let (Some(left), Some(right)) = (exact_integer(left), exact_integer(right)) {
+        return left == right;
+    }
+    match (left.as_f64(), right.as_f64()) {
+        (Some(left), Some(right)) => left == right,
+        _ => left.as_number_text() == right.as_number_text(),
     }
 }
 
@@ -125,8 +170,18 @@ pub fn value_hash(node: &Json) -> u64 {
             }
             Json::Number(_) => {
                 2u8.hash(hasher);
+                // `-0.0` and `0.0` are the same JSON Schema value, so they
+                // must hash the same: `value_equal` says they are equal, and
+                // equality has to imply equal hashes or the `uniqueItems`
+                // buckets would never compare them (SPEC S-9).
                 match node.as_f64() {
-                    Some(number) => number.to_bits().hash(hasher),
+                    // Read through a binding and an `if`, not a `0.0` pattern:
+                    // float patterns compare with `PartialEq`, so `Some(0.0)`
+                    // would match `-0.0` too — correct, but only to whoever
+                    // remembers that rule.
+                    Some(number) => (if number == 0.0 { 0.0 } else { number })
+                        .to_bits()
+                        .hash(hasher),
                     None => node.as_number_text().hash(hasher),
                 }
             }

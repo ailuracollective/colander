@@ -71,6 +71,12 @@ Comparisons use this ordering:
   every operator, so `eq(1, 1.0000005)` is `true` and so is
   `lt(1, 1.0000005)`. This is the same equality the calculated-value check
   uses (SPEC V-8): one definition, not two.
+- **Integers are compared exactly, never through `f64`.** Two integers compare
+  as integers, and an integer compares against an integral double through
+  `i128`. This matters above 2^53, where a double cannot represent every
+  integer: `eq(9007199254740993, 9007199254740992)` is `false`, and so is
+  comparing `i64::MAX` with the nearest double (`2^63`). The tolerance rule
+  above applies to the double paths only, where it means what it says.
 
 Truthiness (`and`, `or`, `not`, and every `when`/`visibleWhen`/… predicate):
 `null` and `false` are false, a non-empty string is true, a non-zero number is

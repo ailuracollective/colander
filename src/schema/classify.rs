@@ -79,7 +79,10 @@ pub(super) fn classify(root: &Json) -> Vec<SchemaError> {
         return errors;
     }
     let mut seen = HashSet::new();
-    walk(root, root, &mut errors, &mut seen);
+    // Nodes currently on the walk stack. A `$ref` that resolves to one of
+    // them is recursive (S-10).
+    let mut ancestors: Vec<usize> = Vec::new();
+    walk(root, root, &mut errors, &mut seen, &mut ancestors);
     errors
 }
 
@@ -87,9 +90,17 @@ fn is_schema(value: &Json) -> bool {
     matches!(value, Json::Object(_) | Json::Bool(_))
 }
 
-/// Visit one schema node, skipping a node already visited (which also breaks
-/// `$ref` cycles). `root` is the anchor for every `$ref`.
-fn walk(schema: &Json, root: &Json, errors: &mut Vec<SchemaError>, seen: &mut HashSet<usize>) {
+/// Visit one schema node, skipping a node already visited. `root` is the
+/// anchor for every `$ref`; `ref_stack` is the chain of `$ref` targets
+/// currently being resolved, which is how a recursive reference is detected
+/// (SPEC S-10).
+fn walk(
+    schema: &Json,
+    root: &Json,
+    errors: &mut Vec<SchemaError>,
+    seen: &mut HashSet<usize>,
+    ancestors: &mut Vec<usize>,
+) {
     let Json::Object(map) = schema else {
         // A boolean schema has no keywords.
         return;
@@ -98,9 +109,11 @@ fn walk(schema: &Json, root: &Json, errors: &mut Vec<SchemaError>, seen: &mut Ha
     if !seen.insert(address) {
         return;
     }
+    ancestors.push(address);
     for (keyword, value) in map {
-        visit(keyword, value, root, errors, seen);
+        visit(keyword, value, root, errors, seen, ancestors);
     }
+    ancestors.pop();
 }
 
 /// Classify one keyword and recurse into the subschema positions it owns.
@@ -110,6 +123,7 @@ fn visit(
     root: &Json,
     errors: &mut Vec<SchemaError>,
     seen: &mut HashSet<usize>,
+    ancestors: &mut Vec<usize>,
 ) {
     if ANNOTATION_ONLY.contains(&keyword) {
         return;
@@ -141,20 +155,20 @@ fn visit(
             check_number(keyword, value, errors)
         }
         "not" | "if" | "then" | "else" | "items" => {
-            walk_subschema(keyword, value, root, errors, seen)
+            walk_subschema(keyword, value, root, errors, seen, ancestors)
         }
         "additionalProperties" => {
             if matches!(value, Json::Bool(_)) {
                 return;
             }
-            walk_subschema(keyword, value, root, errors, seen);
+            walk_subschema(keyword, value, root, errors, seen, ancestors);
         }
         "properties" => {
             let Some(properties) = expect_object(keyword, value, errors) else {
                 return;
             };
             for sub_schema in properties.values() {
-                walk_subschema(keyword, sub_schema, root, errors, seen);
+                walk_subschema(keyword, sub_schema, root, errors, seen, ancestors);
             }
         }
         "allOf" | "anyOf" | "oneOf" => {
@@ -162,7 +176,7 @@ fn visit(
                 return;
             };
             for branch in branches {
-                walk_subschema(keyword, branch, root, errors, seen);
+                walk_subschema(keyword, branch, root, errors, seen, ancestors);
             }
         }
         "$ref" => {
@@ -173,7 +187,15 @@ fn visit(
             // A `$defs` entry is annotation-only until a `$ref` reaches it; the
             // target is walked here so a nested keyword is still classified.
             if let Some(target) = resolve_ref(reference, root) {
-                walk_subschema(keyword, target, root, errors, seen);
+                let address = target as *const Json as usize;
+                if ancestors.contains(&address) {
+                    errors.push(SchemaError {
+                        keyword: keyword.to_string(),
+                        message: format!("recursive reference '{reference}' is not supported"),
+                    });
+                    return;
+                }
+                walk_subschema(keyword, target, root, errors, seen, ancestors);
             }
         }
         _ => unreachable!("IMPLEMENTED and the match arms move together"),
@@ -186,9 +208,10 @@ fn walk_subschema(
     root: &Json,
     errors: &mut Vec<SchemaError>,
     seen: &mut HashSet<usize>,
+    ancestors: &mut Vec<usize>,
 ) {
     if is_schema(value) {
-        walk(value, root, errors, seen);
+        walk(value, root, errors, seen, ancestors);
     } else {
         errors.push(wrong_type(keyword, "a schema (object or boolean)"));
     }

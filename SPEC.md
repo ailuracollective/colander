@@ -8,21 +8,17 @@ Status: draft for maintainer approval.
 `docs/` explains how the core behaves, in prose, for whoever is using it. This
 document is the **contract of record**: the normative statements the crate is
 measured against. Where the two disagree, this document wins and `docs/` is
-wrong.
-
-Three things are versioned on separate axes: the crate (`CARGO_PKG_VERSION`), the
-ABI (`colander_abi_version()`), and this contract. They can move independently.
+wrong. Three things are versioned on separate axes — the crate
+(`CARGO_PKG_VERSION`), the ABI (`colander_abi_version()`), and this contract —
+and they can move independently.
 
 ## Status markers
 
-Every requirement carries exactly one:
-
-- **`live`** — implemented and conformant in the crate today.
-- **`decided`** — the maintainer has decided this; the crate does not do it yet.
-- **`proposed`** — written down but not yet decided.
-
-A `decided` requirement is a commitment, not a description. The contract is
-satisfied when no `decided` requirement remains unresolved.
+Every requirement carries exactly one: **`live`** — implemented and conformant in
+the crate today; **`decided`** — the maintainer has decided this, the crate does
+not do it yet; **`proposed`** — written down but not yet decided. A `decided`
+requirement is a commitment, not a description: the contract is satisfied when
+no `decided` requirement remains unresolved.
 
 ## Conformance at a glance
 
@@ -31,17 +27,16 @@ satisfied when no `decided` requirement remains unresolved.
 | C     | Wire contract and the ABI       | 11     | 0         | 0          |
 | E     | The six operations              | 9      | 0         | 0          |
 | D     | Documents, fields, id and code  | 4      | 0         | 0          |
-| R     | Rules and the dependency check  | 16     | 0         | 0          |
+| R     | Rules and the dependency check  | 17     | 0         | 0          |
 | V     | Response validation             | 10     | 1         | 0          |
-| S     | JSON Schema subset              | 9      | 0         | 0          |
+| S     | JSON Schema subset              | 10     | 0         | 0          |
 | H     | Key-sorted form and hashing     | 5      | 0         | 0          |
 | P     | Compilation, components, semver | 11     | 0         | 0          |
 | X     | Retirements and reversals       | 2      | 1         | 0          |
 | F     | The frozen vectors              | 1      | 0         | 0          |
 
 The counts are derived from the markers below, so move a marker and its count
-together. The ten groups hold 80 requirements: 78 `live`, 2 `decided` and 0
-`proposed`.
+together. The ten groups hold 82 requirements: 80 `live`, 2 `decided`, 0 `proposed`.
 
 ## C — Wire contract and the ABI
 
@@ -200,6 +195,15 @@ behaviour, not shape.
 - **R-15** `live`. `sum` accumulates with compensation (Kahan). The result is
   still row-order sensitive — IEEE-754 addition is not associative — but
   summing thousands of small decimals no longer drifts in the last digits.
+- **R-16** `live`. The comparison operators (`eq`, `neq`, `gt`, `gte`, `lt`,
+  `lte`) decide integers exactly: two integers compare as integers, and an
+  integer compares against an integral double through `i128`, so neither
+  `9007199254740993` and `9007199254740992` nor `i64::MAX` and its nearest
+  double collapse into an equality. This is the rule `CALCULATED_VALUE_MISMATCH`
+  uses (V-8, V-11), so the two surfaces cannot disagree about one pair. A bool
+  or numeric-string operand is still coerced to a number, and two doubles still
+  compare within the shared absolute tolerance; only the integer paths are
+  exact.
 
 ## V — Response validation
 
@@ -279,8 +283,21 @@ behaviour, not shape.
   schema error, not an assertion that every instance fails.
 - **S-9** `live`. `uniqueItems` is linear in the number of items: items are
   bucketed by a value hash that agrees with JSON Schema numeric equality
-  (`1` and `1.0` share a bucket), and the full deep comparison runs inside a
-  bucket, so collisions stay exact.
+  (`1` and `1.0` share a bucket, and so do `0` and `-0.0`), and the full deep
+  comparison runs inside a bucket, so collisions stay exact. Equality is by
+  mathematical value, not by `f64` rounding: two numbers written as different
+  literals are equal when they denote the same number, so
+  `9007199254740993` and `9007199254740993.0` are duplicates while
+  `9007199254740993` and `9007199254740992.0` are not. The rule is recursive, so
+  numbers nested in arrays and objects are compared the same way.
+- **S-10** `live`. A schema whose local `$ref` graph reaches itself — directly,
+  indirectly, or through a combinator, a property or a blocking keyword — is
+  rejected with one deterministic `recursive reference '<pointer>' is not
+  supported` error. The core does not evaluate recursive schemas: a schema that
+  fails classification is never evaluated, so a cycle can neither abort the
+  process nor depend on the instance that would drive it. Reaching one `$defs`
+  entry from two independent positions is a shared reference, not a cycle, and
+  keeps validating.
 
 ## H — Canonical form and hashing
 
@@ -384,6 +401,6 @@ behaviour, not shape.
 ## Open items
 
 No requirement is unresolved: `contract-1` carries no `proposed` marker. Two
-capabilities are recorded as candidates rather than obligations — structured
+capabilities are recorded as candidates, not obligations — structured
 schema-validation errors, and a structural classifier that would derive a bump —
-and both live in `odd/tasks/public-readiness-roadmap.md`.
+both in `odd/tasks/public-readiness-roadmap.md`.

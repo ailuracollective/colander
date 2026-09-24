@@ -111,7 +111,7 @@ fn cross_runtime_corpus_is_byte_identical() {
             colander_validate_schema,
             r#"{"kind":"instance","schemaJson":"{\"type\":\"strnig\"}","instanceJson":"\"x\""}"#
                 .to_string(),
-            r#"{"ok":false,"error":{"kind":"validation","message":"Invalid instance: type: unknown type \u0027strnig\u0027; type: expected strnig but found string"}}"#,
+            r#"{"ok":false,"error":{"kind":"validation","message":"Invalid instance: type: unknown type \u0027strnig\u0027"}}"#,
         ),
         (
             "rule_arity_error",
@@ -136,6 +136,45 @@ fn cross_runtime_corpus_is_byte_identical() {
             colander_validate_response,
             r#"{"formSchemaJson":"{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"n\",\"code\":\"n\",\"type\":\"integer\"},{\"id\":\"c\",\"code\":\"c\",\"type\":\"integer\",\"readOnly\":true}]}","rulesSchemaJson":"{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c\":{\"calculate\":{\"op\":\"add\",\"args\":[{\"ref\":\"n\"},{\"lit\":0}]}}}}","answersJson":"{\"n\":9007199254740993,\"c\":9007199254740993}","mode":"Complete"}"#.to_string(),
             r#"{"ok":true,"result":{"normalizedAnswersJson":"{\u0022n\u0022:9007199254740993,\u0022c\u0022:9007199254740992}","errors":[{"code":"CALCULATED_VALUE_MISMATCH","path":"/fields/1","message":"Field \u0027c\u0027 must match the server-calculated value."}],"isValid":false}}"#,
+        ),
+        (
+            // S-10: a recursive reference is one deterministic error, never a
+            // process abort. Pinned on both runtimes.
+            "schema_recursive_ref",
+            colander_validate_schema,
+            r##"{"kind":"instance","schemaJson":"{\"$ref\":\"#\"}","instanceJson":"{}"}"##.to_string(),
+            r#"{"ok":false,"error":{"kind":"validation","message":"Invalid instance: $ref: recursive reference \u0027#\u0027 is not supported"}}"#,
+        ),
+        (
+            // S-9: signed zero is one value, so the pair is a duplicate.
+            "unique_signed_zero",
+            colander_validate_schema,
+            r#"{"kind":"instance","schemaJson":"{\"uniqueItems\":true}","instanceJson":"[0,-0.0]"}"#
+                .to_string(),
+            r#"{"ok":false,"error":{"kind":"validation","message":"Invalid instance: uniqueItems: array items must be unique (index 1 repeats)"}}"#,
+        ),
+        (
+            // S-9: a large integer and the next double down are two values.
+            "unique_large_integer",
+            colander_validate_schema,
+            r#"{"kind":"instance","schemaJson":"{\"uniqueItems\":true}","instanceJson":"[9007199254740993,9007199254740992.0]"}"#
+                .to_string(),
+            r#"{"ok":true,"result":{"valid":true}}"#,
+        ),
+        (
+            // R-16: the operators do not collapse two distinct integers.
+            "int_operators_exact",
+            colander_evaluate_rules,
+            format!(
+                r#"{{"formSchemaJson":{},"rulesSchemaJson":{},"values":{{"n":9007199254740993,"a":true,"b":false}}}}"#,
+                quoted(
+                    r#"{"schemaVersion":"1.0.0","fields":[{"id":"n","code":"n","type":"integer"},{"id":"a","code":"a","type":"boolean"},{"id":"b","code":"b","type":"boolean"}]}"#
+                ),
+                quoted(
+                    r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{"a":{"visibleWhen":{"op":"eq","args":[{"ref":"n"},{"lit":9007199254740992.0}]}},"b":{"visibleWhen":{"op":"eq","args":[{"ref":"n"},{"lit":9007199254740993}]}}}}"#
+                )
+            ),
+            r#"{"ok":true,"result":{"visibility":{"n":true,"a":false,"b":true},"enabled":{"n":true,"a":true,"b":true},"required":{"n":false,"a":false,"b":false},"calculatedValues":{},"validationErrors":[]}}"#,
         ),
     ];
 
