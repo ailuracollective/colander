@@ -96,10 +96,12 @@ behaviour. Set `HK=0` to bypass the hooks for one command.
 
 ## Documentation
 
-The full documentation lives under `docs/`, split by task:
+The explanatory documentation lives under `docs/`, split by task, and the
+normative contract lives at the root:
 
 | Document                                           | What it covers                                                               |
 | -------------------------------------------------- | ---------------------------------------------------------------------------- |
+| [SPEC.md](SPEC.md)                                 | The contract of record: every requirement and whether the crate meets it.    |
 | [docs/README.md](docs/README.md)                   | Documentation index and reading paths.                                       |
 | [docs/getting-started.md](docs/getting-started.md) | The ten-minute path to a first call.                                         |
 | [docs/concepts.md](docs/concepts.md)               | The mental model: request/response, the three documents, `id` versus `code`. |
@@ -128,7 +130,8 @@ free it twice.
 `invalid_request` means the envelope itself was unusable (null pointer,
 non-UTF-8, not a JSON object); `validation` means the payload was rejected;
 `panic` means a bug in colander — caught at the boundary and returned as that
-envelope. No entry point ever returns `NULL` or unwinds into the caller. The header carries the shapes;
+envelope. No `char *`-returning entry point returns `NULL`, and the intent is that
+no panic unwinds into the caller. The header carries the shapes;
 **[docs/getting-started.md](docs/getting-started.md)** gets you to a first call,
 and **[docs/entry-points.md](docs/entry-points.md)** is the full reference —
 every entry point, the three documents, every field type, every rule operator,

@@ -43,6 +43,7 @@ envelope and memory problems.
 ## Repository map
 
 - [README.md](../README.md) — what the crate is, how to build it and how to test it.
+- [SPEC.md](../SPEC.md) — the contract of record: normative requirements and their status.
 - [include/colander.h](../include/colander.h) — the generated C header; it declares nine of the eleven exports (see [abi.md](abi.md#the-generated-header-does-not-declare-every-export)).
 - [src/](../src/) — the Rust sources, one file per concern.
 - [tests/](../tests/) — the unit tests and the golden-vector suite.
