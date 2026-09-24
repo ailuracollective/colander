@@ -13,6 +13,7 @@ mod value;
 
 pub use analyze::{analyze, collect_references, validate_dependencies};
 pub use evaluate::evaluate;
+pub(crate) use evaluate::evaluate_core;
 pub use expression::compare_values;
 pub use expression::evaluate_expression;
 pub use model::{FormRuleEvaluationResult, RuleDependencyMetadata, RuleValidationError};

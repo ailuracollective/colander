@@ -7,14 +7,34 @@ use crate::index::{self, FieldInfo};
 use crate::json::{self, JsonMap};
 use crate::keys::schema_json_keys;
 
-use super::analyze::analyze;
+use super::analyze::{analyze, validate_dependencies};
 use super::expression::evaluate_expression;
 use super::model::{FormRuleEvaluationResult, RuleDependencyMetadata, RuleValidationError};
 use super::number::normalize_calculated_value;
 use super::value::Val;
 
 /// Evaluates calculations, per-field predicates and cross-field validations.
+///
+/// The form/rules dependency contract is enforced first, so a rules document
+/// the analyzer would reject is refused before any expression runs. This is the
+/// checked entry point; [`evaluate_core`] skips the contract for a synthesized
+/// rules document.
 pub fn evaluate(
+    form_root: &JsonMap,
+    rules_root: &JsonMap,
+    values: &IndexMap<String, Val>,
+    ui_schema_json: Option<&str>,
+) -> Result<FormRuleEvaluationResult> {
+    validate_dependencies(form_root, rules_root)?;
+    evaluate_core(form_root, rules_root, values, ui_schema_json)
+}
+
+/// Evaluates a form/rules pair whose dependency contract is already satisfied.
+///
+/// The response validator synthesizes an empty rules document when the caller
+/// supplies none, and that document must not be run through the dependency
+/// check, so it reaches this function instead of [`evaluate`].
+pub(crate) fn evaluate_core(
     form_root: &JsonMap,
     rules_root: &JsonMap,
     values: &IndexMap<String, Val>,

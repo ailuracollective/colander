@@ -110,6 +110,44 @@ fn analyzes_calculation_order() {
 }
 
 #[test]
+fn evaluate_rejects_a_duplicate_field_code() {
+    let form = root(
+        r#"{"schemaVersion":"1.0.0","fields":[
+             {"id":"a","code":"dup","type":"text"},
+             {"id":"b","code":"dup","type":"number"}]}"#,
+        "form schema",
+    );
+    let rules = root(
+        r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{}}"#,
+        "rules schema",
+    );
+    let error = evaluate(&form, &rules, &IndexMap::new(), None).unwrap_err();
+    assert!(
+        error.message.starts_with("An item with the same key"),
+        "{error}"
+    );
+}
+
+#[test]
+fn evaluate_rejects_a_dependency_error() {
+    let form = root(
+        r#"{"schemaVersion":"1.0.0","fields":[
+             {"id":"tgt","code":"tgt","type":"text"}]}"#,
+        "form schema",
+    );
+    let rules = root(
+        r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{
+             "tgt":{"visibleWhen":{"op":"eq","args":[{"ref":"ghost"},{"lit":1}]}}}}"#,
+        "rules schema",
+    );
+    let error = evaluate(&form, &rules, &IndexMap::new(), None).unwrap_err();
+    assert!(
+        error.message.starts_with("RULE_UNKNOWN_FIELD_REF"),
+        "{error}"
+    );
+}
+
+#[test]
 fn detects_cycles() {
     let form = root(
         r#"{"fields":[

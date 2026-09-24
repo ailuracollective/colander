@@ -5064,11 +5064,8 @@
       "rulesRaw": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"ghost\":{\"visibleWhen\":{\"lit\":false}}}}",
       "answersRaw": "{\"sign\":\"aries\"}"
     },
-    "expected": {
-      "normalizedAnswersJson": "{\"sign\":\"aries\"}",
-      "errors": []
-    },
-    "error": null
+    "expected": null,
+    "error": "ValidationException: RULE_UNKNOWN_FIELD: rules reference unknown form field id 'ghost' at /fields/ghost."
   },
   {
     "name": "answers-not-object",

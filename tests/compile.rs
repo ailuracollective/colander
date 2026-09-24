@@ -66,6 +66,40 @@ fn expands_component_references_with_default_layout() {
 }
 
 #[test]
+fn rejects_a_duplicate_field_code_when_rules_are_present() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"a","code":"dup","type":"text"},
+        {"id":"b","code":"dup","type":"number"}]}"#;
+    let rules = r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{}}"#;
+    let error = compile(form, None, Some(rules), &[]).unwrap_err();
+    assert!(
+        error.message.starts_with("An item with the same key"),
+        "{error}"
+    );
+}
+
+#[test]
+fn rejects_a_dependency_error() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"tgt","code":"tgt","type":"text"}]}"#;
+    let rules = r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{
+        "tgt":{"visibleWhen":{"op":"eq","args":[{"ref":"ghost"},{"lit":1}]}}}}"#;
+    let error = compile(form, None, Some(rules), &[]).unwrap_err();
+    assert!(
+        error.message.starts_with("RULE_UNKNOWN_FIELD_REF"),
+        "{error}"
+    );
+}
+
+#[test]
+fn accepts_a_duplicate_code_when_no_rules_document_is_supplied() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"a","code":"dup","type":"text"},
+        {"id":"b","code":"dup","type":"number"}]}"#;
+    compile(form, None, None, &[]).unwrap();
+}
+
+#[test]
 fn rejects_unpinned_and_missing_components() {
     let form = r#"{"schemaVersion":"1.0.0","fields":[
         {"id":"s","code":"s","type":"component-ref","componentCode":"x"}]}"#;

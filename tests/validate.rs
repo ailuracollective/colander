@@ -89,6 +89,54 @@ fn calculates_and_overwrites_bmi() {
 }
 
 #[test]
+fn rejects_a_duplicate_field_code_when_rules_are_present() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"a","code":"dup","type":"text"},
+        {"id":"b","code":"dup","type":"number"}]}"#;
+    let rules = r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{}}"#;
+    let error = validate(
+        form,
+        None,
+        Some(rules),
+        "{}",
+        FormResponseValidationMode::Draft,
+    )
+    .unwrap_err();
+    assert!(
+        error.message.starts_with("An item with the same key"),
+        "{error}"
+    );
+}
+
+#[test]
+fn rejects_a_dependency_error() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"tgt","code":"tgt","type":"text"}]}"#;
+    let rules = r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{
+        "ghost":{"visibleWhen":{"lit":false}}}}"#;
+    let error = validate(
+        form,
+        None,
+        Some(rules),
+        "{}",
+        FormResponseValidationMode::Draft,
+    )
+    .unwrap_err();
+    assert!(error.message.starts_with("RULE_UNKNOWN_FIELD"), "{error}");
+}
+
+#[test]
+fn a_duplicate_code_passes_when_no_rules_document_is_supplied() {
+    // Absent rules mean there is no form/rules pair to check, so the dependency
+    // check (including its duplicate-code rejection) does not run.
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"a","code":"dup","type":"text"},
+        {"id":"b","code":"dup","type":"number"}]}"#;
+    let result = validate(form, None, None, "{}", FormResponseValidationMode::Draft).unwrap();
+    assert!(result.is_valid(), "{:?}", result.errors);
+}
+
+#[test]
 fn normalizes_dates_and_times() {
     let form = r#"{"fields":[
         {"id":"d","code":"a.d","type":"date"},

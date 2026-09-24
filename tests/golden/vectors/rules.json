@@ -820,50 +820,8 @@
       "valuesRaw": "{\"y\":0}",
       "uiRaw": null
     },
-    "expected": {
-      "visibility": {
-        "x": true,
-        "y": true,
-        "s": true,
-        "flag": true,
-        "calc-int": true,
-        "calc-num": true,
-        "calc-step": true,
-        "calc-dp": true,
-        "hidden-field": true,
-        "ro-field": true,
-        "tgt": true
-      },
-      "enabled": {
-        "x": true,
-        "y": true,
-        "s": true,
-        "flag": true,
-        "calc-int": false,
-        "calc-num": false,
-        "calc-step": false,
-        "calc-dp": false,
-        "hidden-field": true,
-        "ro-field": false,
-        "tgt": true
-      },
-      "required": {
-        "x": false,
-        "y": false,
-        "s": false,
-        "flag": false,
-        "calc-int": false,
-        "calc-num": false,
-        "calc-step": false,
-        "calc-dp": false,
-        "hidden-field": false,
-        "ro-field": false,
-        "tgt": false
-      },
-      "calculatedValues": {},
-      "validationErrors": []
-    },
-    "error": null
+    "expected": null,
+    "error": "ValidationException: RULE_UNKNOWN_FIELD_REF: expression at /fields/tgt/visibleWhen references unknown field code 'missing'."
   },
   {
     "name": "and-empty-args",
@@ -2253,50 +2211,8 @@
       "valuesRaw": "{}",
       "uiRaw": null
     },
-    "expected": {
-      "visibility": {
-        "x": true,
-        "y": true,
-        "s": true,
-        "flag": true,
-        "calc-int": true,
-        "calc-num": true,
-        "calc-step": true,
-        "calc-dp": true,
-        "hidden-field": true,
-        "ro-field": true,
-        "tgt": true
-      },
-      "enabled": {
-        "x": true,
-        "y": true,
-        "s": true,
-        "flag": true,
-        "calc-int": false,
-        "calc-num": false,
-        "calc-step": false,
-        "calc-dp": false,
-        "hidden-field": true,
-        "ro-field": false,
-        "tgt": true
-      },
-      "required": {
-        "x": false,
-        "y": false,
-        "s": false,
-        "flag": false,
-        "calc-int": false,
-        "calc-num": false,
-        "calc-step": false,
-        "calc-dp": false,
-        "hidden-field": false,
-        "ro-field": false,
-        "tgt": false
-      },
-      "calculatedValues": {},
-      "validationErrors": []
-    },
-    "error": null
+    "expected": null,
+    "error": "ValidationException: RULE_UNKNOWN_FIELD_REF: expression at /fields/tgt/visibleWhen references unknown field code 'missing'."
   },
   {
     "name": "eq-missing-ref-vs-missing-ref",
@@ -2394,50 +2310,8 @@
       "valuesRaw": "{}",
       "uiRaw": null
     },
-    "expected": {
-      "visibility": {
-        "x": true,
-        "y": true,
-        "s": true,
-        "flag": true,
-        "calc-int": true,
-        "calc-num": true,
-        "calc-step": true,
-        "calc-dp": true,
-        "hidden-field": true,
-        "ro-field": true,
-        "tgt": true
-      },
-      "enabled": {
-        "x": true,
-        "y": true,
-        "s": true,
-        "flag": true,
-        "calc-int": false,
-        "calc-num": false,
-        "calc-step": false,
-        "calc-dp": false,
-        "hidden-field": true,
-        "ro-field": false,
-        "tgt": true
-      },
-      "required": {
-        "x": false,
-        "y": false,
-        "s": false,
-        "flag": false,
-        "calc-int": false,
-        "calc-num": false,
-        "calc-step": false,
-        "calc-dp": false,
-        "hidden-field": false,
-        "ro-field": false,
-        "tgt": false
-      },
-      "calculatedValues": {},
-      "validationErrors": []
-    },
-    "error": null
+    "expected": null,
+    "error": "ValidationException: RULE_UNKNOWN_FIELD_REF: expression at /fields/tgt/visibleWhen references unknown field code 'a'."
   },
   {
     "name": "gt-numeric-string-vs-number",
@@ -5544,50 +5418,8 @@
       "valuesRaw": "{}",
       "uiRaw": null
     },
-    "expected": {
-      "visibility": {
-        "x": true,
-        "y": true,
-        "s": true,
-        "flag": true,
-        "calc-int": true,
-        "calc-num": true,
-        "calc-step": true,
-        "calc-dp": true,
-        "hidden-field": true,
-        "ro-field": true,
-        "tgt": true
-      },
-      "enabled": {
-        "x": true,
-        "y": true,
-        "s": true,
-        "flag": true,
-        "calc-int": false,
-        "calc-num": false,
-        "calc-step": false,
-        "calc-dp": false,
-        "hidden-field": true,
-        "ro-field": false,
-        "tgt": true
-      },
-      "required": {
-        "x": false,
-        "y": false,
-        "s": false,
-        "flag": false,
-        "calc-int": false,
-        "calc-num": false,
-        "calc-step": false,
-        "calc-dp": false,
-        "hidden-field": false,
-        "ro-field": false,
-        "tgt": false
-      },
-      "calculatedValues": {},
-      "validationErrors": []
-    },
-    "error": null
+    "expected": null,
+    "error": "ValidationException: RULE_UNKNOWN_FIELD: rules reference unknown form field id 'validations' at /fields/validations."
   },
   {
     "name": "values-with-nested-array",

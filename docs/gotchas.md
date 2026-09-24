@@ -18,11 +18,14 @@ has surprised someone.
    read-only field.
 3. **`colander_validate_schema` never returns `{"valid":false}`.** A schema failure
    is a failure envelope. Do not look for a `valid` field on the error path.
-4. **Duplicate field codes are only rejected by the dependency check.** Two
-   fields sharing a `code` pass `colander_evaluate_rules` and
-   `colander_validate_response` without complaint — the last definition wins — and
-   fail only in `colander_validate_schema` with `kind:"form"`, with `An item with
-   the same key has already been added. Key: x`. Two fields sharing an `id`
+4. **Duplicate field codes are rejected by the dependency check, which is
+   skipped when no rules document is supplied.** Two fields sharing a `code` fail
+   every entry point that reads a form and rules pair —
+   `colander_evaluate_rules`, `colander_validate_response`, `colander_compile` and
+   `colander_validate_schema` with `kind:"form"` — with `An item with the same key
+   has already been added. Key: x`. Because `colander_validate_response` and
+   `colander_compile` treat absent or blank rules as no rules, the same duplicate
+   passes them when `rulesSchemaJson` is absent. Two fields sharing an `id` still
    collapse to a single entry in the rule maps.
 5. **An absent `assert` does not fail a validation.** A `validations` entry with
    no `assert` always reports its error; use `when` to guard it.
@@ -41,10 +44,11 @@ has surprised someone.
     inside fields.
 12. **A component's `contentHash` is never verified.** colander carries it into
     `dependencyMetadataJson` and trusts it.
-13. **The `RULE_*` codes are reachable from one call only.** Only
-    `colander_validate_schema` with `kind:"form"` runs the dependency check; the
-    other entry points run the analyzer without it, so a rules document that the
-    analyzer would reject still evaluates.
+13. **The dependency check is skipped when no rules document is supplied.**
+    `colander_validate_response` and `colander_compile` treat absent or blank
+    rules as no rules, so a malformed rules document cannot reach them; only a
+    document that is actually supplied is checked. `colander_evaluate_rules`
+    always requires one.
 14. **`compile` does not sort or inspect `fields`**; it only expands references
     and recurses into `items`. Canonical serialization sorts object keys, but
     array order is yours to define.

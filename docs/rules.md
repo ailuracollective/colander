@@ -62,24 +62,22 @@ evaluation result.
 
 ## Rule analysis errors
 
-These are emitted by **one entry point only**: `colander_validate_schema` with
-`kind:"form"` and a `rulesSchemaJson`. They are structural problems, not user
+These are emitted whenever a form and rules pair is read. `colander_validate_schema`
+with `kind:"form"` and a `rulesSchemaJson` emits them, and so do
+`colander_evaluate_rules`, `colander_validate_response` and `colander_compile`
+whenever a rules document is present. They are structural problems, not user
 errors.
 
-`colander_compile`, `colander_evaluate_rules` and `colander_validate_response` never emit
-them. Those run the analyzer for dependency _ordering_ but never the dependency
-_check_, so a broken rule passes through them silently:
+`colander_validate_response` and `colander_compile` treat an absent or
+whitespace-only `rulesSchemaJson` as no rules, so the check does not run then.
+`colander_evaluate_rules` always requires a rules document.
 
-- An expression naming an unknown field code resolves to `null` instead of
-  failing.
-- A `calculate` on a field that is not `readOnly` is computed anyway.
-- A cyclic calculation simply never runs, instead of reporting a cycle.
-
-Validate the rules document with `colander_validate_schema` if you want these
-caught.
+The check includes the duplicate-`code` rejection that the code-keyed index
+performs, in addition to the messages below.
 
 | Message                                                                                                           | Cause                                             |
 | ----------------------------------------------------------------------------------------------------------------- | ------------------------------------------------- |
+| `An item with the same key has already been added. Key: x`                                                        | Two fields share a `code`                         |
 | `RULE_SCHEMA_VERSION_MISMATCH: rules formSchemaVersion 'x' does not match form schemaVersion 'y'.`                | The two versions are both present and differ      |
 | `RULE_UNKNOWN_FIELD: rules reference unknown form field id 'f9' at /fields/f9.`                                   | A `fields` key is not a form field id             |
 | `RULE_UNKNOWN_FIELD_REF: expression at /fields/f1/visibleWhen references unknown field code 'x'.`                 | An expression names a field code no field has     |

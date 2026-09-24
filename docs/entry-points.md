@@ -94,6 +94,10 @@ order**, no whitespace, number literals preserved.
   ordered by component code, skipping component entries whose value is `null`.
 - The rules schema keeps `schemaVersion`, `formSchemaVersion`, `fields`
   (sorted), `$schema` and `validations`.
+- A rules schema that is present is dependency-checked before
+  `dependencyMetadataJson` is built. The check runs against the compiled form
+  and rules, so a component's fields are visible to references; see
+  [rules.md](rules.md).
 
 `dependencyMetadataJson` is the object:
 
@@ -187,6 +191,9 @@ present and evaluates falsy, the entry is skipped. An entry with no `code` is
 reported as `VALIDATION_<position>` and one with no `message` as
 `"Validation failed."`.
 
+A supplied `rulesSchemaJson` is dependency-checked before evaluation: the
+`RULE_*` analysis errors in [rules.md](rules.md) abort the call.
+
 The operators an expression may use, the comparison and truthiness rules, and
 the analysis errors are in [rules.md](rules.md).
 
@@ -207,7 +214,9 @@ for accepting a submission.
 
 When `rulesSchemaJson` is absent or blank, colander synthesizes an empty rules
 document pinned to the form's `schemaVersion` (or `1.0.0` if the form has none),
-so no version-mismatch error can occur.
+so no version-mismatch error can occur. A rules document that is present is
+dependency-checked exactly like `colander_validate_schema` with `kind:"form"`;
+the synthesized document is not.
 
 ### Response
 

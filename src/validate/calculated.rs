@@ -129,17 +129,18 @@ pub(super) fn evaluate_rules(
     ui_schema_json: Option<&str>,
     rule_values: &IndexMap<String, Val>,
 ) -> Result<rules::FormRuleEvaluationResult> {
-    // A whitespace-only rules schema is treated as absent.
-    let resolved = match rules_schema_json {
-        Some(text) if !text.trim().is_empty() => text.to_string(),
-        _ => {
-            let form_version =
-                json::get_str(form_root, schema_json_keys::SCHEMA_VERSION).unwrap_or("1.0.0");
-            format!(
-                "{{\n  \"schemaVersion\": \"1.0.0\",\n  \"formSchemaVersion\": \"{form_version}\",\n  \"fields\": {{}}\n}}"
-            )
-        }
-    };
-    let rules_root = json::parse_object(&resolved, "rules schema")?;
-    rules::evaluate(form_root, &rules_root, rule_values, ui_schema_json)
+    if let Some(text) = rules_schema_json
+        && !text.trim().is_empty()
+    {
+        let rules_root = json::parse_object(text, "rules schema")?;
+        return rules::evaluate(form_root, &rules_root, rule_values, ui_schema_json);
+    }
+
+    let form_version =
+        json::get_str(form_root, schema_json_keys::SCHEMA_VERSION).unwrap_or("1.0.0");
+    let synthesized = format!(
+        "{{\n  \"schemaVersion\": \"1.0.0\",\n  \"formSchemaVersion\": \"{form_version}\",\n  \"fields\": {{}}\n}}"
+    );
+    let rules_root = json::parse_object(&synthesized, "rules schema")?;
+    rules::evaluate_core(form_root, &rules_root, rule_values, ui_schema_json)
 }

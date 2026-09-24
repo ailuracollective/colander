@@ -125,6 +125,7 @@ impl<'a> CompilationContext<'a> {
         if let Some(rules_json) = compiled_rules_json {
             let form_root = json::parse_object(compiled_form_json, "form schema")?;
             let rules_root = json::parse_object(rules_json, "rules schema")?;
+            rules::validate_dependencies(&form_root, &rules_root)?;
             let rule_metadata = rules::analyze(&form_root, &rules_root)?;
 
             let mut rules_entry = JsonMap::new();

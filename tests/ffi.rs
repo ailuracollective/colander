@@ -4,6 +4,7 @@ use colander::ffi::compile::colander_compile;
 use colander::ffi::envelope::colander_free_string;
 use colander::ffi::memory::{colander_alloc, colander_free_buffer};
 use colander::ffi::response::colander_validate_response;
+use colander::ffi::rules::colander_evaluate_rules;
 use colander::ffi::schema::colander_validate_schema;
 use colander::ffi::session::call_with_text;
 use colander::ffi::version::colander_version_info;
@@ -132,6 +133,51 @@ fn a_kind_that_needs_a_schema_says_so() {
             .and_then(|result| json::get_bool(result, "valid")),
         Some(true)
     );
+}
+
+fn quoted(text: &str) -> String {
+    let mut out = String::new();
+    json::write_string(&mut out, text);
+    out
+}
+
+fn assert_validation_envelope(form: &str, rules: &str, needle: &str) {
+    let request = format!(
+        "{{\"formSchemaJson\":{},\"rulesSchemaJson\":{},\"answersJson\":\"{{}}\"}}",
+        quoted(form),
+        quoted(rules)
+    );
+    for entry in [
+        colander_evaluate_rules,
+        colander_validate_response,
+        colander_compile,
+    ] {
+        let envelope = call(entry, &request);
+        let object = envelope.as_object().unwrap();
+        assert_eq!(json::get_bool(object, "ok"), Some(false));
+        let error = object.get("error").unwrap().as_object().unwrap();
+        assert_eq!(json::get_str(error, "kind"), Some("validation"));
+        let message = json::get_str(error, "message").expect("message");
+        assert!(message.contains(needle), "{message}");
+    }
+}
+
+#[test]
+fn duplicate_field_codes_are_validation_envelopes() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"a","code":"dup","type":"text"},
+        {"id":"b","code":"dup","type":"number"}]}"#;
+    let rules = r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{}}"#;
+    assert_validation_envelope(form, rules, "same key");
+}
+
+#[test]
+fn rule_dependency_errors_are_validation_envelopes() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"tgt","code":"tgt","type":"text"}]}"#;
+    let rules = r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{
+        "tgt":{"visibleWhen":{"op":"eq","args":[{"ref":"ghost"},{"lit":1}]}}}}"#;
+    assert_validation_envelope(form, rules, "RULE_UNKNOWN_FIELD_REF");
 }
 
 #[test]
