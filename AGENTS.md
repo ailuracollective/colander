@@ -88,7 +88,7 @@ hand-editing the header.
 
 - Tests live in `tests/`, one file per domain.
 - The stated limit is **no file over 400 lines**; `src/json/parse.rs` is already
-  at 540. Do not widen that gap.
+  at 540 and `docs/entry-points.md` at 510. Do not widen either gap.
 - Deliberately flat and free of a plugin layer; the single deliberate trait is
   the `Codec` seam in `src/codec.rs`, which the envelope boundary is generic
   over so the wire format is injectable. A second use is what would justify
