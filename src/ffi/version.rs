@@ -7,7 +7,9 @@ use crate::error::{ColanderError, Result};
 use crate::json::{Json, JsonMap};
 use crate::{hash, semver};
 
-use super::envelope::{ABI_VERSION, dispatch, into_envelope, optional_string, require_string};
+use super::envelope::{
+    ABI_VERSION, dispatch, into_envelope, optional_array, optional_string, require_string,
+};
 
 /// `colander_content_hash`.
 ///
@@ -18,8 +20,8 @@ pub unsafe extern "C" fn colander_content_hash(request: *const c_char) -> *mut c
     unsafe {
         dispatch(&JsonCodec, request, |request| {
             let form = require_string(request, "formSchemaJson")?;
-            let ui = optional_string(request, "uiSchemaJson");
-            let rules_json = optional_string(request, "rulesSchemaJson");
+            let ui = optional_string(request, "uiSchemaJson")?;
+            let rules_json = optional_string(request, "rulesSchemaJson")?;
             let hash = hash::content_hash(&form, ui.as_deref(), rules_json.as_deref())?;
             let mut out = JsonMap::new();
             out.insert("contentHash".to_string(), Json::String(hash));
@@ -36,9 +38,7 @@ pub unsafe extern "C" fn colander_content_hash(request: *const c_char) -> *mut c
 pub unsafe extern "C" fn colander_next_version(request: *const c_char) -> *mut c_char {
     unsafe {
         dispatch(&JsonCodec, request, |request| {
-            let published: Vec<String> = request
-                .get("published")
-                .and_then(Json::as_array)
+            let published: Vec<String> = optional_array(request, "published")?
                 .map(|items| {
                     items
                         .iter()

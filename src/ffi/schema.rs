@@ -7,7 +7,7 @@ use crate::error::{ColanderError, Result};
 use crate::json::{self, Json, JsonMap};
 use crate::schema;
 
-use super::envelope::{dispatch, optional_string, require_string};
+use super::envelope::{dispatch, optional_bool, optional_string, require_string};
 
 /// `colander_validate_schema`: Draft 2020-12 structural validation.
 ///
@@ -21,19 +21,19 @@ use super::envelope::{dispatch, optional_string, require_string};
 pub unsafe extern "C" fn colander_validate_schema(request: *const c_char) -> *mut c_char {
     unsafe {
         dispatch(&JsonCodec, request, |request| {
-            let kind = json::get_str(request, "kind").unwrap_or("form");
-            match kind {
+            let kind = optional_string(request, "kind")?.unwrap_or_else(|| "form".to_string());
+            match kind.as_str() {
                 "component" => {
                     let form = require_string(request, "formSchemaJson")?;
-                    let ui = optional_string(request, "uiSchemaJson");
+                    let ui = optional_string(request, "uiSchemaJson")?;
                     let schemas =
                         read_schemas(request, &[("formSchema", true), ("uiSchema", ui.is_some())])?;
                     schema::validate_component_draft(&form, ui.as_deref(), &schemas)?;
                 }
                 "form" => {
                     let form = require_string(request, "formSchemaJson")?;
-                    let ui = optional_string(request, "uiSchemaJson");
-                    let rules_json = optional_string(request, "rulesSchemaJson");
+                    let ui = optional_string(request, "uiSchemaJson")?;
+                    let rules_json = optional_string(request, "rulesSchemaJson")?;
                     let schemas = read_schemas(
                         request,
                         &[
@@ -54,15 +54,16 @@ pub unsafe extern "C" fn colander_validate_schema(request: *const c_char) -> *mu
                     let schemas = read_schemas(request, &[("workflowSchema", true)])?;
                     schema::validate_workflow(
                         &workflow,
-                        json::get_bool(request, "published").unwrap_or(false),
+                        optional_bool(request, "published")?.unwrap_or(false),
                         &schemas,
                     )?;
                 }
                 "instance" => {
                     let schema_json = require_string(request, "schemaJson")?;
                     let instance_json = require_string(request, "instanceJson")?;
-                    let label = json::get_str(request, "label").unwrap_or("instance");
-                    schema::validate_text(&schema_json, &instance_json, label)?;
+                    let label = optional_string(request, "label")?
+                        .unwrap_or_else(|| "instance".to_string());
+                    schema::validate_text(&schema_json, &instance_json, &label)?;
                 }
                 other => {
                     return Err(ColanderError::new(format!(

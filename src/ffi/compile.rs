@@ -7,7 +7,7 @@ use crate::compile;
 use crate::error::{ColanderError, Result};
 use crate::json::{self, Json, JsonMap};
 
-use super::envelope::{dispatch, optional_string, optional_text, require_string};
+use super::envelope::{dispatch, optional_array, optional_string, optional_text, require_string};
 
 /// `colander_compile`.
 ///
@@ -18,11 +18,9 @@ pub unsafe extern "C" fn colander_compile(request: *const c_char) -> *mut c_char
     unsafe {
         dispatch(&JsonCodec, request, |request| {
             let form = require_string(request, "formSchemaJson")?;
-            let ui = optional_string(request, "uiSchemaJson");
-            let rules_json = optional_string(request, "rulesSchemaJson");
-            let components = request
-                .get("components")
-                .and_then(Json::as_array)
+            let ui = optional_string(request, "uiSchemaJson")?;
+            let rules_json = optional_string(request, "rulesSchemaJson")?;
+            let components = optional_array(request, "components")?
                 .map(|items| {
                     items
                         .iter()

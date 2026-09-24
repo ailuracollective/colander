@@ -69,8 +69,51 @@ pub fn require_string(request: &JsonMap, key: &str) -> Result<String> {
         .ok_or_else(|| ColanderError::new(format!("'{key}' is required and must be a string.")))
 }
 
-pub fn optional_string(request: &JsonMap, key: &str) -> Option<String> {
-    json::get_str(request, key).map(str::to_string)
+/// Read an optional key that must be a string when present.
+///
+/// An absent key is `Ok(None)` and takes its default. A present key of the
+/// wrong JSON type is an error: "present but wrong" must not be
+/// indistinguishable from "absent" ([SPEC](../../SPEC.md) C-6). The error
+/// propagates out of the entry point's body, so it surfaces with the same
+/// envelope `kind` (`validation`) as a required-key type failure.
+pub fn optional_string(request: &JsonMap, key: &str) -> Result<Option<String>> {
+    optional_typed(request, key, "string", |value| {
+        value.as_str().map(str::to_string)
+    })
+}
+
+/// Read an optional key that must be an array when present. See
+/// [`optional_string`].
+pub fn optional_array<'a>(request: &'a JsonMap, key: &str) -> Result<Option<&'a Vec<Json>>> {
+    optional_typed(request, key, "array", Json::as_array)
+}
+
+/// Read an optional key that must be an object when present. See
+/// [`optional_string`].
+pub fn optional_object<'a>(request: &'a JsonMap, key: &str) -> Result<Option<&'a JsonMap>> {
+    optional_typed(request, key, "object", Json::as_object)
+}
+
+/// Read an optional key that must be a boolean when present. See
+/// [`optional_string`].
+pub fn optional_bool(request: &JsonMap, key: &str) -> Result<Option<bool>> {
+    optional_typed(request, key, "boolean", Json::as_bool)
+}
+
+/// The shared shape of the optional accessors: absent is `None`, a value of
+/// the expected type is `Some`, and any other type is a validation error.
+fn optional_typed<'a, T>(
+    request: &'a JsonMap,
+    key: &str,
+    expected: &str,
+    read: impl FnOnce(&'a Json) -> Option<T>,
+) -> Result<Option<T>> {
+    match request.get(key) {
+        None => Ok(None),
+        Some(value) => read(value).map(Some).ok_or_else(|| {
+            ColanderError::new(format!("'{key}' must be a {expected} when present."))
+        }),
+    }
 }
 
 pub fn optional_text(value: Option<String>) -> Json {

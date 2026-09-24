@@ -32,8 +32,10 @@ has surprised someone.
 6. **Repeater row values flatten into the top-level rule values.** A repeater's
    own code is visible to expressions as its row **count**, and each row's
    children are readable by their plain codes — only the last row survives.
-7. **Optional keys of the wrong type are ignored.** Required keys are the only
-   ones that reject a type.
+7. **An optional key of the wrong type is rejected.** A present key whose JSON
+   type does not match the documented one fails the call, the same as a bad
+   required key; it is not silently ignored. "Absent" still means "use the
+   default", so an omitted `mode` is `"Draft"` while `{"mode": 3}` is an error.
 8. **`published` is accepted and ignored** by `kind:"workflow"`.
 9. **`CALCULATED_VALUE_INVALID` is unreachable**, because a non-finite
    calculation becomes `null` first.

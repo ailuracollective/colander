@@ -7,7 +7,7 @@ use colander::ffi::response::colander_validate_response;
 use colander::ffi::rules::colander_evaluate_rules;
 use colander::ffi::schema::colander_validate_schema;
 use colander::ffi::session::call_with_text;
-use colander::ffi::version::colander_version_info;
+use colander::ffi::version::{colander_content_hash, colander_next_version, colander_version_info};
 use colander::json::{self, Json};
 
 fn call(entry: unsafe extern "C" fn(*const c_char) -> *mut c_char, text: &str) -> Json {
@@ -242,4 +242,133 @@ fn the_allocator_refuses_a_zero_length() {
     // Freeing null or zero is a no-op rather than a double free.
     unsafe { colander_free_buffer(std::ptr::null_mut(), 16) };
     unsafe { colander_free_buffer(colander_alloc(16), 0) };
+}
+
+/// A present optional key of the wrong JSON type must fail, and the failure
+/// must be the request failing its own type check: `kind: "validation"`, the
+/// same envelope `kind` a required-key type failure surfaces with — not the
+/// structural `invalid_request` of an envelope that never parsed.
+fn assert_validation_failure(
+    entry: unsafe extern "C" fn(*const c_char) -> *mut c_char,
+    request: &str,
+) {
+    let envelope = call(entry, request);
+    let object = envelope.as_object().unwrap();
+    assert_eq!(json::get_bool(object, "ok"), Some(false), "{request}");
+    let error = object.get("error").unwrap().as_object().unwrap();
+    assert_eq!(
+        json::get_str(error, "kind"),
+        Some("validation"),
+        "{request}"
+    );
+}
+
+#[test]
+fn compile_rejects_a_wrong_typed_optional_key() {
+    // A required key of the wrong type already failed with this `kind`; the
+    // optional failures below must surface the same way.
+    assert_validation_failure(colander_compile, r#"{"formSchemaJson":3}"#);
+    // `uiSchemaJson` must be a string when present.
+    assert_validation_failure(
+        colander_compile,
+        r#"{"formSchemaJson":"{\"fields\":[]}","uiSchemaJson":3}"#,
+    );
+    // `components` must be an array when present.
+    assert_validation_failure(
+        colander_compile,
+        r#"{"formSchemaJson":"{\"fields\":[]}","components":{}}"#,
+    );
+}
+
+#[test]
+fn evaluate_rules_rejects_a_wrong_typed_optional_key() {
+    // `values` must be an object when present.
+    assert_validation_failure(
+        colander_evaluate_rules,
+        r#"{"formSchemaJson":"{\"fields\":[]}","rulesSchemaJson":"{\"fields\":{}}","values":3}"#,
+    );
+}
+
+#[test]
+fn validate_response_rejects_a_wrong_typed_optional_key() {
+    // `mode` must be a string when present.
+    assert_validation_failure(
+        colander_validate_response,
+        r#"{"formSchemaJson":"{\"fields\":[]}","answersJson":"{}","mode":3}"#,
+    );
+}
+
+#[test]
+fn validate_schema_rejects_a_wrong_typed_optional_key() {
+    // `kind` must be a string when present.
+    assert_validation_failure(colander_validate_schema, r#"{"kind":3}"#);
+    // `label` must be a string when present.
+    assert_validation_failure(
+        colander_validate_schema,
+        r#"{"kind":"instance","schemaJson":"{}","instanceJson":"{}","label":3}"#,
+    );
+    // `published` must be a boolean when present.
+    assert_validation_failure(
+        colander_validate_schema,
+        r#"{"kind":"workflow","workflowSchemaJson":"{}",
+            "schemas":{"workflowSchema":"{}"},"published":3}"#,
+    );
+}
+
+#[test]
+fn content_hash_rejects_a_wrong_typed_optional_key() {
+    // `rulesSchemaJson` must be a string when present.
+    assert_validation_failure(
+        colander_content_hash,
+        r#"{"formSchemaJson":"{}","rulesSchemaJson":3}"#,
+    );
+}
+
+#[test]
+fn next_version_rejects_a_wrong_typed_optional_key() {
+    // `published` must be an array when present.
+    assert_validation_failure(colander_next_version, r#"{"published":3}"#);
+}
+
+#[test]
+fn absent_optional_keys_take_their_default() {
+    // Absent `mode` defaults to Draft and absent rules mean "no rules".
+    let envelope = call(
+        colander_validate_response,
+        r#"{"formSchemaJson":"{\"schemaVersion\":\"1.0.0\",\"fields\":[]}","answersJson":"{}"}"#,
+    );
+    assert_eq!(
+        json::get_bool(envelope.as_object().unwrap(), "ok"),
+        Some(true)
+    );
+
+    // Blank `rulesSchemaJson` is still "no rules", as documented.
+    let envelope = call(
+        colander_validate_response,
+        r#"{"formSchemaJson":"{\"schemaVersion\":\"1.0.0\",\"fields\":[]}",
+            "answersJson":"{}","rulesSchemaJson":""}"#,
+    );
+    assert_eq!(
+        json::get_bool(envelope.as_object().unwrap(), "ok"),
+        Some(true)
+    );
+
+    // Absent `components` means "no components".
+    let envelope = call(colander_compile, r#"{"formSchemaJson":"{\"fields\":[]}"}"#);
+    assert_eq!(
+        json::get_bool(envelope.as_object().unwrap(), "ok"),
+        Some(true)
+    );
+
+    // Absent `published` means "nothing published".
+    let envelope = call(colander_next_version, "{}");
+    assert_eq!(
+        envelope
+            .as_object()
+            .unwrap()
+            .get("result")
+            .and_then(Json::as_object)
+            .and_then(|result| json::get_str(result, "next")),
+        Some("1.0.0")
+    );
 }

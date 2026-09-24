@@ -6,7 +6,7 @@ use crate::codec::json::JsonCodec;
 use crate::json::{self, Json, JsonMap};
 use crate::rules;
 
-use super::envelope::{dispatch, optional_string, require_string};
+use super::envelope::{dispatch, optional_object, optional_string, require_string};
 
 /// `colander_evaluate_rules`.
 ///
@@ -20,10 +20,10 @@ pub unsafe extern "C" fn colander_evaluate_rules(request: *const c_char) -> *mut
                 json::parse_object(&require_string(request, "formSchemaJson")?, "form schema")?;
             let rules_root =
                 json::parse_object(&require_string(request, "rulesSchemaJson")?, "rules schema")?;
-            let ui = optional_string(request, "uiSchemaJson");
+            let ui = optional_string(request, "uiSchemaJson")?;
 
             let mut values = indexmap::IndexMap::new();
-            if let Some(map) = request.get("values").and_then(Json::as_object) {
+            if let Some(map) = optional_object(request, "values")? {
                 for (key, value) in map {
                     values.insert(key.clone(), rules::Val::from_json_node(value));
                 }

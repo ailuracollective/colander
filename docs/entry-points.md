@@ -26,14 +26,16 @@ reading `result`; no `char *`-returning entry point returns NULL.
 | `colander_alloc`             | Allocate a request buffer inside the library's heap                                 | —                                   |
 | `colander_free_buffer`       | Release a buffer from `colander_alloc`                                              | —                                   |
 
-Two asymmetries worth memorising:
+Two behaviours worth memorising:
 
 - `colander_version_info` and `colander_abi_version` take **no request argument**; the
   other six do. The last two rows of the table are not entry points in that
   sense: `colander_alloc` and `colander_free_buffer` move memory rather than JSON.
-- Optional keys of the **wrong JSON type are silently ignored**, as if absent.
-  Only required keys reject a bad type. So `{"mode": 3}` behaves like
-  `{"mode": "Draft"}`.
+- An optional key that is **present with the wrong JSON type is rejected**, the
+  same as a required key. "Absent" means "use the default"; "present but wrong"
+  is an error, so `{"mode": 3}` fails instead of behaving like
+  `{"mode": "Draft"}`. The failure is the request failing its own type check, so
+  it comes back as `kind:"validation"`.
 
 ## colander_compile
 
@@ -43,12 +45,12 @@ publishing a form.
 
 ### Request
 
-| Key               | Type   | Required | Notes                                                |
-| ----------------- | ------ | -------- | ---------------------------------------------------- |
-| `formSchemaJson`  | string | yes      | JSON text of the form schema                         |
-| `uiSchemaJson`    | string | no       | JSON text of the UI schema                           |
-| `rulesSchemaJson` | string | no       | JSON text of the rules schema                        |
-| `components`      | array  | no       | Resolved component versions; ignored if not an array |
+| Key               | Type   | Required | Notes                                                      |
+| ----------------- | ------ | -------- | ---------------------------------------------------------- |
+| `formSchemaJson`  | string | yes      | JSON text of the form schema                               |
+| `uiSchemaJson`    | string | no       | JSON text of the UI schema                                 |
+| `rulesSchemaJson` | string | no       | JSON text of the rules schema                              |
+| `components`      | array  | no       | Resolved component versions; must be an array when present |
 
 Each entry of `components` is an object:
 
@@ -160,12 +162,12 @@ and which cross-field validations currently fail.
 
 ### Request
 
-| Key               | Type   | Required | Notes                                     |
-| ----------------- | ------ | -------- | ----------------------------------------- |
-| `formSchemaJson`  | string | yes      | JSON text; must parse to an object        |
-| `rulesSchemaJson` | string | yes      | JSON text; must parse to an object        |
-| `uiSchemaJson`    | string | no       | Only `fields.<id>.hidden` is read         |
-| `values`          | object | no       | Current answers; ignored if not an object |
+| Key               | Type   | Required | Notes                                           |
+| ----------------- | ------ | -------- | ----------------------------------------------- |
+| `formSchemaJson`  | string | yes      | JSON text; must parse to an object              |
+| `rulesSchemaJson` | string | yes      | JSON text; must parse to an object              |
+| `uiSchemaJson`    | string | no       | Only `fields.<id>.hidden` is read               |
+| `values`          | object | no       | Current answers; must be an object when present |
 
 The **keys of `values` are field codes**, not field ids.
 
@@ -366,13 +368,14 @@ The canonical form and the number-output rules are described in
 
 `result` is exactly `{"next":"1.2.4"}`.
 
-With nothing published — or with `published` absent or not an array — the answer
-is `"1.0.0"`. Otherwise colander parses every entry, takes the highest, and
-increments **only its patch**: `["1.2.3","1.10.0","1.9.9"]` yields `"1.10.1"`.
-Major and minor never change, and there is no carry. Ties keep the last maximal
-entry rather than the first.
+With nothing published — or with `published` absent — the answer is `"1.0.0"`.
+Otherwise colander parses every entry, takes the highest, and increments **only
+its patch**: `["1.2.3","1.10.0","1.9.9"]` yields `"1.10.1"`. Major and minor
+never change, and there is no carry. Ties keep the last maximal entry rather
+than the first.
 
-Every entry is parsed, so one invalid entry fails the whole call with
+A present `published` must be an array of strings; any other JSON type is
+rejected. Every entry is parsed, so one invalid entry fails the whole call with
 `Invalid semantic version: <entry>`.
 
 ### Accepted version syntax

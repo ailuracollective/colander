@@ -77,14 +77,15 @@ panic behaviour, is in [abi.md](abi.md).
 | `colander_alloc`             | Allocate a request buffer inside the library's heap                                 | —                                   |
 | `colander_free_buffer`       | Release a buffer from `colander_alloc`                                              | —                                   |
 
-Two asymmetries worth memorising:
+Two behaviours worth memorising:
 
 - `colander_version_info` and `colander_abi_version` take **no request argument**; the
   other six do. The last two rows of the table are not entry points in that
   sense: `colander_alloc` and `colander_free_buffer` move memory rather than JSON.
-- Optional keys of the **wrong JSON type are silently ignored**, as if absent.
-  Only required keys reject a bad type. So `{"mode": 3}` behaves like
-  `{"mode": "Draft"}`.
+- An optional key that is **present with the wrong JSON type is rejected**, the
+  same as a required key. "Absent" means "use the default"; "present but wrong"
+  is an error, so `{"mode": 3}` fails instead of behaving like
+  `{"mode": "Draft"}`. The failure surfaces as `kind:"validation"`.
 
 The request and response keys for each function are documented in full in
 [entry-points.md](entry-points.md).

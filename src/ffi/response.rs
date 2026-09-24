@@ -4,7 +4,7 @@ use std::ffi::c_char;
 
 use crate::codec::json::JsonCodec;
 use crate::error::ColanderError;
-use crate::json::{self, Json, JsonMap};
+use crate::json::{Json, JsonMap};
 use crate::validate;
 
 use super::envelope::{dispatch, optional_string, require_string};
@@ -18,10 +18,13 @@ pub unsafe extern "C" fn colander_validate_response(request: *const c_char) -> *
     unsafe {
         dispatch(&JsonCodec, request, |request| {
             let form = require_string(request, "formSchemaJson")?;
-            let ui = optional_string(request, "uiSchemaJson");
-            let rules_json = optional_string(request, "rulesSchemaJson");
+            let ui = optional_string(request, "uiSchemaJson")?;
+            let rules_json = optional_string(request, "rulesSchemaJson")?;
             let answers = require_string(request, "answersJson")?;
-            let mode = match json::get_str(request, "mode").unwrap_or("Draft") {
+            let mode = match optional_string(request, "mode")?
+                .as_deref()
+                .unwrap_or("Draft")
+            {
                 "Complete" => validate::FormResponseValidationMode::Complete,
                 "Draft" => validate::FormResponseValidationMode::Draft,
                 other => {
