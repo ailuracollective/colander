@@ -263,50 +263,53 @@ fn assert_validation_failure(
     );
 }
 
+/// A present request key of the wrong JSON type must fail, and the failure must
+/// be the request failing its own type check: `kind: "validation"`, the same
+/// envelope `kind` a required-key type failure surfaces with — not the
+/// structural `invalid_request` of an envelope that never parsed. An explicit
+/// `null` counts as the wrong type, not as an absence (SPEC C-6).
 #[test]
-fn compile_rejects_a_wrong_typed_optional_key() {
-    // A required key of the wrong type already failed with this `kind`; the
-    // optional failures below must surface the same way.
-    assert_validation_failure(colander_compile, r#"{"formSchemaJson":3}"#);
-    // `uiSchemaJson` must be a string when present.
-    assert_validation_failure(
-        colander_compile,
-        r#"{"formSchemaJson":"{\"fields\":[]}","uiSchemaJson":3}"#,
-    );
-    // `components` must be an array when present.
-    assert_validation_failure(
-        colander_compile,
-        r#"{"formSchemaJson":"{\"fields\":[]}","components":{}}"#,
-    );
-}
-
-#[test]
-fn evaluate_rules_rejects_a_wrong_typed_optional_key() {
-    // `values` must be an object when present.
-    assert_validation_failure(
-        colander_evaluate_rules,
-        r#"{"formSchemaJson":"{\"fields\":[]}","rulesSchemaJson":"{\"fields\":{}}","values":3}"#,
-    );
-}
-
-#[test]
-fn validate_response_rejects_a_wrong_typed_optional_key() {
-    // `mode` must be a string when present.
-    assert_validation_failure(
-        colander_validate_response,
-        r#"{"formSchemaJson":"{\"fields\":[]}","answersJson":"{}","mode":3}"#,
-    );
-}
-
-#[test]
-fn validate_schema_rejects_a_wrong_typed_optional_key() {
-    // `kind` must be a string when present.
-    assert_validation_failure(colander_validate_schema, r#"{"kind":3}"#);
-    // `label` must be a string when present.
-    assert_validation_failure(
-        colander_validate_schema,
-        r#"{"kind":"instance","schemaJson":"{}","instanceJson":"{}","label":3}"#,
-    );
+fn wrong_typed_request_keys_fail_with_validation() {
+    let cases: &[(unsafe extern "C" fn(*const c_char) -> *mut c_char, &str)] = &[
+        (colander_compile, r#"{"formSchemaJson":3}"#),
+        (
+            colander_compile,
+            r#"{"formSchemaJson":"{\"fields\":[]}","uiSchemaJson":3}"#,
+        ),
+        (
+            colander_compile,
+            r#"{"formSchemaJson":"{\"fields\":[]}","components":{}}"#,
+        ),
+        (
+            colander_evaluate_rules,
+            r#"{"formSchemaJson":"{\"fields\":[]}","rulesSchemaJson":"{\"fields\":{}}","values":3}"#,
+        ),
+        (
+            colander_validate_response,
+            r#"{"formSchemaJson":"{\"fields\":[]}","answersJson":"{}","mode":3}"#,
+        ),
+        (colander_validate_schema, r#"{"kind":3}"#),
+        (
+            colander_validate_schema,
+            r#"{"kind":"instance","schemaJson":"{}","instanceJson":"{}","label":3}"#,
+        ),
+        (
+            colander_content_hash,
+            r#"{"formSchemaJson":"{}","rulesSchemaJson":3}"#,
+        ),
+        (colander_next_version, r#"{"published":3}"#),
+        (
+            colander_validate_response,
+            r#"{"formSchemaJson":"{\"fields\":[]}","answersJson":"{}","mode":null}"#,
+        ),
+        (
+            colander_validate_response,
+            r#"{"formSchemaJson":"{\"fields\":[]}","answersJson":"{}","rulesSchemaJson":null}"#,
+        ),
+    ];
+    for (entry, request) in cases {
+        assert_validation_failure(*entry, request);
+    }
 }
 
 // C-9: a present `schemas` must be an object in every kind, `instance` included.
@@ -342,35 +345,6 @@ fn workflow_retires_published() {
     let result = envelope.as_object().unwrap().get("result").unwrap();
     let valid = json::get_bool(result.as_object().unwrap(), "valid");
     assert_eq!(valid, Some(true));
-}
-
-#[test]
-fn content_hash_rejects_a_wrong_typed_optional_key() {
-    // `rulesSchemaJson` must be a string when present.
-    assert_validation_failure(
-        colander_content_hash,
-        r#"{"formSchemaJson":"{}","rulesSchemaJson":3}"#,
-    );
-}
-
-#[test]
-fn next_version_rejects_a_wrong_typed_optional_key() {
-    // `published` must be an array when present.
-    assert_validation_failure(colander_next_version, r#"{"published":3}"#);
-}
-
-#[test]
-fn an_explicit_null_is_a_wrong_type_not_an_absence() {
-    // C-6 treats `null` as a present value of the wrong type, so a caller that
-    // serialises an absent optional value as `null` must omit the key instead.
-    assert_validation_failure(
-        colander_validate_response,
-        r#"{"formSchemaJson":"{\"fields\":[]}","answersJson":"{}","mode":null}"#,
-    );
-    assert_validation_failure(
-        colander_validate_response,
-        r#"{"formSchemaJson":"{\"fields\":[]}","answersJson":"{}","rulesSchemaJson":null}"#,
-    );
 }
 
 #[test]
