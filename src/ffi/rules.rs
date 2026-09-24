@@ -29,7 +29,10 @@ pub unsafe extern "C" fn colander_evaluate_rules(request: *const c_char) -> *mut
                 }
             }
 
-            let evaluation = rules::evaluate(&form, &rules_root, &values, ui.as_deref())?;
+            // R-7a: a `List` under a repeater code carries that repeater's rows.
+            let mut rows = rules::RowSet::from_values(&form, &values);
+            let evaluation =
+                rules::evaluate(&form, &rules_root, &values, ui.as_deref(), &mut rows)?;
 
             let mut out = JsonMap::new();
             out.insert("visibility".to_string(), bool_map(&evaluation.visibility));

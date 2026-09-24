@@ -9,6 +9,7 @@ mod evaluate;
 mod expression;
 mod model;
 mod number;
+mod rows;
 mod value;
 
 pub use analyze::{analyze, collect_references, validate_dependencies};
@@ -18,4 +19,5 @@ pub use expression::compare_values;
 pub use expression::evaluate_expression;
 pub use model::{FormRuleEvaluationResult, RuleDependencyMetadata, RuleValidationError};
 pub use number::normalize_calculated_value;
+pub use rows::RowSet;
 pub use value::Val;

@@ -11,6 +11,7 @@ use super::analyze::{analyze, validate_dependencies};
 use super::expression::evaluate_expression;
 use super::model::{FormRuleEvaluationResult, RuleDependencyMetadata, RuleValidationError};
 use super::number::normalize_calculated_value;
+use super::rows::RowSet;
 use super::value::Val;
 
 /// Evaluates calculations, per-field predicates and cross-field validations.
@@ -24,9 +25,10 @@ pub fn evaluate(
     rules_root: &JsonMap,
     values: &IndexMap<String, Val>,
     ui_schema_json: Option<&str>,
+    rows: &mut RowSet,
 ) -> Result<FormRuleEvaluationResult> {
     validate_dependencies(form_root, rules_root)?;
-    evaluate_core(form_root, rules_root, values, ui_schema_json)
+    evaluate_core(form_root, rules_root, values, ui_schema_json, rows)
 }
 
 /// Evaluates a form/rules pair whose dependency contract is already satisfied.
@@ -39,6 +41,7 @@ pub(crate) fn evaluate_core(
     rules_root: &JsonMap,
     values: &IndexMap<String, Val>,
     ui_schema_json: Option<&str>,
+    rows: &mut RowSet,
 ) -> Result<FormRuleEvaluationResult> {
     let fields_by_id = index::build_by_id(form_root)?;
     let metadata = analyze(form_root, rules_root)?;
@@ -65,17 +68,26 @@ pub(crate) fn evaluate_core(
     }
 
     if let Some(field_rules) = json::get_object(rules_root, schema_json_keys::FIELDS) {
+        let parents = RowSet::repeater_parents(form_root);
         apply_calculations(
             field_rules,
             &metadata,
             &fields_by_id,
             &mut working_values,
             &mut result.calculated_values,
+            &parents,
+            rows,
         )?;
-        apply_field_predicates(field_rules, &fields_by_id, &working_values, &mut result)?;
+        apply_field_predicates(
+            field_rules,
+            &fields_by_id,
+            &working_values,
+            &mut result,
+            rows,
+        )?;
     }
 
-    result.validation_errors = collect_validation_errors(rules_root, &working_values)?;
+    result.validation_errors = collect_validation_errors(rules_root, &working_values, rows)?;
     Ok(result)
 }
 
@@ -95,6 +107,8 @@ fn apply_calculations(
     fields_by_id: &IndexMap<String, FieldInfo>,
     working_values: &mut IndexMap<String, Val>,
     calculated_values: &mut IndexMap<String, Val>,
+    parents: &IndexMap<String, String>,
+    rows: &mut RowSet,
 ) -> Result<()> {
     for field_id in &metadata.evaluation_order {
         let Some(rules) = json::get_object(field_rules, field_id) else {
@@ -110,8 +124,43 @@ fn apply_calculations(
             continue;
         };
 
-        let calculated =
-            normalize_calculated_value(evaluate_expression(calculate, working_values)?, field_info);
+        // R-7: a calculated repeater child with rows evaluates once per row, in
+        // a scope holding that row over the outer values. Each result is written
+        // back into its row, so a later calculation or aggregate observes the
+        // computed values rather than the submitted ones. The array replaces the
+        // flattened value everywhere downstream, so a plain reference observes an
+        // array rather than the last surviving row.
+        if let Some(repeater_code) = parents.get(field_id)
+            && let Some(row_list) = rows.rows(repeater_code)
+            && !row_list.is_empty()
+        {
+            let mut results = Vec::with_capacity(row_list.len());
+            for row in row_list {
+                let mut scoped = working_values.clone();
+                for (child_code, child_value) in row {
+                    scoped.insert(child_code.clone(), child_value.clone());
+                }
+                let computed = normalize_calculated_value(
+                    evaluate_expression(calculate, &scoped, rows)?,
+                    field_info,
+                );
+                results.push(computed);
+            }
+            if let Some(row_list) = rows.rows_mut(repeater_code) {
+                for (row, computed) in row_list.iter_mut().zip(results.iter()) {
+                    row.insert(field_info.code.clone(), computed.clone());
+                }
+            }
+            let array = Val::List(results);
+            calculated_values.insert(field_info.code.clone(), array.clone());
+            working_values.insert(field_info.code.clone(), array);
+            continue;
+        }
+
+        let calculated = normalize_calculated_value(
+            evaluate_expression(calculate, working_values, rows)?,
+            field_info,
+        );
         calculated_values.insert(field_info.code.clone(), calculated.clone());
         working_values.insert(field_info.code.clone(), calculated);
     }
@@ -123,6 +172,7 @@ fn apply_field_predicates(
     fields_by_id: &IndexMap<String, FieldInfo>,
     working_values: &IndexMap<String, Val>,
     result: &mut FormRuleEvaluationResult,
+    rows: &RowSet,
 ) -> Result<()> {
     for (field_id, rules_node) in field_rules {
         let Some(rules) = rules_node.as_object() else {
@@ -137,7 +187,7 @@ fn apply_field_predicates(
         {
             result.visibility.insert(
                 field_id.clone(),
-                evaluate_expression(node, working_values)?.to_bool(),
+                evaluate_expression(node, working_values, rows)?.to_bool(),
             );
         }
         if let Some(node) = json::get(rules, "enabledWhen")
@@ -145,7 +195,7 @@ fn apply_field_predicates(
         {
             result.enabled.insert(
                 field_id.clone(),
-                evaluate_expression(node, working_values)?.to_bool(),
+                evaluate_expression(node, working_values, rows)?.to_bool(),
             );
         }
         if let Some(node) = json::get(rules, "requiredWhen")
@@ -153,7 +203,7 @@ fn apply_field_predicates(
         {
             result.required.insert(
                 field_id.clone(),
-                evaluate_expression(node, working_values)?.to_bool(),
+                evaluate_expression(node, working_values, rows)?.to_bool(),
             );
         }
     }
@@ -163,6 +213,7 @@ fn apply_field_predicates(
 fn collect_validation_errors(
     rules_root: &JsonMap,
     working_values: &IndexMap<String, Val>,
+    rows: &RowSet,
 ) -> Result<Vec<RuleValidationError>> {
     let mut errors = Vec::new();
     let Some(validations) = json::get_array(rules_root, schema_json_keys::VALIDATIONS) else {
@@ -184,14 +235,14 @@ fn collect_validation_errors(
 
         if let Some(when) = json::get(validation, "when")
             && !when.is_null()
-            && !evaluate_expression(when, working_values)?.to_bool()
+            && !evaluate_expression(when, working_values, rows)?.to_bool()
         {
             continue;
         }
 
         if let Some(assert) = json::get(validation, "assert")
             && !assert.is_null()
-            && !evaluate_expression(assert, working_values)?.to_bool()
+            && !evaluate_expression(assert, working_values, rows)?.to_bool()
         {
             errors.push(RuleValidationError { code, message });
         }

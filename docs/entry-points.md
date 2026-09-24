@@ -188,17 +188,20 @@ and which cross-field validations currently fail.
 | `uiSchemaJson`    | string | no       | Only `fields.<id>.hidden` is read               |
 | `values`          | object | no       | Current answers; must be an object when present |
 
-The **keys of `values` are field codes**, not field ids.
+The **keys of `values` are field codes**, not field ids. A `values` entry for a
+repeater code may be a number (a row count, as before) or an array of row
+objects, which supplies that repeater's rows for per-row calculation (SPEC
+R-7a).
 
 ### Response
 
-| Key                | Type                       | Keyed by       | Notes                                                      |
-| ------------------ | -------------------------- | -------------- | ---------------------------------------------------------- |
-| `visibility`       | object of bool             | **field id**   | `false` when the UI schema marks the field `hidden`        |
-| `enabled`          | object of bool             | **field id**   | `false` for a `readOnly` field, unless a rule overrides it |
-| `required`         | object of bool             | **field id**   | From the form schema, unless a rule overrides it           |
-| `calculatedValues` | object                     | **field code** | Only fields with a `calculate` expression                  |
-| `validationErrors` | array of `{code, message}` | —              | Cross-field validations that failed                        |
+| Key                | Type                       | Keyed by       | Notes                                                                                              |
+| ------------------ | -------------------------- | -------------- | -------------------------------------------------------------------------------------------------- |
+| `visibility`       | object of bool             | **field id**   | `false` when the UI schema marks the field `hidden`                                                |
+| `enabled`          | object of bool             | **field id**   | `false` for a `readOnly` field, unless a rule overrides it                                         |
+| `required`         | object of bool             | **field id**   | From the form schema, unless a rule overrides it                                                   |
+| `calculatedValues` | object                     | **field code** | Only fields with a `calculate` expression; a repeater child's value is an array, one entry per row |
+| `validationErrors` | array of `{code, message}` | —              | Cross-field validations that failed                                                                |
 
 The id/code split is the single easiest thing to get wrong here: the three
 boolean maps are keyed by `id`, `calculatedValues` by `code`.

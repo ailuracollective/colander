@@ -12,20 +12,32 @@ expressions themselves.
 
 ## Rule operators
 
-| Operator                   | Arity | Semantics                                                               |
-| -------------------------- | ----- | ----------------------------------------------------------------------- |
-| `eq`                       | 2     | Equal                                                                   |
-| `neq`                      | 2     | Not equal                                                               |
-| `gt`                       | 2     | Greater                                                                 |
-| `gte`                      | 2     | Greater or equal                                                        |
-| `lt`                       | 2     | Less                                                                    |
-| `lte`                      | 2     | Less or equal                                                           |
-| `and`                      | 0+    | `true` when every argument is truthy; **no arguments → `true`**         |
-| `or`                       | 0+    | `true` when any argument is truthy; **no arguments → `false`**          |
-| `not`                      | 1+    | Negates the first argument; **no arguments → error**                    |
-| `empty`                    | 1+    | `true` when the first argument is empty                                 |
-| `coalesce`                 | 0+    | First non-empty argument, else `null`                                   |
-| `add`, `sub`, `mul`, `div` | 2     | Arithmetic; either operand empty → `null`; a non-finite result → `null` |
+| Operator                   | Arity | Semantics                                                                                      |
+| -------------------------- | ----- | ---------------------------------------------------------------------------------------------- |
+| `eq`                       | 2     | Equal                                                                                          |
+| `neq`                      | 2     | Not equal                                                                                      |
+| `gt`                       | 2     | Greater                                                                                        |
+| `gte`                      | 2     | Greater or equal                                                                               |
+| `lt`                       | 2     | Less                                                                                           |
+| `lte`                      | 2     | Less or equal                                                                                  |
+| `and`                      | 0+    | `true` when every argument is truthy; **no arguments → `true`**                                |
+| `or`                       | 0+    | `true` when any argument is truthy; **no arguments → `false`**                                 |
+| `not`                      | 1+    | Negates the first argument; **no arguments → error**                                           |
+| `empty`                    | 1+    | `true` when the first argument is empty                                                        |
+| `coalesce`                 | 0+    | First non-empty argument, else `null`                                                          |
+| `add`, `sub`, `mul`, `div` | 2     | Arithmetic; either operand empty → `null`; a non-finite result → `null`                        |
+| `count`                    | 1     | Row count of a repeater: `{"op":"count","args":[{"ref":"rep"}]}`                               |
+| `sum`                      | 2     | Sum of a child across a repeater's rows: `{"op":"sum","args":[{"ref":"rep"},{"ref":"child"}]}` |
+
+A `calculate` on a repeater child evaluates once per row, in a scope holding
+that row over the outer values; each result is written back into its row, so a
+later calculation or aggregate observes computed values. `calculatedValues` for
+the child holds an array, one entry per row, and a plain reference to the child
+observes that array. `count` returns how many rows a repeater has (0 with none);
+`sum` adds a child across the rows as numbers, treating a missing or non-numeric
+child as 0, and is `null` with no rows. Per-row `visibility`, `enabled`,
+`required` and validations, index addressing, and other aggregates are out of
+scope.
 
 Operands beyond the second are evaluated and then ignored, so the binary
 operators take **at least** two arguments rather than exactly two. Arithmetic

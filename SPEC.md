@@ -31,7 +31,7 @@ satisfied when no `decided` requirement remains unresolved.
 | C     | Wire contract and the ABI       | 9      | 0         | 0          |
 | E     | The six operations              | 9      | 0         | 0          |
 | D     | Documents, fields, id and code  | 3      | 0         | 0          |
-| R     | Rules and the dependency check  | 6      | 2         | 0          |
+| R     | Rules and the dependency check  | 9      | 0         | 0          |
 | V     | Response validation             | 6      | 1         | 0          |
 | S     | JSON Schema subset              | 7      | 0         | 0          |
 | H     | Canonical form and hashing      | 3      | 2         | 0          |
@@ -131,16 +131,26 @@ behaviour, not shape.
   reference fields that exist only after component expansion.
 - **R-6** `live`. The dependency check runs in every entry point, rather than only
   in `colander_validate_schema` with `kind:"form"`.
-- **R-7** `decided`. Repeater row scope. A `calculate` on a repeater child
-  evaluates once per row, in row scope: the row's own child codes resolve to that
-  row, and fields outside the repeater resolve normally. The repeater's own code
-  resolves to its row count. `calculatedValues` for a repeater child is keyed by
-  code and holds an array, one entry per row. The aggregate surface is
-  `count(code)` and `sum(code, childCode)`.
-- **R-8** `decided`. Explicitly out of scope for row scope v1: per-row
-  `visibility`/`enabled`/`required`, per-row validations with row-scoped paths,
-  index addressing such as `items[0].price`, and the aggregates `min`, `max`,
-  `every` and `some`.
+- **R-7** `live`. Repeater row scope. A `calculate` on a repeater child with rows
+  evaluates once per row, in a scope holding that row over the outer values; the
+  row's own child codes resolve to that row, and fields outside resolve normally.
+  Each result is written back into its row, so a later calculation or aggregate
+  observes computed values. `calculatedValues` for the child is keyed by code and
+  holds an array, one entry per row, and the same array replaces the flattened
+  value in the working set. The aggregate surface is `count(code)` and
+  `sum(code, childCode)`: `count` returns how many rows a repeater has, falling
+  back to the caller's count when it is a number and to 0 otherwise; `sum` adds
+  a child across the rows as numbers, treating a missing or non-numeric child as
+  0, and is `null` with no rows.
+- **R-7a** `live`. Row data reaches the evaluator alongside the flat values, not
+  inside them. `colander_validate_response` builds rows from the submitted
+  answers; `colander_evaluate_rules` reads a `List` under a repeater code as that
+  repeater's rows (a number stays a row count, with no per-row calculation).
+  Either way the observable R-7 is identical.
+- **R-8** `live`. Explicitly out of scope for row scope v1, and none of it
+  exists: per-row `visibility`/`enabled`/`required`, per-row validations with
+  row-scoped paths, index addressing such as `items[0].price`, and the aggregates
+  `min`, `max`, `every` and `some`.
 
 ## V — Response validation
 

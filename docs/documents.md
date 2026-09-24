@@ -193,7 +193,9 @@ children's codes.
    schema.
 2. Calculations run in topological dependency order. Each result is written to
    `calculatedValues[code]` **and** into the working value set, so later
-   calculations and all predicates observe it.
+   calculations and all predicates observe it. A `calculate` on a repeater child
+   with rows runs once per row instead, and its array replaces the flattened
+   value everywhere downstream (SPEC R-7).
 3. `visibleWhen`, `enabledWhen` and `requiredWhen` override the baseline,
    reading the values from step 2.
 4. Cross-field validations run last.

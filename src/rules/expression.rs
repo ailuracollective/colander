@@ -5,9 +5,14 @@ use indexmap::IndexMap;
 use crate::error::{ColanderError, Result};
 use crate::json::{self, Json};
 
+use super::rows::RowSet;
 use super::value::Val;
 
-pub fn evaluate_expression(node: &Json, values: &IndexMap<String, Val>) -> Result<Val> {
+pub fn evaluate_expression(
+    node: &Json,
+    values: &IndexMap<String, Val>,
+    rows: &RowSet,
+) -> Result<Val> {
     let Some(object) = node.as_object() else {
         return Err(ColanderError::new("Invalid expression node."));
     };
@@ -29,7 +34,7 @@ pub fn evaluate_expression(node: &Json, values: &IndexMap<String, Val>) -> Resul
 
     match op {
         "eq" | "neq" | "gt" | "gte" | "lt" | "lte" => {
-            let (left, right) = binary_args(op, args, values)?;
+            let (left, right) = binary_args(op, args, values, rows)?;
             let ordering = compare_values(&left, &right)?;
             Ok(Val::Bool(match op {
                 "eq" => ordering == std::cmp::Ordering::Equal,
@@ -42,7 +47,7 @@ pub fn evaluate_expression(node: &Json, values: &IndexMap<String, Val>) -> Resul
         }
         "and" => {
             for arg in args {
-                if !evaluate_expression(arg, values)?.to_bool() {
+                if !evaluate_expression(arg, values, rows)?.to_bool() {
                     return Ok(Val::Bool(false));
                 }
             }
@@ -50,7 +55,7 @@ pub fn evaluate_expression(node: &Json, values: &IndexMap<String, Val>) -> Resul
         }
         "or" => {
             for arg in args {
-                if evaluate_expression(arg, values)?.to_bool() {
+                if evaluate_expression(arg, values, rows)?.to_bool() {
                     return Ok(Val::Bool(true));
                 }
             }
@@ -58,15 +63,19 @@ pub fn evaluate_expression(node: &Json, values: &IndexMap<String, Val>) -> Resul
         }
         "not" => {
             let first = nth_arg(op, args, 0)?;
-            Ok(Val::Bool(!evaluate_expression(first, values)?.to_bool()))
+            Ok(Val::Bool(
+                !evaluate_expression(first, values, rows)?.to_bool(),
+            ))
         }
         "empty" => {
             let first = nth_arg(op, args, 0)?;
-            Ok(Val::Bool(evaluate_expression(first, values)?.is_empty()))
+            Ok(Val::Bool(
+                evaluate_expression(first, values, rows)?.is_empty(),
+            ))
         }
         "coalesce" => {
             for arg in args {
-                let value = evaluate_expression(arg, values)?;
+                let value = evaluate_expression(arg, values, rows)?;
                 if !value.is_empty() {
                     return Ok(value);
                 }
@@ -74,7 +83,7 @@ pub fn evaluate_expression(node: &Json, values: &IndexMap<String, Val>) -> Resul
             Ok(Val::Null)
         }
         "add" | "sub" | "mul" | "div" => {
-            let (left, right) = binary_args(op, args, values)?;
+            let (left, right) = binary_args(op, args, values, rows)?;
             if left.is_empty() || right.is_empty() {
                 return Ok(Val::Null);
             }
@@ -92,9 +101,68 @@ pub fn evaluate_expression(node: &Json, values: &IndexMap<String, Val>) -> Resul
                 Val::Null
             })
         }
+        // R-7: aggregates over a repeater's rows. Both take field references,
+        // so the analyzer collects them like any other `ref`.
+        "count" => {
+            let target = nth_arg(op, args, 0)?;
+            let code = ref_code(target, op)?;
+            Ok(Val::Int(row_count(values, rows, code) as i64))
+        }
+        "sum" => {
+            let repeater = nth_arg(op, args, 0)?;
+            let child = nth_arg(op, args, 1)?;
+            let repeater_code = ref_code(repeater, op)?;
+            let child_code = ref_code(child, op)?;
+            Ok(sum_child(rows, repeater_code, child_code))
+        }
         _ => Err(ColanderError::new(format!(
             "Unsupported expression operator '{op}'."
         ))),
+    }
+}
+
+/// The field code a `count`/`sum` argument must name. Aggregates address fields
+/// by reference, never by literal, so a non-reference argument is an error.
+fn ref_code<'a>(node: &'a Json, op: &str) -> Result<&'a str> {
+    node.as_object()
+        .and_then(|object| json::get_str(object, "ref"))
+        .filter(|code| !code.is_empty())
+        .ok_or_else(|| ColanderError::new(format!("Expression '{op}' expects a field reference.")))
+}
+
+/// How many rows a repeater has: the row set when it carries rows, otherwise
+/// the caller's count when it is a number, otherwise zero.
+fn row_count(values: &IndexMap<String, Val>, rows: &RowSet, code: &str) -> usize {
+    if let Some(row_list) = rows.rows(code) {
+        return row_list.len();
+    }
+    if let Some(Val::Int(count)) = values.get(code) {
+        return (*count).max(0) as usize;
+    }
+    0
+}
+
+/// The sum of a child code across a repeater's rows. A missing or non-numeric
+/// child contributes zero; with no rows there is no sum. The result is always
+/// a `Double`, which the number writer spells exactly like an integer when the
+/// value is one.
+fn sum_child(rows: &RowSet, repeater_code: &str, child_code: &str) -> Val {
+    let Some(row_list) = rows.rows(repeater_code) else {
+        return Val::Null;
+    };
+    if row_list.is_empty() {
+        return Val::Null;
+    }
+    let mut total = 0.0;
+    for row in row_list {
+        if let Some(value) = row.get(child_code) {
+            total += value.to_double().unwrap_or(0.0);
+        }
+    }
+    if total.is_finite() {
+        Val::Double(total)
+    } else {
+        Val::Null
     }
 }
 
@@ -107,9 +175,14 @@ fn nth_arg<'a>(op: &str, args: &'a [Json], position: usize) -> Result<&'a Json> 
     })
 }
 
-fn binary_args(op: &str, args: &[Json], values: &IndexMap<String, Val>) -> Result<(Val, Val)> {
-    let left = evaluate_expression(nth_arg(op, args, 0)?, values)?;
-    let right = evaluate_expression(nth_arg(op, args, 1)?, values)?;
+fn binary_args(
+    op: &str,
+    args: &[Json],
+    values: &IndexMap<String, Val>,
+    rows: &RowSet,
+) -> Result<(Val, Val)> {
+    let left = evaluate_expression(nth_arg(op, args, 0)?, values, rows)?;
+    let right = evaluate_expression(nth_arg(op, args, 1)?, values, rows)?;
     Ok((left, right))
 }
 

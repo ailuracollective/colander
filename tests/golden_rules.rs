@@ -91,7 +91,13 @@ fn golden_rules() {
             }
         }
 
-        let actual = rules::evaluate(&form_root, &rules_root, &values, ui_text.as_deref());
+        let actual = rules::evaluate(
+            &form_root,
+            &rules_root,
+            &values,
+            ui_text.as_deref(),
+            &mut rules::RowSet::empty(),
+        );
         let Some(actual) = report.expect(name, recorded_error(entry).as_deref(), actual) else {
             continue;
         };

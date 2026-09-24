@@ -15,7 +15,7 @@ fn eval(expression: &str, values: &[(&str, Val)]) -> Result<Val> {
     for (key, value) in values {
         map.insert((*key).to_string(), value.clone());
     }
-    evaluate_expression(&node, &map)
+    evaluate_expression(&node, &map, &RowSet::empty())
 }
 
 #[test]
@@ -121,7 +121,7 @@ fn evaluate_rejects_a_duplicate_field_code() {
         r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{}}"#,
         "rules schema",
     );
-    let error = evaluate(&form, &rules, &IndexMap::new(), None).unwrap_err();
+    let error = evaluate(&form, &rules, &IndexMap::new(), None, &mut RowSet::empty()).unwrap_err();
     assert!(
         error.message.starts_with("An item with the same key"),
         "{error}"
@@ -140,7 +140,7 @@ fn evaluate_rejects_a_dependency_error() {
              "tgt":{"visibleWhen":{"op":"eq","args":[{"ref":"ghost"},{"lit":1}]}}}}"#,
         "rules schema",
     );
-    let error = evaluate(&form, &rules, &IndexMap::new(), None).unwrap_err();
+    let error = evaluate(&form, &rules, &IndexMap::new(), None, &mut RowSet::empty()).unwrap_err();
     assert!(
         error.message.starts_with("RULE_UNKNOWN_FIELD_REF"),
         "{error}"
@@ -163,6 +163,108 @@ fn detects_cycles() {
     );
     let error = validate_dependencies(&form, &rules).unwrap_err();
     assert!(error.message.contains("RULE_CYCLIC_DEPENDENCY"));
+}
+
+fn repeater_form() -> JsonMap {
+    root(
+        r#"{"schemaVersion":"1.0.0","fields":[
+             {"id":"lines","code":"lines","type":"repeater","items":[
+               {"id":"qty","code":"qty","type":"integer"},
+               {"id":"price","code":"price","type":"number"},
+               {"id":"total","code":"total","type":"number","readOnly":true}]},
+             {"id":"grand","code":"grand","type":"number","readOnly":true},
+             {"id":"nlines","code":"nlines","type":"integer","readOnly":true}]}"#,
+        "form schema",
+    )
+}
+
+fn repeater_rules() -> JsonMap {
+    root(
+        r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{
+             "total":{"calculate":{"op":"mul","args":[{"ref":"qty"},{"ref":"price"}]}},
+             "grand":{"calculate":{"op":"sum","args":[{"ref":"lines"},{"ref":"total"}]}},
+             "nlines":{"calculate":{"op":"count","args":[{"ref":"lines"}]}}}}"#,
+        "rules schema",
+    )
+}
+
+// R-7: a calculated repeater child evaluates once per row, and the array
+// replaces the flattened value everywhere downstream.
+#[test]
+fn calculates_repeater_children_per_row() {
+    let form = repeater_form();
+    let rules = repeater_rules();
+    let answers = root(
+        r#"{"lines":[{"qty":2,"price":10},{"qty":3,"price":5}]}"#,
+        "answers",
+    );
+    let mut rows = RowSet::from_answers(&form, &answers);
+    // The flattened map a caller would supply alongside: the count and the
+    // last surviving row. Per-row calculation must override it, not read it.
+    let mut values = IndexMap::new();
+    values.insert("lines".to_string(), Val::Int(2));
+    values.insert("qty".to_string(), Val::Int(3));
+    values.insert("price".to_string(), Val::Double(5.0));
+
+    let result = evaluate(&form, &rules, &values, None, &mut rows).unwrap();
+    assert_eq!(
+        result.calculated_values.get("total"),
+        Some(&Val::List(vec![Val::Double(20.0), Val::Double(15.0)]))
+    );
+    assert_eq!(
+        result.calculated_values.get("grand"),
+        Some(&Val::Double(35.0))
+    );
+    assert_eq!(
+        result.calculated_values.get("nlines"),
+        Some(&Val::Double(2.0))
+    );
+}
+
+// R-7a: a `List` under a repeater code carries that repeater's rows, which is
+// how the FFI path supplies them.
+#[test]
+fn interprets_a_list_under_a_repeater_code_as_rows() {
+    let form = repeater_form();
+    let rules = repeater_rules();
+    let mut values = IndexMap::new();
+    values.insert(
+        "lines".to_string(),
+        Val::List(vec![
+            Val::Raw(r#"{"qty":2,"price":10}"#.to_string()),
+            Val::Raw(r#"{"qty":3,"price":5}"#.to_string()),
+        ]),
+    );
+    let mut rows = RowSet::from_values(&form, &values);
+
+    let result = evaluate(&form, &rules, &values, None, &mut rows).unwrap();
+    assert_eq!(
+        result.calculated_values.get("total"),
+        Some(&Val::List(vec![Val::Double(20.0), Val::Double(15.0)]))
+    );
+    assert_eq!(
+        result.calculated_values.get("grand"),
+        Some(&Val::Double(35.0))
+    );
+}
+
+// R-7: with no rows there is nothing to calculate per row, so the child falls
+// back to the scalar path like any calculation with missing inputs, and the
+// result is null. `count` is 0 and `sum` is null.
+#[test]
+fn empty_rows_calculate_nothing() {
+    let form = repeater_form();
+    let rules = repeater_rules();
+    let answers = root(r#"{}"#, "answers");
+    let mut rows = RowSet::from_answers(&form, &answers);
+
+    let result = evaluate(&form, &rules, &IndexMap::new(), None, &mut rows).unwrap();
+    assert_eq!(result.calculated_values.get("total"), Some(&Val::Null));
+    assert_eq!(result.calculated_values.get("grand"), Some(&Val::Null));
+    assert_eq!(
+        result.calculated_values.get("nlines"),
+        Some(&Val::Double(0.0))
+    );
 }
 
 // R-4: a `validations` entry with no `assert` is rejected, with or without `when`.

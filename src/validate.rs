@@ -16,7 +16,7 @@ use crate::error::Result;
 use crate::index::{self, AnswerFieldDefinition};
 use crate::json::{self};
 use crate::keys::field_type_names;
-use crate::rules::Val;
+use crate::rules::{RowSet, Val};
 
 use calculated::{apply_calculated_fields, evaluate_rules, flatten_for_rules};
 use fields::{validate_known_top_level_keys, validate_scalar_field};
@@ -44,7 +44,14 @@ pub fn validate(
     validate_known_top_level_keys(&answers, &fields_by_code, &mut errors);
 
     let rule_values = flatten_for_rules(&answers, &fields_by_code);
-    let evaluation = evaluate_rules(&form_root, rules_schema_json, ui_schema_json, &rule_values)?;
+    let mut rowset = RowSet::from_answers(&form_root, &answers);
+    let evaluation = evaluate_rules(
+        &form_root,
+        rules_schema_json,
+        ui_schema_json,
+        &rule_values,
+        &mut rowset,
+    )?;
 
     let mut normalized: IndexMap<String, Val> = IndexMap::new();
 
