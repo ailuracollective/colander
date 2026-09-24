@@ -309,6 +309,24 @@ fn validate_schema_rejects_a_wrong_typed_optional_key() {
     );
 }
 
+// C-9: a present `schemas` must be an object in every kind, `instance` included.
+#[test]
+fn instance_rejects_a_wrong_typed_schemas() {
+    assert_validation_failure(
+        colander_validate_schema,
+        r#"{"kind":"instance","schemaJson":"{}","instanceJson":"{}","schemas":3}"#,
+    );
+    // A request with no `schemas` at all still validates.
+    let envelope = call(
+        colander_validate_schema,
+        r#"{"kind":"instance","schemaJson":"{}","instanceJson":"{}"}"#,
+    );
+    assert_eq!(
+        json::get_bool(envelope.as_object().unwrap(), "ok"),
+        Some(true)
+    );
+}
+
 #[test]
 fn workflow_retires_published() {
     // `published` was accepted and read by nothing; it is not accepted now (SPEC X-2).

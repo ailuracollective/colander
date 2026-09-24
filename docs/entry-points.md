@@ -291,7 +291,8 @@ needs, and each one is required for the kinds actually validated.
 
 `"instance"` is the domain-free entry point: it validates any instance against
 any schema, and `label` (default `"instance"`) only names the document in error
-messages.
+messages. A `schemas` key that is present but not an object is rejected in every
+kind, including `"instance"`, which takes no schemas entry from it (SPEC C-9).
 
 For `"form"`, a rules schema that passes structural validation is also checked
 with [`validate_dependencies`](rules.md).

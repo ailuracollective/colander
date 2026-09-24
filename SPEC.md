@@ -28,7 +28,7 @@ satisfied when no `decided` requirement remains unresolved.
 
 | Group | Subject                         | `live` | `decided` | `proposed` |
 | ----- | ------------------------------- | ------ | --------- | ---------- |
-| C     | Wire contract and the ABI       | 6      | 3         | 0          |
+| C     | Wire contract and the ABI       | 7      | 2         | 0          |
 | E     | The six operations              | 7      | 2         | 0          |
 | D     | Documents, fields, id and code  | 3      | 0         | 0          |
 | R     | Rules and the dependency check  | 6      | 2         | 0          |
@@ -70,9 +70,8 @@ together. The ten groups hold 59 requirements: 44 `live`, 15 `decided` and 0
   top-level key: a `components[]` entry's `uiSchemaJson` or `contentHash` with the
   wrong type is rejected, so `{"contentHash": 7}` fails instead of compiling with
   an empty hash.
-- **C-9** `decided`. When `schemas` is present it must be an object, for every
-  `kind`, `instance` included. Today a wrong-typed `schemas` is ignored for
-  `kind:"instance"`.
+- **C-9** `live`. When `schemas` is present it must be an object, for every
+  `kind`, `instance` included.
 
 ## E — The six operations
 

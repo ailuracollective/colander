@@ -66,6 +66,15 @@ pub unsafe extern "C" fn colander_validate_schema(request: *const c_char) -> *mu
                     let instance_json = require_string(request, "instanceJson")?;
                     let label = optional_string(request, "label")?
                         .unwrap_or_else(|| "instance".to_string());
+                    // C-9: a present `schemas` must be an object in every kind,
+                    // even though `instance` takes no schemas entry from it.
+                    if let Some(schemas) = json::get(request, "schemas")
+                        && schemas.as_object().is_none()
+                    {
+                        return Err(ColanderError::new(
+                            "schemas must be an object when present.",
+                        ));
+                    }
                     schema::validate_text(&schema_json, &instance_json, &label)?;
                 }
                 other => {
