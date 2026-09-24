@@ -66,7 +66,7 @@ together. The ten groups hold 59 requirements: 44 `live`, 15 `decided` and 0
 - **C-7** `live`. No panic reaches the caller, including the final envelope
   serialization: the encode runs inside the boundary, and a panic there returns
   a static literal instead of unwinding.
-- **C-8** `decided`. C-6 reaches a key of an object the request carries, not only a
+- **C-8** `live`. C-6 reaches a key of an object the request carries, not only a
   top-level key: a `components[]` entry's `uiSchemaJson` or `contentHash` with the
   wrong type is rejected, so `{"contentHash": 7}` fails instead of compiling with
   an empty hash.
