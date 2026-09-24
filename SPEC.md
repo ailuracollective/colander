@@ -29,14 +29,14 @@ no `decided` requirement remains unresolved.
 | D     | Documents, fields, id and code  | 4      | 0         | 0          |
 | R     | Rules and the dependency check  | 17     | 0         | 0          |
 | V     | Response validation             | 10     | 1         | 0          |
-| S     | JSON Schema subset              | 10     | 0         | 0          |
+| S     | JSON Schema subset              | 12     | 0         | 0          |
 | H     | Key-sorted form and hashing     | 5      | 0         | 0          |
 | P     | Compilation, components, semver | 11     | 0         | 0          |
 | X     | Retirements and reversals       | 2      | 1         | 0          |
 | F     | The frozen vectors              | 1      | 0         | 0          |
 
 The counts are derived from the markers below, so move a marker and its count
-together. The ten groups hold 82 requirements: 80 `live`, 2 `decided`, 0 `proposed`.
+together. The ten groups hold 84 requirements: 82 `live`, 2 `decided`, 0 `proposed`.
 
 ## C — Wire contract and the ABI
 
@@ -298,6 +298,20 @@ behaviour, not shape.
   process nor depend on the instance that would drive it. Reaching one `$defs`
   entry from two independent positions is a shared reference, not a cycle, and
   keeps validating.
+- **S-11** `live`. Schema evaluation has a deterministic per-call budget of
+  `10_000 + 20 * instance_nodes` steps, charging one unit at every `check_into`
+  invocation. Exhaustion stops evaluation and reports the stable
+  `SCHEMA_EVALUATION_LIMIT` error. Error collection is separately capped at
+  1,000 entries, and rendered output states when the list is truncated. Neither
+  bound depends on wall-clock time or runtime-specific iteration.
+- **S-12** `live`. Schema nesting is bounded independently of the step budget,
+  at 512 levels, during both classification and instance evaluation; exceeding
+  it reports the stable `SCHEMA_DEPTH_LIMIT` error. A step budget cannot
+  substitute for this bound: recursion depth is at most the step count, so a
+  budget sized for a large instance also admits a `$ref` chain deep enough to
+  exhaust the stack, and a stack overflow aborts the process rather than
+  returning an error. A chain of distinct references is not a cycle and stays
+  legal up to that depth.
 
 ## H — Canonical form and hashing
 

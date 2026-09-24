@@ -20,6 +20,8 @@ use crate::error::{ColanderError, Result};
 use crate::json::{self, Json};
 use crate::rules;
 
+use check::Stop;
+
 mod check;
 mod classify;
 mod format;
@@ -99,12 +101,86 @@ pub fn validate_json(schema: &Json, json_text: &str, label: &str) -> Result<()> 
 /// At most this many assertion failures are rendered (SPEC S-7).
 const MAX_REPORTED_ERRORS: usize = 5;
 
+/// Evaluation errors are capped while they are collected, separately from the
+/// rendering cap. A combinator such as `allOf` can produce millions of failures
+/// before `format_errors` gets a chance to render only five of them.
+pub(super) const MAX_COLLECTED_ERRORS: usize = 1000;
+
+/// Keep the limit text independent of the size-derived budget. The budget is
+/// deterministic, but omitting its value makes this control-plane error a stable
+/// byte sequence on every runtime and leaves sizing changes out of the contract.
+pub(super) const SCHEMA_EVALUATION_LIMIT_MESSAGE: &str =
+    "SCHEMA_EVALUATION_LIMIT: schema evaluation exceeded the step budget";
+
+/// The nesting bound reports its own cause: a caller debugging a deep `$ref`
+/// chain needs to know the recursion stopped, not that the work ran out.
+pub(super) const SCHEMA_DEPTH_LIMIT_MESSAGE: &str =
+    "SCHEMA_DEPTH_LIMIT: schema evaluation exceeded the nesting depth";
+
+/// The deepest chain of nested schema nodes one evaluation may enter, through
+/// keywords or through `$ref` targets.
+///
+/// A step budget alone cannot bound this: recursion depth is at most the step
+/// count, so a budget sized for a big instance also admits a `$ref` chain deep
+/// enough to exhaust the native stack, and a stack overflow aborts the process
+/// — the very failure the budget exists to prevent. The parser already caps
+/// JSON nesting at 64, so a schema only gets past that through `$ref` chains;
+/// 512 leaves an 8x margin over the parser's own limit and sits an order of
+/// magnitude below the measured overflow cliff (between 5 000 and 10 000 frames
+/// on the default 8 MiB stack). Classification and instance evaluation share
+/// it, so one number describes how deep a schema may be.
+pub(super) const MAX_SCHEMA_DEPTH: usize = 512;
+
+/// The evaluation-only error sink. Its `push` method is the collection boundary;
+/// callers still receive the ordinary `Vec<SchemaError>` from public `check`.
+#[derive(Default)]
+pub(super) struct ErrorSink {
+    errors: Vec<SchemaError>,
+}
+
+impl ErrorSink {
+    pub(super) fn push(&mut self, error: SchemaError) {
+        if self.errors.len() < MAX_COLLECTED_ERRORS {
+            self.errors.push(error);
+        }
+    }
+
+    /// Keep a control failure visible even when ordinary failures have already
+    /// filled the collection cap. The final slot is reserved for it, preserving
+    /// both the hard bound and the fail-closed result.
+    pub(super) fn push_stop(&mut self, stop: Stop) {
+        let error = SchemaError {
+            keyword: "schema".to_string(),
+            message: stop.message().to_string(),
+        };
+        self.errors.truncate(MAX_COLLECTED_ERRORS - 1);
+        self.errors.push(error);
+    }
+
+    pub(super) fn is_empty(&self) -> bool {
+        self.errors.is_empty()
+    }
+
+    pub(super) fn into_vec(self) -> Vec<SchemaError> {
+        self.errors
+    }
+}
+
 fn format_errors(errors: &[SchemaError]) -> String {
-    let messages: Vec<String> = errors
-        .iter()
-        .take(MAX_REPORTED_ERRORS)
-        .map(|error| format!("{}: {}", error.keyword, error.message))
-        .collect();
+    // The control failure must stay visible even when ordinary errors filled
+    // the collection cap and the limit occupies the last retained slot.
+    let is_limit = |error: &SchemaError| error.message == SCHEMA_EVALUATION_LIMIT_MESSAGE;
+    let limit = errors.iter().find(|error| is_limit(error));
+    let mut messages: Vec<String> = Vec::with_capacity(MAX_REPORTED_ERRORS);
+    if let Some(error) = limit {
+        messages.push(format!("{}: {}", error.keyword, error.message));
+    }
+    for error in errors.iter().filter(|error| !is_limit(error)) {
+        if messages.len() == MAX_REPORTED_ERRORS {
+            break;
+        }
+        messages.push(format!("{}: {}", error.keyword, error.message));
+    }
     if messages.is_empty() {
         return "schema validation failed".to_string();
     }

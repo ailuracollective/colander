@@ -8,7 +8,78 @@ use super::keywords::{
 };
 use super::model::SchemaError;
 
+use super::ErrorSink;
 use super::keywords::check_type;
+
+/// Deterministic work available to one top-level schema evaluation.
+///
+/// One unit is charged at every `check_into` entry, including boolean schemas
+/// and probes made by combinators. The instance-size term leaves legitimate
+/// work room while keeping a small instance from buying exponential work.
+/// `depth` is the live recursion depth, bounded separately by
+/// [`MAX_SCHEMA_DEPTH`](super::MAX_SCHEMA_DEPTH): a step budget cannot bound
+/// recursion, because depth is at most the step count.
+pub(super) struct EvalBudget {
+    remaining: usize,
+    depth: usize,
+}
+
+impl EvalBudget {
+    pub(super) fn for_instance(instance: &Json) -> Self {
+        Self {
+            remaining: 10_000 + 20 * instance_node_count(instance),
+            depth: 0,
+        }
+    }
+
+    /// Why an evaluation stopped, so the caller reports the real cause.
+    pub(super) fn consume(&mut self) -> Result<(), Stop> {
+        if self.depth >= super::MAX_SCHEMA_DEPTH {
+            return Err(Stop::Depth);
+        }
+        if self.remaining == 0 {
+            return Err(Stop::Steps);
+        }
+        self.remaining -= 1;
+        self.depth += 1;
+        Ok(())
+    }
+
+    /// Leave one nesting level. Paired with every [`Self::consume`] that
+    /// returned `Ok`, including on the early returns that stop evaluation.
+    pub(super) fn leave(&mut self) {
+        self.depth -= 1;
+    }
+}
+
+/// The bounded outcome of one evaluation step.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(crate) enum Stop {
+    /// The step budget ran out.
+    Steps,
+    /// The nesting limit was reached.
+    Depth,
+}
+
+impl Stop {
+    /// The control-plane message, kept stable so every runtime and the
+    /// conformance corpus can pin it byte for byte.
+    pub(crate) fn message(self) -> &'static str {
+        match self {
+            Stop::Steps => super::SCHEMA_EVALUATION_LIMIT_MESSAGE,
+            Stop::Depth => super::SCHEMA_DEPTH_LIMIT_MESSAGE,
+        }
+    }
+}
+
+fn instance_node_count(instance: &Json) -> usize {
+    let descendants = match instance {
+        Json::Array(items) => items.iter().map(instance_node_count).sum(),
+        Json::Object(map) => map.values().map(instance_node_count).sum(),
+        Json::Null | Json::Bool(_) | Json::Number(_) | Json::String(_) => 0,
+    };
+    1 + descendants
+}
 
 /// Evaluate `instance` against `schema`. `root` anchors local `$ref`s.
 ///
@@ -24,26 +95,53 @@ pub fn check(schema: &Json, instance: &Json, root: &Json) -> Vec<SchemaError> {
     if !errors.is_empty() {
         return errors;
     }
-    let mut errors = errors;
-    check_into(schema, instance, root, &mut errors);
-    errors
+    let mut errors = ErrorSink::default();
+    let mut budget = EvalBudget::for_instance(instance);
+    check_into(schema, instance, root, &mut budget, &mut errors);
+    errors.into_vec()
 }
 
 /// Instance evaluation alone, without re-classifying the schema. Internal
 /// combinator probes use this so a multi-branch schema is classified once,
-/// when `check` runs.
-pub(super) fn evaluate(schema: &Json, instance: &Json, root: &Json) -> Vec<SchemaError> {
-    let mut errors = Vec::new();
-    check_into(schema, instance, root, &mut errors);
-    errors
+/// when `check` runs. The flag reports a shared-budget failure so the caller
+/// can propagate it instead of treating the probe as an ordinary mismatch.
+pub(super) fn evaluate(
+    schema: &Json,
+    instance: &Json,
+    root: &Json,
+    budget: &mut EvalBudget,
+) -> (ErrorSink, Option<Stop>) {
+    let mut errors = ErrorSink::default();
+    let stop = check_into(schema, instance, root, budget, &mut errors);
+    (errors, stop)
 }
 
+/// Evaluate one schema node. Returns the reason evaluation stopped, or `None`
+/// when this subtree finished. The nesting level is released on every exit
+/// path, including the early returns, by keeping the body in `check_node`.
 pub(super) fn check_into(
     schema: &Json,
     instance: &Json,
     root: &Json,
-    errors: &mut Vec<SchemaError>,
-) {
+    budget: &mut EvalBudget,
+    errors: &mut ErrorSink,
+) -> Option<Stop> {
+    if let Err(stop) = budget.consume() {
+        errors.push_stop(stop);
+        return Some(stop);
+    }
+    let stop = check_node(schema, instance, root, budget, errors);
+    budget.leave();
+    stop
+}
+
+fn check_node(
+    schema: &Json,
+    instance: &Json,
+    root: &Json,
+    budget: &mut EvalBudget,
+    errors: &mut ErrorSink,
+) -> Option<Stop> {
     let Json::Object(schema) = schema else {
         // Boolean schemas are legal in 2020-12.
         if matches!(schema, Json::Bool(false)) {
@@ -52,12 +150,17 @@ pub(super) fn check_into(
                 message: "no value is valid against this schema".to_string(),
             });
         }
-        return;
+        return None;
     };
 
     if let Some(reference) = json::get_str(schema, "$ref") {
         match resolve_ref(reference, root) {
-            Some(target) => check_into(target, instance, root, errors),
+            Some(target) => {
+                // A reference's siblings still run after its target (S-1).
+                if let Some(stop) = check_into(target, instance, root, budget, errors) {
+                    return Some(stop);
+                }
+            }
             None => errors.push(SchemaError {
                 keyword: "$ref".to_string(),
                 message: format!("cannot resolve reference '{reference}'"),
@@ -67,11 +170,18 @@ pub(super) fn check_into(
 
     check_type(schema, instance, errors);
     check_enum_and_const(schema, instance, errors);
-    check_combinators(schema, instance, root, errors);
-    check_object_keywords(schema, instance, root, errors);
-    check_array_keywords(schema, instance, root, errors);
+    if let Some(stop) = check_combinators(schema, instance, root, budget, errors) {
+        return Some(stop);
+    }
+    if let Some(stop) = check_object_keywords(schema, instance, root, budget, errors) {
+        return Some(stop);
+    }
+    if let Some(stop) = check_array_keywords(schema, instance, root, budget, errors) {
+        return Some(stop);
+    }
     check_string_keywords(schema, instance, errors);
     check_numeric_keywords(schema, instance, errors);
+    None
 }
 
 pub(super) fn resolve_ref<'a>(reference: &str, root: &'a Json) -> Option<&'a Json> {

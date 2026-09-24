@@ -2,8 +2,12 @@
 
 use crate::json::{self, Json, JsonMap};
 
-use super::check::{check_into, evaluate, value_equal, value_hash};
+use super::ErrorSink;
+use super::check::{EvalBudget, Stop, check_into, value_equal, value_hash};
 use super::model::SchemaError;
+
+mod combinators;
+pub(crate) use combinators::check_combinators;
 
 /// The closed set of `type` names. The structural classifier rejects anything
 /// else as a schema error, so a typo can never become an assertion that every
@@ -41,7 +45,7 @@ pub(super) fn matches_type(expected: &str, instance: &Json) -> bool {
     }
 }
 
-pub(super) fn check_type(schema: &JsonMap, instance: &Json, errors: &mut Vec<SchemaError>) {
+pub(super) fn check_type(schema: &JsonMap, instance: &Json, errors: &mut ErrorSink) {
     let Some(expected) = json::get(schema, "type") else {
         return;
     };
@@ -79,11 +83,7 @@ pub(super) fn describe_types(expected: &Json) -> String {
     }
 }
 
-pub(super) fn check_enum_and_const(
-    schema: &JsonMap,
-    instance: &Json,
-    errors: &mut Vec<SchemaError>,
-) {
+pub(super) fn check_enum_and_const(schema: &JsonMap, instance: &Json, errors: &mut ErrorSink) {
     if let Some(allowed) = json::get_array(schema, "enum")
         && !allowed.iter().any(|item| value_equal(item, instance))
     {
@@ -103,79 +103,24 @@ pub(super) fn check_enum_and_const(
     }
 }
 
-pub(super) fn check_combinators(
-    schema: &JsonMap,
-    instance: &Json,
-    root: &Json,
-    errors: &mut Vec<SchemaError>,
-) {
-    if let Some(all_of) = json::get_array(schema, "allOf") {
-        for sub_schema in all_of {
-            check_into(sub_schema, instance, root, errors);
-        }
-    }
-
-    if let Some(any_of) = json::get_array(schema, "anyOf")
-        && !any_of
-            .iter()
-            .any(|sub| evaluate(sub, instance, root).is_empty())
-    {
-        errors.push(SchemaError {
-            keyword: "anyOf".to_string(),
-            message: "value does not match any of the listed schemas".to_string(),
-        });
-    }
-
-    if let Some(one_of) = json::get_array(schema, "oneOf") {
-        let matches = one_of
-            .iter()
-            .filter(|sub| evaluate(sub, instance, root).is_empty())
-            .count();
-        if matches != 1 {
-            errors.push(SchemaError {
-                keyword: "oneOf".to_string(),
-                message: format!(
-                    "value matches {matches} of the listed schemas, expected exactly 1"
-                ),
-            });
-        }
-    }
-
-    if let Some(negated) = json::get(schema, "not")
-        && evaluate(negated, instance, root).is_empty()
-    {
-        errors.push(SchemaError {
-            keyword: "not".to_string(),
-            message: "value must not match the negated schema".to_string(),
-        });
-    }
-
-    if let Some(condition) = json::get(schema, "if") {
-        if evaluate(condition, instance, root).is_empty() {
-            if let Some(then_schema) = json::get(schema, "then") {
-                check_into(then_schema, instance, root, errors);
-            }
-        } else if let Some(else_schema) = json::get(schema, "else") {
-            check_into(else_schema, instance, root, errors);
-        }
-    }
-}
-
 pub(super) fn check_object_keywords(
     schema: &JsonMap,
     instance: &Json,
     root: &Json,
-    errors: &mut Vec<SchemaError>,
-) {
+    budget: &mut EvalBudget,
+    errors: &mut ErrorSink,
+) -> Option<Stop> {
     let Json::Object(object) = instance else {
-        return;
+        return None;
     };
 
     let properties = json::get_object(schema, "properties");
     if let Some(properties) = properties {
         for (name, sub_schema) in properties {
-            if let Some(value) = object.get(name) {
-                check_into(sub_schema, value, root, errors);
+            if let Some(value) = object.get(name)
+                && let Some(stop) = check_into(sub_schema, value, root, budget, errors)
+            {
+                return Some(stop);
             }
         }
     }
@@ -210,8 +155,10 @@ pub(super) fn check_object_keywords(
                 .map(|map| map.keys().map(String::as_str).collect())
                 .unwrap_or_default();
             for (name, value) in object {
-                if !allowed.contains(&name.as_str()) {
-                    check_into(sub_schema, value, root, errors);
+                if !allowed.contains(&name.as_str())
+                    && let Some(stop) = check_into(sub_schema, value, root, budget, errors)
+                {
+                    return Some(stop);
                 }
             }
         }
@@ -234,21 +181,25 @@ pub(super) fn check_object_keywords(
             message: format!("object must have at most {max_properties} properties"),
         });
     }
+    None
 }
 
 pub(super) fn check_array_keywords(
     schema: &JsonMap,
     instance: &Json,
     root: &Json,
-    errors: &mut Vec<SchemaError>,
-) {
+    budget: &mut EvalBudget,
+    errors: &mut ErrorSink,
+) -> Option<Stop> {
     let Json::Array(items) = instance else {
-        return;
+        return None;
     };
 
     if let Some(item_schema) = json::get(schema, "items") {
         for item in items {
-            check_into(item_schema, item, root, errors);
+            if let Some(stop) = check_into(item_schema, item, root, budget, errors) {
+                return Some(stop);
+            }
         }
     }
 
@@ -288,17 +239,14 @@ pub(super) fn check_array_keywords(
             bucket.push(index);
         }
     }
+    None
 }
 
 pub(super) fn utf16_len(text: &str) -> usize {
     text.encode_utf16().count()
 }
 
-pub(super) fn check_string_keywords(
-    schema: &JsonMap,
-    instance: &Json,
-    errors: &mut Vec<SchemaError>,
-) {
+pub(super) fn check_string_keywords(schema: &JsonMap, instance: &Json, errors: &mut ErrorSink) {
     let Json::String(text) = instance else {
         return;
     };
@@ -352,11 +300,7 @@ pub(super) fn check_string_keywords(
     }
 }
 
-pub(super) fn check_numeric_keywords(
-    schema: &JsonMap,
-    instance: &Json,
-    errors: &mut Vec<SchemaError>,
-) {
+pub(super) fn check_numeric_keywords(schema: &JsonMap, instance: &Json, errors: &mut ErrorSink) {
     let Some(number) = instance.as_f64() else {
         return;
     };

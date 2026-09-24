@@ -88,15 +88,27 @@ has surprised someone.
     fails classification is never evaluated. Reaching the same `$defs` entry
     from two independent positions is a shared reference, not a cycle, and is
     fine.
-21. **Shared `$ref`s multiply evaluation work exponentially.** A chain of `N`
-    levels where each level lists the next reference twice in `anyOf` takes
-    `2^N` evaluation steps: depth 20 (1.3 KB of schema) takes 0.75 s and
-    doubles every two levels. The schema is not recursive and is perfectly
-    legal, so no existing limit applies; the cost is bounded only by the
-    request-size cap. If a budget is ever needed, it belongs in
-    `src/schema/check.rs` as a per-call step counter threaded through
-    `check_into`, reported as an error rather than a panic.
-22. **Equal numbers must hash equally.** `uniqueItems` buckets by hash and
+21. **Shared `$ref`s multiply evaluation work exponentially, but are bounded.**
+    A chain of `N` levels where each level lists the next reference twice in
+    `anyOf` takes `2^N` evaluation steps: the audit measured 53.8 s at depth 26
+    (1 694 bytes) before S-11. Each `check_into` now spends from a deterministic
+    instance-sized budget, so the same shape returns in about 2 ms with
+    `SCHEMA_EVALUATION_LIMIT`; a shared DAG below the budget still validates.
+22. **An `if`/`then` DAG can double work while succeeding.** A legal node whose
+    `if` and `then` point at the same next `$ref` is not a recursive schema: the
+    graph is a DAG, and a depth-25 instance can therefore validate successfully
+    after exponential work. S-11 stops that work at the same deterministic
+    limit; it does not memoize the DAG.
+23. **A deep `$ref` chain aborts the process unless nesting is bounded too.** A
+    step budget cannot bound recursion: depth is at most the step count, so a
+    budget sized for a large instance also admits a chain thousands of levels
+    deep, and a stack overflow kills the process instead of returning an error
+    (measured: 5 000 levels survive, 10 000 abort on an 8 MiB stack). The crash
+    happens in classification, before instance evaluation starts, because the
+    classifier also recurses once per reference. S-12 bounds both phases at 512
+    levels and reports `SCHEMA_DEPTH_LIMIT`; a 30 000-level chain of 1 MB now
+    returns that error in about 110 ms.
+24. **Equal numbers must hash equally.** `uniqueItems` buckets by hash and
     compares inside a bucket, so `-0.0` and `0.0` (the same JSON Schema value)
     must land together. Numeric equality is by mathematical value, not `f64`
     rounding, on every surface: `uniqueItems`, the comparison operators, and

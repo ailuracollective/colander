@@ -28,6 +28,41 @@ type Entry = unsafe extern "C" fn(*const c_char) -> *mut c_char;
 const FORM: &str = r#"{"schemaVersion":"1.0.0","fields":[{"id":"a","code":"a","type":"number"},{"id":"b","code":"b","type":"number"},{"id":"c","code":"c","type":"number","readOnly":true}]}"#;
 const RULES: &str = r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{"c":{"calculate":{"op":"add","args":[{"ref":"a"},{"ref":"b"}]}}}}"#;
 
+fn shared_ref_chain(depth: usize) -> String {
+    let mut definitions = String::new();
+    for level in 0..depth {
+        if level > 0 {
+            definitions.push(',');
+        }
+        let next = level + 1;
+        let body = if next == depth {
+            r#"{"type":"string"}"#.to_string()
+        } else {
+            format!(r##"{{"anyOf":[{{"$ref":"#/$defs/n{next}"}},{{"$ref":"#/$defs/n{next}"}}]}}"##)
+        };
+        definitions.push_str(&format!(r#""n{level}":{body}"#));
+    }
+    format!(r##"{{"$ref":"#/$defs/n0","$defs":{{{definitions}}}}}"##)
+}
+
+/// A chain of *distinct* references: not a cycle, so classification accepts
+/// it, but it still nests once per level.
+fn deep_ref_chain(depth: usize) -> String {
+    let mut definitions = String::new();
+    for level in 0..depth {
+        if level > 0 {
+            definitions.push(',');
+        }
+        let body = if level + 1 == depth {
+            r#"{"type":"string"}"#.to_string()
+        } else {
+            format!(r##"{{"$ref":"#/$defs/n{}"}}"##, level + 1)
+        };
+        definitions.push_str(&format!(r#""n{level}":{body}"#));
+    }
+    format!(r##"{{"$ref":"#/$defs/n0","$defs":{{{definitions}}}}}"##)
+}
+
 #[test]
 fn cross_runtime_corpus_is_byte_identical() {
     let cases: Vec<(&str, Entry, String, &str)> = vec![
@@ -144,6 +179,28 @@ fn cross_runtime_corpus_is_byte_identical() {
             colander_validate_schema,
             r##"{"kind":"instance","schemaJson":"{\"$ref\":\"#\"}","instanceJson":"{}"}"##.to_string(),
             r#"{"ok":false,"error":{"kind":"validation","message":"Invalid instance: $ref: recursive reference \u0027#\u0027 is not supported"}}"#,
+        ),
+        (
+            // S-11: shared references cannot spend an unbounded number of
+            // deterministic evaluation steps. Pinned on both runtimes.
+            "schema_evaluation_limit",
+            colander_validate_schema,
+            format!(
+                r#"{{"kind":"instance","schemaJson":{},"instanceJson":"{{}}"}}"#,
+                quoted(&shared_ref_chain(26))
+            ),
+            r#"{"ok":false,"error":{"kind":"validation","message":"Invalid instance: schema: SCHEMA_EVALUATION_LIMIT: schema evaluation exceeded the step budget"}}"#,
+        ),
+        (
+            // S-12: nesting depth is bounded on its own, because a step
+            // budget cannot bound recursion depth. Pinned on both runtimes.
+            "schema_depth_limit",
+            colander_validate_schema,
+            format!(
+                r#"{{"kind":"instance","schemaJson":{},"instanceJson":"{{}}"}}"#,
+                quoted(&deep_ref_chain(30_000))
+            ),
+            r#"{"ok":false,"error":{"kind":"validation","message":"Invalid instance: schema: SCHEMA_DEPTH_LIMIT: schema evaluation exceeded the nesting depth"}}"#,
         ),
         (
             // S-9: signed zero is one value, so the pair is a duplicate.

@@ -195,6 +195,17 @@ fn visit(
                     });
                     return;
                 }
+                // S-10: a `$ref` chain of distinct definitions is not a cycle,
+                // but it still recurses once per level, and a deep enough one
+                // exhausts the stack before instance evaluation ever starts.
+                // `ancestors` is the live walk depth, so its length is the guard.
+                if ancestors.len() >= super::MAX_SCHEMA_DEPTH {
+                    errors.push(SchemaError {
+                        keyword: "schema".to_string(),
+                        message: super::SCHEMA_DEPTH_LIMIT_MESSAGE.to_string(),
+                    });
+                    return;
+                }
                 walk_subschema(keyword, target, root, errors, seen, ancestors);
             }
         }

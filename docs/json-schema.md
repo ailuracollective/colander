@@ -77,15 +77,54 @@ validates normally. A recursive _instance_ is a different matter: a
 `node`/`next` document is validated by an instance-bounded rule, not by a
 recursive schema.
 
-### Shared references multiply work
+### Evaluation work and error collection are bounded (S-11)
 
-A non-recursive schema can still cost exponential evaluation time. With `N`
-levels where each level lists the next reference twice in `anyOf`, evaluation
-takes `2^N` steps — depth 20 costs 0.75 s and every two extra levels double it,
-from about 1.3 KB of schema. No keyword-level limit applies to this shape, so
-the request-size cap is the only bound. A budget would belong in
-`src/schema/check.rs`, as a per-call step counter threaded through
-`check_into` and reported as an error, not a panic.
+A non-recursive schema can amplify work through shared references and
+combinators. Evaluation therefore has a deterministic budget:
+
+```
+steps = 10_000 + 20 * instance_nodes
+```
+
+`instance_nodes` counts the instance itself and every nested array element or
+object member, including their scalar values. One unit is charged at every
+`check_into` invocation, including a combinator probe. When the budget is
+exhausted, evaluation stops and the caller sees the stable failure:
+
+```
+Invalid instance: schema: SCHEMA_EVALUATION_LIMIT: schema evaluation exceeded the step budget
+```
+
+The bound is integer work, not a wall-clock timeout, so native and WASM agree.
+In the audit, a 26-level shared-`$ref` `anyOf` chain occupying 1 694 bytes took
+53.8 s before this bound and returns in about 2 ms after it. The same budget
+also bounds the legal `if`/`then` DAG shape and shared-reference `allOf` chains.
+
+Error collection has a second, independent cap of 1 000 entries. This is not the
+five-error rendering cap: an `allOf` branch can otherwise retain millions of
+failures before rendering starts. Once collection reaches 1 000, later failures
+are not retained; rendered failures state `truncated: 5 of 1000 errors shown`.
+The step bound limits evaluation work, while the collection cap limits retained
+error state; neither bound changes a valid workload that stays within them.
+
+### Nesting depth is bounded separately (S-12)
+
+A step budget cannot bound recursion depth: depth is at most the step count, so
+a budget sized for a large instance also admits a `$ref` chain thousands of
+levels deep, and a stack overflow aborts the process instead of returning an
+error. Both phases are therefore bounded at 512 levels of nesting:
+
+```
+Invalid instance: schema: SCHEMA_DEPTH_LIMIT: schema evaluation exceeded the nesting depth
+```
+
+Classification is bounded too, and that is the phase that matters most here: a
+chain of distinct references is not a cycle, so S-10 accepts it, but the
+classifier still recurses once per level. Measured on the default 8 MiB stack,
+5 000 levels survive and 10 000 abort; 512 sits an order of magnitude below
+that and stays well above the parser's own 64-level JSON nesting limit. A
+30 000-level chain of 1 MB of schema now returns this error in about 110 ms
+instead of aborting, and a 200-level chain still evaluates normally.
 
 The known unsupported assertions include `$dynamicRef`, `$recursiveRef`,
 `$vocabulary`, `patternProperties`, `propertyNames`, `dependentRequired`,
