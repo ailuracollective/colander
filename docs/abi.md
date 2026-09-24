@@ -40,6 +40,10 @@ Rules that always hold:
   [the allocator pair](#the-allocator-pair).
 - **Input must be NUL-terminated UTF-8.** Bytes after an embedded NUL are
   silently ignored. Non-UTF-8 input yields `"request is not valid UTF-8"`.
+- **Input is capped at 64 MiB.** A larger request is refused with
+  `{"kind":"invalid_request","message":"REQUEST_TOO_LARGE: …"}` before it is
+  parsed, so an untrusted caller cannot make the boundary allocate without
+  bound. The cap is a floor for safety, not a product limit.
 - **Panics never unwind into your code.** Both the request parsing and the core
   body run inside a panic boundary, and a caught panic is reported as
   `{"kind":"panic","message":"colander panicked: …"}`. The one gap: the final

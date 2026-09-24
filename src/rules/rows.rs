@@ -40,6 +40,11 @@ impl RowSet {
         self.rows.get_mut(repeater_code)
     }
 
+    /// Every repeater code carrying row data, in document order.
+    pub fn codes(&self) -> impl Iterator<Item = &str> {
+        self.rows.keys().map(String::as_str)
+    }
+
     /// Build from submitted answers: for each repeater, an array answer becomes
     /// rows, one per object element. Non-object elements are skipped; an absent
     /// or non-array answer contributes no rows.

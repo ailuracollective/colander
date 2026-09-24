@@ -108,10 +108,32 @@ pub fn validate(
         }
     }
 
+    let errors = cap_errors(errors);
+
     Ok(FormResponseValidationResult {
         normalized_answers_json: serialize_normalized(&normalized),
         errors,
     })
+}
+
+/// At most `MAX_ERRORS` field errors are returned; when more were collected
+/// the last entry is a `VALIDATION_ERRORS_TRUNCATED` marker carrying the total,
+/// so a response is bounded no matter how hostile the answers are (S-7's rule
+/// applied to response validation, not only to the schema subset).
+const MAX_ERRORS: usize = 100;
+
+fn cap_errors(errors: Vec<FormResponseFieldError>) -> Vec<FormResponseFieldError> {
+    if errors.len() <= MAX_ERRORS {
+        return errors;
+    }
+    let total = errors.len();
+    let mut capped: Vec<FormResponseFieldError> = errors.into_iter().take(MAX_ERRORS - 1).collect();
+    capped.push(FormResponseFieldError {
+        code: "VALIDATION_ERRORS_TRUNCATED".to_string(),
+        path: "/".to_string(),
+        message: format!("Showing {MAX_ERRORS} of {total} validation errors."),
+    });
+    capped
 }
 
 /// Serialize without indentation, preserving insertion order. String escaping

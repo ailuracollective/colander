@@ -47,7 +47,18 @@ Every field object:
 
 Any other key is preserved verbatim by `compile` and otherwise ignored.
 `title` in particular has **no meaning on a form field** — it is a layout-node
-key.
+key. That permissiveness is deliberate and limited to field objects: it lets a
+caller carry presentation metadata the core does not model. Everywhere a
+property _is_ read, the object is strict, so a typo in a load-bearing key fails
+instead of silently taking the default:
+
+| Object                                | Unknown keys                             |
+| ------------------------------------- | ---------------------------------------- |
+| Field (`fields[]`, repeater children) | preserved verbatim (documented above)    |
+| Rules `fields.<id>` entries           | rejected (`RULE_UNKNOWN_RULE_KEY`)       |
+| Rules `validations[]` entries         | rejected (`RULE_UNKNOWN_VALIDATION_KEY`) |
+| UI top-level and layout nodes         | rejected (`UI_UNKNOWN_KEY`)              |
+| `components[]` entries                | rejected (`COMPONENT_UNKNOWN_KEY`)       |
 
 The `id`, `code` and `type` keys are read with two different strictness rules:
 `compile` requires only a non-empty `type`, while building the indexes that

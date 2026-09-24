@@ -137,7 +137,8 @@ non-null; **every other property of the reference field is dropped**.
 `componentCode` is required and must be non-empty. `componentVersion` must be
 present, non-blank and valid semver. A reference cycle is an error, keyed on
 `(code, version)` — the same code at another version is another triple, not
-a cycle. Nesting is bounded at 64 levels (`COMPONENT_DEPTH_EXCEEDED`).
+a cycle. Nesting is bounded at 64 levels (`COMPONENT_DEPTH_EXCEEDED`), and the
+total expansion is bounded by the P-8 budget regardless of depth.
 
 The UI layout node for that field is rewritten to a group node whose `children`
 come from the component's own UI `layout`; if the component has no layout, colander
@@ -146,7 +147,13 @@ fields.
 
 Components are resolved by exact `(code, version)` match against the `components`
 batch you pass, and resolution is memoized, so referencing the same version twice
-yields one metadata entry.
+yields one metadata entry. The compiled field array is memoized too: the first
+reference expands the component, later references clone the compiled fields
+(SPEC P-8), and a component's pin is verified once per call rather than once
+per site (SPEC P-9). Expansion is bounded by a budget — 1,000,000 field nodes
+and 256 MiB of materialised output — so a reference graph that would explode
+exponentially fails with `COMPONENT_BUDGET_EXCEEDED` instead of exhausting
+memory. A depth limit alone does not bound that work.
 
 Each resolved component is pinned by its `contentHash` (SPEC P-3). When the field
 is a non-empty string, colander compiles the component on its own — its nested
@@ -158,22 +165,26 @@ covers exact bytes, so `1.50` and `1.5` hash differently.
 
 ### Errors
 
-| Message                                                                                                                  | Cause                                                                                                                            |
-| ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| `'formSchemaJson' is required and must be a string.`                                                                     | Missing or non-string required key                                                                                               |
-| `Invalid form schema: expected a JSON object.`                                                                           | Valid JSON that is not an object                                                                                                 |
-| `Expected array at /fields.`                                                                                             | The form has no `fields` array                                                                                                   |
-| `Expected field object at /fields/0.`                                                                                    | A field is not an object                                                                                                         |
-| `Expected non-empty string at /fields/0/type.`                                                                           | A field has no `type`                                                                                                            |
-| `components[] entries must be objects.`                                                                                  | A `components` element is not an object                                                                                          |
-| `components[].code is required.`                                                                                         | Missing `code` (same for `version`, `formSchemaJson`)                                                                            |
-| `COMPONENT_VERSION_REQUIRED: component-ref at /fields/0 must include componentVersion before publication.`               | Blank or absent `componentVersion`                                                                                               |
-| `COMPONENT_VERSION_NOT_FOUND: component 'x' version '1.0.0' referenced at /fields/0 was not found or is not published.`  | No matching entry in `components`                                                                                                |
-| `CIRCULAR_COMPONENT_REFERENCE: component 'x' references itself through a -> b -> x.`                                     | A component reference cycle                                                                                                      |
-| `COMPONENT_HASH_MISMATCH: component 'x' version '1.0.0' declares contentHash '…' but its compiled triple hashes to '…'.` | A non-empty `contentHash` pin does not match the component's own compiled triple                                                 |
-| `Invalid semantic version: 1.0`                                                                                          | Bad `componentVersion`                                                                                                           |
-| `Expected field id at /fields/0/id.`                                                                                     | A field lacks a string `id`, raised while analysing the rules for `dependencyMetadataJson` — only when a rules schema is present |
-| `The node must be of type 'JsonObject'.`                                                                                 | A `fields` element is not an object                                                                                              |
+| Message                                                                                                                  | Cause                                                                            |
+| ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
+| `'formSchemaJson' is required and must be a string.`                                                                     | Missing or non-string required key                                               |
+| `Invalid form schema: expected a JSON object.`                                                                           | Valid JSON that is not an object                                                 |
+| `COMPILE_EXPECTED_ARRAY: expected an array at /fields.`                                                                  | The form has no `fields` array                                                   |
+| `FIELD_NOT_OBJECT: /fields/0 must be an object.`                                                                         | A field is not an object                                                         |
+| `COMPILE_EXPECTED_STRING: expected a non-empty string at /fields/0/type.`                                                | A field has no `type`                                                            |
+| `COMPONENT_INVALID_ENTRY: components[] entries must be objects.`                                                         | A `components` element is not an object                                          |
+| `COMPONENT_MISSING_KEY: components[].code is required.`                                                                  | Missing `code` (same for `version`, `formSchemaJson`)                            |
+| `COMPONENT_UNKNOWN_KEY: components[] entry carries unknown key 'k'.`                                                     | An unknown key in a `components` entry                                           |
+| `COMPONENT_BUDGET_EXCEEDED: expansion materialised more than 1000000 fields.`                                            | The expansion budget is exhausted (wide/fanout reference graphs)                 |
+| `COMPONENT_VERSION_REQUIRED: component-ref at /fields/0 must include componentVersion before publication.`               | Blank or absent `componentVersion`                                               |
+| `COMPONENT_VERSION_NOT_FOUND: component 'x' version '1.0.0' referenced at /fields/0 was not found or is not published.`  | No matching entry in `components`                                                |
+| `CIRCULAR_COMPONENT_REFERENCE: component 'x' references itself through a -> b -> x.`                                     | A component reference cycle                                                      |
+| `COMPONENT_HASH_MISMATCH: component 'x' version '1.0.0' declares contentHash '…' but its compiled triple hashes to '…'.` | A non-empty `contentHash` pin does not match the component's own compiled triple |
+| `Invalid semantic version: 1.0`                                                                                          | Bad `componentVersion`                                                           |
+| `UI_UNKNOWN_KEY: UI schema carries unknown top-level key 'k'.`                                                           | An unknown top-level UI key (also for layout nodes)                              |
+| `FIELD_MISSING_KEY: field id at /fields/0/id is required.`                                                               | A field lacks a string `id` or `code`                                            |
+| `FIELD_INVALID_TYPE: /fields/0/id is Number, expected String.`                                                           | A field key has the wrong JSON type                                              |
+| `REQUEST_TOO_LARGE: request is N bytes, over the 67108864-byte limit.`                                                   | A request over the FFI byte cap (C-10)                                           |
 
 ## colander_evaluate_rules
 

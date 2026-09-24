@@ -62,7 +62,15 @@ fn round_to_decimals(value: f64, decimals: i32) -> f64 {
         return value.round();
     }
     let factor = 10f64.powi(decimals);
-    (value * factor).round() / factor
+    let scaled = value * factor;
+    // The scaled product can overflow to infinity for a finite input near the
+    // top of the f64 range. V-5 promises the caller sees the unrepresentable
+    // result, not a silent `null` from a later `is_finite` check, so the
+    // overflow is returned as-is here and normalised by the caller.
+    if !scaled.is_finite() {
+        return value;
+    }
+    (scaled.round()) / factor
 }
 
 fn snap_to_step(value: f64, step: f64) -> f64 {

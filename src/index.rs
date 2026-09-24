@@ -63,10 +63,10 @@ fn index_fields(
     under_repeater: bool,
 ) -> Result<()> {
     for (index, value) in fields.iter().enumerate() {
-        let field = value.as_object().ok_or_else(|| {
-            ColanderError::new("The node must be of type 'JsonObject'.".to_string())
-        })?;
         let field_path = format!("{path}/{index}");
+        let field = value.as_object().ok_or_else(|| {
+            ColanderError::new(format!("FIELD_NOT_OBJECT: {field_path} must be an object."))
+        })?;
         let id = require_string(field, schema_json_keys::ID, &field_path)?;
         let code = require_string(field, schema_json_keys::CODE, &field_path)?;
         let field_type = require_string(field, schema_json_keys::TYPE, &field_path)?;
@@ -104,10 +104,13 @@ fn index_fields(
 fn require_string<'a>(field: &'a JsonMap, key: &str, path: &str) -> Result<&'a str> {
     match json::get(field, key) {
         None | Some(Json::Null) => Err(ColanderError::new(format!(
-            "Expected field {key} at {path}/{key}."
+            "FIELD_MISSING_KEY: field {key} at {path}/{key} is required."
         ))),
         Some(Json::String(text)) => Ok(text),
-        Some(other) => Err(type_conversion_error(other, "String")),
+        Some(other) => Err(ColanderError::new(format!(
+            "FIELD_INVALID_TYPE: {path}/{key} is {}, expected String.",
+            json_kind(other)
+        ))),
     }
 }
 
@@ -117,7 +120,10 @@ fn field_bool(field: &JsonMap, key: &str) -> Result<bool> {
     match json::get(field, key) {
         None | Some(Json::Null) => Ok(false),
         Some(Json::Bool(value)) => Ok(*value),
-        Some(other) => Err(type_conversion_error(other, "Boolean")),
+        Some(other) => Err(ColanderError::new(format!(
+            "FIELD_INVALID_TYPE: key '{key}' is {}, expected Boolean.",
+            json_kind(other)
+        ))),
     }
 }
 
@@ -125,7 +131,10 @@ fn field_double(field: &JsonMap, key: &str) -> Result<Option<f64>> {
     match json::get(field, key) {
         None | Some(Json::Null) => Ok(None),
         Some(Json::Number(_)) => Ok(json::get_f64(field, key)),
-        Some(other) => Err(type_conversion_error(other, "Number")),
+        Some(other) => Err(ColanderError::new(format!(
+            "FIELD_INVALID_TYPE: key '{key}' is {}, expected Number.",
+            json_kind(other)
+        ))),
     }
 }
 
@@ -134,18 +143,20 @@ fn field_int(field: &JsonMap, key: &str) -> Result<Option<i32>> {
         None | Some(Json::Null) => Ok(None),
         Some(Json::Number(text)) => match text.parse::<i32>() {
             Ok(value) => Ok(Some(value)),
-            Err(_) => Err(type_conversion_error(
-                json::get(field, key).expect("present"),
-                "Integer",
-            )),
+            Err(_) => Err(ColanderError::new(format!(
+                "FIELD_INVALID_TYPE: key '{key}' is Number, expected an i32 Integer."
+            ))),
         },
-        Some(other) => Err(type_conversion_error(other, "Integer")),
+        Some(other) => Err(ColanderError::new(format!(
+            "FIELD_INVALID_TYPE: key '{key}' is {}, expected Integer.",
+            json_kind(other)
+        ))),
     }
 }
 
-/// Builds the conversion error, naming the value's JSON kind and the target type.
-fn type_conversion_error(value: &Json, target: &str) -> ColanderError {
-    let kind = match value {
+/// The JSON kind of a value, named for an error message.
+fn json_kind(value: &Json) -> &'static str {
+    match value {
         Json::Null => "Null",
         Json::Bool(true) => "True",
         Json::Bool(false) => "False",
@@ -153,10 +164,7 @@ fn type_conversion_error(value: &Json, target: &str) -> ColanderError {
         Json::String(_) => "String",
         Json::Array(_) => "Array",
         Json::Object(_) => "Object",
-    };
-    ColanderError::new(format!(
-        "An element of type '{kind}' cannot be converted to a '{target}'."
-    ))
+    }
 }
 
 #[derive(Debug, Clone, PartialEq)]
@@ -188,10 +196,10 @@ fn index_answer_fields(
     by_code: &mut IndexMap<String, AnswerFieldDefinition>,
 ) -> Result<()> {
     for (index, value) in fields.iter().enumerate() {
-        let field = value.as_object().ok_or_else(|| {
-            ColanderError::new("The node must be of type 'JsonObject'.".to_string())
-        })?;
         let field_path = format!("{path}/{index}");
+        let field = value.as_object().ok_or_else(|| {
+            ColanderError::new(format!("FIELD_NOT_OBJECT: {field_path} must be an object."))
+        })?;
         let id = require_string(field, schema_json_keys::ID, &field_path)?;
         let code = require_string(field, schema_json_keys::CODE, &field_path)?;
         let field_type = require_string(field, schema_json_keys::TYPE, &field_path)?;
@@ -231,10 +239,10 @@ fn index_child_fields(
     children: &mut Vec<AnswerFieldDefinition>,
 ) -> Result<()> {
     for (index, value) in items.iter().enumerate() {
-        let field = value.as_object().ok_or_else(|| {
-            ColanderError::new("The node must be of type 'JsonObject'.".to_string())
-        })?;
         let field_path = format!("{path}/{index}");
+        let field = value.as_object().ok_or_else(|| {
+            ColanderError::new(format!("FIELD_NOT_OBJECT: {field_path} must be an object."))
+        })?;
         let id = require_string(field, schema_json_keys::ID, &field_path)?;
         let code = require_string(field, schema_json_keys::CODE, &field_path)?;
         let field_type = require_string(field, schema_json_keys::TYPE, &field_path)?;

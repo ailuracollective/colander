@@ -42,6 +42,22 @@ pub(super) fn compile_rules_schema(rules_root: &JsonMap) -> Json {
 }
 
 pub(super) fn compile_ui_schema(ui_root: &JsonMap, context: &CompilationContext) -> Result<Json> {
+    // Top-level UI keys are closed: a typo that would otherwise be dropped
+    // must fail, or "unknown layout" silently renders as an empty form.
+    for key in ui_root.keys() {
+        if !matches!(
+            key.as_str(),
+            schema_json_keys::SCHEMA_VERSION
+                | schema_json_keys::FORM_SCHEMA_VERSION
+                | schema_json_keys::FIELDS
+                | schema_json_keys::LAYOUT
+                | schema_json_keys::SCHEMA
+        ) {
+            return Err(ColanderError::new(format!(
+                "UI_UNKNOWN_KEY: UI schema carries unknown top-level key '{key}' (expected 'schemaVersion', 'formSchemaVersion', 'fields', 'layout' or '$schema')."
+            )));
+        }
+    }
     let mut compiled_fields = JsonMap::new();
     if let Some(source_fields) = json::get_object(ui_root, schema_json_keys::FIELDS) {
         for key in json::sorted_keys(source_fields) {
@@ -127,6 +143,24 @@ pub(super) fn compile_layout_node(node: &JsonMap, context: &CompilationContext) 
     }
 
     let mut result = JsonMap::new();
+    for key in node.keys() {
+        if !matches!(
+            key.as_str(),
+            "type"
+                | "id"
+                | "title"
+                | "description"
+                | schema_json_keys::FIELD_ID
+                | "addButtonLabel"
+                | "removeButtonLabel"
+                | schema_json_keys::CHILDREN
+                | "itemTemplate"
+        ) {
+            return Err(ColanderError::new(format!(
+                "UI_UNKNOWN_KEY: layout node carries unknown key '{key}'."
+            )));
+        }
+    }
     result.insert("type".to_string(), Json::string(node_type));
     for key in [
         "id",

@@ -47,6 +47,16 @@ pub(crate) fn evaluate_core(
     let metadata = analyze(form_root, rules_root)?;
 
     let mut working_values = values.clone();
+    // R-7a/R-13: a repeater's rows live in `RowSet`, never in the flat working
+    // values — only the row count does, exactly as the response-validator
+    // path builds it. Leaving the row payload in the map would make every
+    // per-row scope clone copy all N rows (quadratic), and it would make a
+    // `ref` to an empty repeater read an empty list (truthy) here while the
+    // validator reads a zero count (falsy).
+    for code in rows.codes() {
+        let count = rows.rows(code).map(|rows| rows.len()).unwrap_or(0);
+        working_values.insert(code.to_string(), Val::Int(count as i64));
+    }
     let mut result = FormRuleEvaluationResult {
         visibility: IndexMap::new(),
         enabled: IndexMap::new(),
@@ -131,9 +141,17 @@ fn apply_calculations(
             && let Some(row_list) = rows.rows(repeater_code)
             && !row_list.is_empty()
         {
+            // The row overlays a template of the outer values, and only the
+            // row's own keys change between iterations: a child code shadows
+            // the template, and anything written back into the template (a
+            // later calculation's array, or the repeater's own count) stays
+            // visible to the next row. Cloning the template once per
+            // calculation instead of once per row is what keeps an N-row
+            // calculation linear rather than quadratic (SPEC R-13).
+            let template = working_values.clone();
             let mut results = Vec::with_capacity(row_list.len());
             for row in row_list {
-                let mut scoped = working_values.clone();
+                let mut scoped = template.clone();
                 for (child_code, child_value) in row {
                     scoped.insert(child_code.clone(), child_value.clone());
                 }

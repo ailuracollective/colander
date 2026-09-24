@@ -24,7 +24,9 @@ pub(super) fn compile_field_array(
     let mut compiled = Vec::with_capacity(fields.len());
     for (position, value) in fields.iter().enumerate() {
         let field = value.as_object().ok_or_else(|| {
-            ColanderError::new(format!("Expected field object at {path}/{position}."))
+            ColanderError::new(format!(
+                "FIELD_NOT_OBJECT: {path}/{position} must be an object."
+            ))
         })?;
         compiled.push(compile_field(
             field,
@@ -105,7 +107,9 @@ pub(super) fn expand_component_reference(
 
     // Component nesting is bounded like JSON parsing (`MAX_DEPTH` in the
     // parser): an adversarial batch of deeply nested components would
-    // otherwise recurse one stack frame per level.
+    // otherwise recurse one stack frame per level. The bounded depth alone
+    // is not a complexity bound — the expansion budget in
+    // `CompilationContext` also caps materialised fields and output bytes.
     if context.resolution_stack.len() >= MAX_COMPONENT_DEPTH {
         return Err(ColanderError::new(format!(
             "COMPONENT_DEPTH_EXCEEDED: component-ref at {path} nests components deeper than {MAX_COMPONENT_DEPTH} levels."
@@ -116,23 +120,42 @@ pub(super) fn expand_component_reference(
     let dependency_form = dependency.form_schema_json.clone();
     let dependency_layout = dependency.layout_children.clone();
 
-    let component_form = json::parse_object(
-        &dependency_form,
-        &format!("component '{component_code}' form schema"),
-    )?;
-    let component_fields = require_array(
-        json::get(&component_form, schema_json_keys::FIELDS),
-        &format!("/components/{component_code}/fields"),
-    )?;
+    // P-8: expand the component once per `(code, version)` and clone the
+    // compiled field array for every later reference. The clone is charged
+    // to the same budget, so materialising N copies of an X-sized component
+    // still costs N·X — it just no longer re-resolves, re-verifies and
+    // re-parses the sub-tree per site.
+    let reference_key = format!("{component_code}@{component_version}");
+    let compiled_items = match context.compiled_components.get(&reference_key) {
+        Some(cached) => {
+            context.budget.charge_fields(count_fields(cached))?;
+            cached.clone()
+        }
+        None => {
+            let component_form = json::parse_object(
+                &dependency_form,
+                &format!("component '{component_code}' form schema"),
+            )?;
+            let component_fields = require_array(
+                json::get(&component_form, schema_json_keys::FIELDS),
+                &format!("/components/{component_code}/fields"),
+            )?;
 
-    context.resolution_stack.push(reference_key);
-    let compiled_items = compile_field_array(
-        component_fields,
-        &format!("/components/{component_code}/fields"),
-        context,
-    );
-    context.resolution_stack.pop();
-    let compiled_items = compiled_items?;
+            context.resolution_stack.push(reference_key.clone());
+            let compiled = compile_field_array(
+                component_fields,
+                &format!("/components/{component_code}/fields"),
+                context,
+            );
+            context.resolution_stack.pop();
+            let compiled = compiled?;
+            context.budget.charge_fields(count_fields(&compiled))?;
+            context
+                .compiled_components
+                .insert(reference_key, compiled.clone());
+            compiled
+        }
+    };
 
     let field_id = require_string(
         json::get(field, schema_json_keys::ID),
@@ -164,5 +187,22 @@ pub(super) fn expand_component_reference(
         copy_if_present(field, &mut compiled, key);
     }
 
-    Ok(Json::Object(compiled))
+    let group = Json::Object(compiled);
+    context.budget.charge_bytes(json::ordered(&group).len())?;
+    Ok(group)
+}
+
+/// Field nodes in a compiled array, counting nested `items`.
+fn count_fields(fields: &[Json]) -> usize {
+    fields
+        .iter()
+        .map(|field| {
+            1 + field
+                .as_object()
+                .and_then(|object| object.get(schema_json_keys::ITEMS))
+                .and_then(Json::as_array)
+                .map(|items| count_fields(items))
+                .unwrap_or(0)
+        })
+        .sum()
 }

@@ -12,6 +12,7 @@ use crate::keys::schema_json_keys;
 use super::model::RuleDependencyMetadata;
 use super::refs::{collect_references, validate_row_scope};
 use super::rows::RowSet;
+use super::shape::{validate_aggregate_arguments, validate_expression_shape};
 
 /// Builds dependency metadata: the calculated field ids in document order and
 /// their topological evaluation order.
@@ -144,8 +145,11 @@ fn validate_field_rules(
 
         for key in ["visibleWhen", "enabledWhen", "requiredWhen"] {
             let expression = json::get(rules, key);
-            validate_expression_references(expression, &format!("{path}/{key}"), fields_by_code)?;
-            validate_row_scope(expression, &format!("{path}/{key}"), child_repeaters, None)?;
+            let expression_path = format!("{path}/{key}");
+            validate_expression_shape(expression, &expression_path)?;
+            validate_aggregate_arguments(expression, &expression_path)?;
+            validate_expression_references(expression, &expression_path, fields_by_code)?;
+            validate_row_scope(expression, &expression_path, child_repeaters, None)?;
         }
         // A `calculate` on a repeater child runs in that row's scope, so it
         // may read its sibling child codes; anywhere else a child code has
@@ -154,17 +158,11 @@ fn validate_field_rules(
         // last-row read.
         let home = repeater_parents.get(field_id).map(String::as_str);
         let calculate_path = format!("{path}/calculate");
-        validate_expression_references(
-            json::get(rules, schema_json_keys::CALCULATE),
-            &calculate_path,
-            fields_by_code,
-        )?;
-        validate_row_scope(
-            json::get(rules, schema_json_keys::CALCULATE),
-            &calculate_path,
-            child_repeaters,
-            home,
-        )?;
+        let calculate = json::get(rules, schema_json_keys::CALCULATE);
+        validate_expression_shape(calculate, &calculate_path)?;
+        validate_aggregate_arguments(calculate, &calculate_path)?;
+        validate_expression_references(calculate, &calculate_path, fields_by_code)?;
+        validate_row_scope(calculate, &calculate_path, child_repeaters, home)?;
 
         let calculate = json::get(rules, schema_json_keys::CALCULATE);
         if let Some(calculate) = calculate
@@ -197,11 +195,22 @@ fn validate_validation_entries(
     let mut seen_codes: HashSet<String> = HashSet::new();
     for (position, value) in validations.iter().enumerate() {
         let path = format!("/validations/{position}");
-        let validation = value
-            .as_object()
-            .ok_or_else(|| ColanderError::new(format!("Expected validation object at {path}.")))?;
+        let validation = value.as_object().ok_or_else(|| {
+            ColanderError::new(format!(
+                "RULE_INVALID_VALIDATION: {path} must be an object."
+            ))
+        })?;
+        for key in validation.keys() {
+            if !matches!(key.as_str(), "code" | "when" | "assert" | "message") {
+                return Err(ColanderError::new(format!(
+                    "RULE_UNKNOWN_VALIDATION_KEY: validation at {path} carries unknown key '{key}' (expected 'code', 'when', 'assert' or 'message')."
+                )));
+            }
+        }
         let code = json::get_str(validation, schema_json_keys::CODE).ok_or_else(|| {
-            ColanderError::new(format!("Expected validation code at {path}/code."))
+            ColanderError::new(format!(
+                "RULE_INVALID_VALIDATION: {path} is missing a string 'code'."
+            ))
         })?;
         let has_assert = matches!(
             json::get(validation, "assert"),
@@ -219,28 +228,14 @@ fn validate_validation_entries(
             )));
         }
 
-        validate_expression_references(
-            json::get(validation, "when"),
-            &format!("{path}/when"),
-            fields_by_code,
-        )?;
-        validate_row_scope(
-            json::get(validation, "when"),
-            &format!("{path}/when"),
-            child_repeaters,
-            None,
-        )?;
-        validate_expression_references(
-            json::get(validation, "assert"),
-            &format!("{path}/assert"),
-            fields_by_code,
-        )?;
-        validate_row_scope(
-            json::get(validation, "assert"),
-            &format!("{path}/assert"),
-            child_repeaters,
-            None,
-        )?;
+        for key in ["when", "assert"] {
+            let expression = json::get(validation, key);
+            let expression_path = format!("{path}/{key}");
+            validate_expression_shape(expression, &expression_path)?;
+            validate_aggregate_arguments(expression, &expression_path)?;
+            validate_expression_references(expression, &expression_path, fields_by_code)?;
+            validate_row_scope(expression, &expression_path, child_repeaters, None)?;
+        }
     }
     Ok(())
 }

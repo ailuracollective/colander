@@ -5,7 +5,7 @@
 
 use colander::compile::{ComponentVersionData, compile};
 use colander::json;
-use colander::rules::{RowSet, Val, validate_dependencies};
+use colander::rules::{Val, validate_dependencies};
 use colander::schema::validate_text;
 use colander::validate::{FormResponseValidationMode, validate};
 
@@ -316,11 +316,11 @@ fn deeply_nested_components_are_rejected() {
 }
 
 // ---------------------------------------------------------------------------
-// M15: extra operands are ignored without evaluation.
+// M15: extra operands are a rule error, not silently ignored.
 // ---------------------------------------------------------------------------
 
 #[test]
-fn extra_comparison_operands_are_not_evaluated() {
+fn extra_comparison_operands_are_rejected() {
     let form = json::parse_object(
         r#"{"schemaVersion":"1.0.0","fields":[{"id":"a","code":"a","type":"number"}]}"#,
         "form schema",
@@ -328,16 +328,34 @@ fn extra_comparison_operands_are_not_evaluated() {
     .unwrap();
     let rules = json::parse_object(
         r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{
-            "a":{"visibleWhen":{"op":"eq","args":[{"ref":"a"},{"lit":1},{"op":"pow","args":[]}]}}}}"#,
+            "a":{"visibleWhen":{"op":"eq","args":[{"ref":"a"},{"lit":1},{"lit":2}]}}}}"#,
         "rules schema",
     )
     .unwrap();
-    // `pow` is not an operator; if the third operand were evaluated the
-    // call would fail. It is ignored, so analysis passes.
+    // R-12: fixed-arity operators accept exactly their arity, so a generator
+    // bug (an extra operand) fails loudly instead of hiding behind the
+    // first two arguments.
+    let error = validate_dependencies(&form, &rules).unwrap_err();
+    assert!(
+        error.message.starts_with("RULE_INVALID_EXPRESSION_ARITY"),
+        "{error}"
+    );
+}
+
+#[test]
+fn variadic_operators_still_accept_extra_operands() {
+    let form = json::parse_object(
+        r#"{"schemaVersion":"1.0.0","fields":[{"id":"a","code":"a","type":"number"}]}"#,
+        "form schema",
+    )
+    .unwrap();
+    let rules = json::parse_object(
+        r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{
+            "a":{"visibleWhen":{"op":"and","args":[{"lit":true},{"lit":true},{"lit":true}]}}}}"#,
+        "rules schema",
+    )
+    .unwrap();
+    // `and`/`or`/`coalesce` fold over their whole list: extra arguments are
+    // part of the operator, not a generator bug.
     validate_dependencies(&form, &rules).unwrap();
-    let mut values = indexmap::IndexMap::new();
-    values.insert("a".to_string(), Val::Int(1));
-    let result =
-        colander::rules::evaluate(&form, &rules, &values, None, &mut RowSet::empty()).unwrap();
-    assert_eq!(result.visibility.get("a"), Some(&true));
 }

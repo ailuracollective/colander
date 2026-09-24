@@ -32,11 +32,63 @@ pub(super) struct CompilationContext<'a> {
     pub(super) resolution_stack: Vec<String>,
     pub(super) dependencies: IndexMap<String, ResolvedComponentDependency>,
     pub(super) expanded_reference_layouts: IndexMap<String, Json>,
+    /// Compiled field array per `(code, version)`, so a component referenced
+    /// from N sites expands once and the N-1 remaining sites clone the result
+    /// instead of re-resolving and re-verifying (SPEC P-8). Cloning is linear
+    /// in the output, which is the irreducible cost of materialising N copies.
+    pub(super) compiled_components: IndexMap<String, Vec<Json>>,
+    pub(super) budget: ExpansionBudget,
     /// Whether resolving a component also verifies its `contentHash` pin
     /// (SPEC P-3). The context that recomputes a component's own triple turns
     /// this off, so the nested resolutions it performs for the bytes do not
     /// recurse back into verification.
     pub(super) verify_hashes: bool,
+    /// Digests already computed for a component's own compiled triple, keyed
+    /// like `compiled_components`. A pin for that key is verified from this
+    /// cache instead of re-expanding the component's sub-tree (SPEC P-9).
+    pub(super) verified_pins: IndexMap<String, String>,
+}
+
+/// Expansion budget: one shared, monotone count of materialised field nodes
+/// and serialized output bytes. Both are checked before allocating, so the
+/// bound holds regardless of how deep or wide the reference graph is.
+pub(super) struct ExpansionBudget {
+    fields: usize,
+    bytes: usize,
+}
+
+impl ExpansionBudget {
+    const MAX_FIELDS: usize = 1_000_000;
+    const MAX_BYTES: usize = 256 * 1024 * 1024;
+
+    fn new() -> Self {
+        Self {
+            fields: 0,
+            bytes: 0,
+        }
+    }
+
+    pub(super) fn charge_fields(&mut self, count: usize) -> Result<()> {
+        self.fields = self.fields.saturating_add(count);
+        if self.fields > Self::MAX_FIELDS {
+            return Err(ColanderError::new(format!(
+                "COMPONENT_BUDGET_EXCEEDED: expansion materialised more than {} fields.",
+                Self::MAX_FIELDS
+            )));
+        }
+        Ok(())
+    }
+
+    pub(super) fn charge_bytes(&mut self, count: usize) -> Result<()> {
+        self.bytes = self.bytes.saturating_add(count);
+        if self.bytes > Self::MAX_BYTES {
+            return Err(ColanderError::new(format!(
+                "COMPONENT_BUDGET_EXCEEDED: expansion serialised more than {} bytes.",
+                Self::MAX_BYTES
+            )));
+        }
+        Ok(())
+    }
 }
 
 impl<'a> CompilationContext<'a> {
@@ -46,7 +98,10 @@ impl<'a> CompilationContext<'a> {
             resolution_stack: Vec::new(),
             dependencies: IndexMap::new(),
             expanded_reference_layouts: IndexMap::new(),
+            compiled_components: IndexMap::new(),
+            budget: ExpansionBudget::new(),
             verify_hashes: true,
+            verified_pins: IndexMap::new(),
         }
     }
 
@@ -86,7 +141,10 @@ impl<'a> CompilationContext<'a> {
             }
 
             if self.verify_hashes {
-                verify_component_hash(found, self.components)?;
+                let mut verified = std::mem::take(&mut self.verified_pins);
+                let result = verify_component_hash(found, self.components, &mut verified);
+                self.verified_pins = verified;
+                result?;
             }
 
             self.dependencies.insert(
@@ -179,9 +237,13 @@ impl<'a> CompilationContext<'a> {
 /// An absent pin, or an explicit empty string, is not a pin: `docs/entry-points.md`
 /// records that a missing `contentHash` becomes the empty string, and an empty
 /// string means "unpinned". Only a non-empty pin is recomputed and compared.
+///
+/// The recomputation is memoized in `verified_pins`: a component resolved from
+/// N reference sites is verified once, not N times (SPEC P-9).
 fn verify_component_hash(
     component: &ComponentVersionData,
     components: &[ComponentVersionData],
+    verified_pins: &mut IndexMap<String, String>,
 ) -> Result<()> {
     let Some(pin) = component
         .content_hash
@@ -191,7 +253,15 @@ fn verify_component_hash(
         return Ok(());
     };
 
-    let recomputed = compiled_component_hash(component, components)?;
+    let key = format!("{}@{}", component.code, component.version);
+    let recomputed = match verified_pins.get(&key) {
+        Some(digest) => digest.clone(),
+        None => {
+            let digest = compiled_component_hash(component, components)?;
+            verified_pins.insert(key, digest.clone());
+            digest
+        }
+    };
     if recomputed != pin {
         return Err(ColanderError::new(format!(
             "COMPONENT_HASH_MISMATCH: component '{}' version '{}' declares contentHash '{pin}' but its compiled triple hashes to '{recomputed}'.",

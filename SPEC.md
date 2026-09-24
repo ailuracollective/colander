@@ -28,19 +28,19 @@ satisfied when no `decided` requirement remains unresolved.
 
 | Group | Subject                         | `live` | `decided` | `proposed` |
 | ----- | ------------------------------- | ------ | --------- | ---------- |
-| C     | Wire contract and the ABI       | 9      | 0         | 0          |
+| C     | Wire contract and the ABI       | 10     | 0         | 0          |
 | E     | The six operations              | 9      | 0         | 0          |
 | D     | Documents, fields, id and code  | 4      | 0         | 0          |
-| R     | Rules and the dependency check  | 12     | 0         | 0          |
-| V     | Response validation             | 7      | 1         | 0          |
+| R     | Rules and the dependency check  | 14     | 0         | 0          |
+| V     | Response validation             | 8      | 1         | 0          |
 | S     | JSON Schema subset              | 8      | 0         | 0          |
 | H     | Key-sorted form and hashing     | 5      | 0         | 0          |
-| P     | Compilation, components, semver | 7      | 0         | 0          |
+| P     | Compilation, components, semver | 9      | 0         | 0          |
 | X     | Retirements and reversals       | 2      | 1         | 0          |
 | F     | The frozen vectors              | 1      | 0         | 0          |
 
 The counts are derived from the markers below, so move a marker and its count
-together. The ten groups hold 66 requirements: 64 `live`, 2 `decided` and 0
+together. The ten groups hold 72 requirements: 70 `live`, 2 `decided` and 0
 `proposed`.
 
 ## C — Wire contract and the ABI
@@ -72,6 +72,9 @@ together. The ten groups hold 66 requirements: 64 `live`, 2 `decided` and 0
   an empty hash.
 - **C-9** `live`. When `schemas` is present it must be an object, for every
   `kind`, `instance` included.
+- **C-10** `live`. A request larger than 64 MiB is refused with
+  `REQUEST_TOO_LARGE` before it is parsed, so the boundary is bounded for
+  untrusted callers.
 
 ## E — The six operations
 
@@ -167,8 +170,20 @@ behaviour, not shape.
   under the code `RULE_UNKNOWN_RULE_KEY`: an unknown key can never apply
   anything, so accepting it would fail open to the defaults.
 - **R-11** `live`. When any expression in a call fails, the whole call fails:
-  there is no partial evaluation result. Operands beyond an operator's arity
-  are ignored without evaluation.
+  there is no partial evaluation result.
+- **R-12** `live`. Expression shapes are checked before any evaluation and
+  fail closed with a `RULE_*` code: fixed-arity operators (`eq`, `neq`,
+  `gt`, `gte`, `lt`, `lte`, `add`, `sub`, `mul`, `div`, `count`, `sum`,
+  `not`, `empty`) accept exactly their arity, `and`/`or`/`coalesce` fold
+  over their list, arguments are never `null`, a `ref` is a non-empty
+  string, a `lit` is never combined with `op`/`args`, an unknown operator
+  is `RULE_UNSUPPORTED_EXPRESSION_OPERATOR`, and a wrong count is
+  `RULE_INVALID_EXPRESSION_ARITY`. A `validations` entry accepts only
+  `code`, `when`, `assert` and `message` (`RULE_UNKNOWN_VALIDATION_KEY`).
+- **R-13** `live`. A repeater-child calculation evaluates in O(outer
+  values + rows), not O(outer values × rows): the per-row scope overlays a
+  template cloned once per calculation, so an N-row calculation does not
+  clone the working set N times.
 
 ## V — Response validation
 
@@ -198,9 +213,14 @@ behaviour, not shape.
   `requiredWhen` predicate overwrites the schema default in both directions,
   so `requiredWhen: false` unsets a schema `required: true`; the
   `CALCULATED_VALUE_MISMATCH` comparison is numeric across integer and
-  double spellings within an absolute tolerance of `1e-6`; and normalization
-  is sparse — an empty scalar answer is omitted from
-  `normalizedAnswersJson`, while repeaters always serialize, even empty.
+  double spellings within an absolute tolerance of `1e-6`, and it is the
+  same equality the rule operators use; and normalization is sparse — an
+  empty scalar answer is omitted from `normalizedAnswersJson`, while
+  repeaters always serialize, even empty.
+- **V-9** `live`. A response carries at most 100 errors; when more were
+  collected the last entry is `VALIDATION_ERRORS_TRUNCATED` and its message
+  states the total, so an invalid submission cannot amplify the response
+  without bound.
 
 ## S — JSON Schema subset
 
@@ -272,6 +292,17 @@ behaviour, not shape.
   mismatch is a hard error `COMPONENT_HASH_MISMATCH`. An absent key or an empty
   string is not a pin and is carried into `dependencyMetadataJson` unverified. The
   pin covers exact bytes, so `1.50` and `1.5` hash differently, which is intended.
+- **P-9** `live`. A component's `contentHash` is verified once per
+  `(code, version)` per call, not once per reference site: the recomputed
+  digest is memoized, so a component referenced N times costs one
+  verification plus N clones of its compiled fields.
+- **P-8** `live`. A component referenced from N sites is expanded once per
+  `(code, version)`; each later reference clones the compiled field array
+  (so cost is linear in the materialised output, not exponential in the
+  reference graph). Expansion is bounded by an explicit budget: at most
+  1,000,000 field nodes and 256 MiB of materialised output, failing with
+  `COMPONENT_BUDGET_EXCEEDED`. A depth limit alone is not a complexity
+  bound.
 - **P-4** `live`. `colander_next_version` returns `"1.0.0"` when nothing is
   published, and otherwise increments the patch of the highest published version
   with no carry.

@@ -31,15 +31,18 @@ pub(super) fn clone_or_null(source: &JsonMap, key: &str) -> Json {
 }
 
 pub(super) fn require_array<'a>(node: Option<&'a Json>, path: &str) -> Result<&'a Vec<Json>> {
-    node.and_then(Json::as_array)
-        .ok_or_else(|| ColanderError::new(format!("Expected array at {path}.")))
+    node.and_then(Json::as_array).ok_or_else(|| {
+        ColanderError::new(format!(
+            "COMPILE_EXPECTED_ARRAY: expected an array at {path}."
+        ))
+    })
 }
 
 pub(super) fn require_string<'a>(node: Option<&'a Json>, path: &str) -> Result<&'a str> {
     match node.and_then(Json::as_str) {
         Some(value) if !value.is_empty() => Ok(value),
         _ => Err(ColanderError::new(format!(
-            "Expected non-empty string at {path}."
+            "COMPILE_EXPECTED_STRING: expected a non-empty string at {path}."
         ))),
     }
 }

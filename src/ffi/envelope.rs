@@ -182,6 +182,14 @@ where
     }
 }
 
+/// Largest request a `char *` entry point will parse. The boundary is the
+/// only place that sees the caller's byte count before any allocation, so the
+/// cap belongs here: a schema or answers document larger than this is a
+/// resource-exhaustion attempt, not a request the core needs to read
+/// (SPEC C-10). The cap is far above any documented form; it exists to make
+/// the bound explicit rather than to enforce a product limit.
+pub const MAX_REQUEST_BYTES: usize = 64 * 1024 * 1024;
+
 /// # Safety
 /// `request` must be null or NUL-terminated. The returned bytes borrow the
 /// pointer's storage and must not outlive it.
@@ -190,7 +198,14 @@ unsafe fn read_request<'a>(request: *const c_char) -> Result<&'a [u8]> {
         return Err(ColanderError::new("request pointer is null"));
     }
     // SAFETY: the caller guarantees a NUL-terminated string.
-    Ok(unsafe { CStr::from_ptr(request) }.to_bytes())
+    let bytes = unsafe { CStr::from_ptr(request) }.to_bytes();
+    if bytes.len() > MAX_REQUEST_BYTES {
+        return Err(ColanderError::new(format!(
+            "REQUEST_TOO_LARGE: request is {} bytes, over the {MAX_REQUEST_BYTES}-byte limit.",
+            bytes.len()
+        )));
+    }
+    Ok(bytes)
 }
 
 pub fn panic_message(payload: Box<dyn std::any::Any + Send>) -> ColanderError {

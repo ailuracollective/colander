@@ -204,10 +204,21 @@ pub fn compare_values(left: &Val, right: &Val) -> Result<std::cmp::Ordering> {
 
     let left = left.to_double()?;
     let right = right.to_double()?;
-    Ok(match (left.is_nan(), right.is_nan()) {
+    let ordering = match (left.is_nan(), right.is_nan()) {
         (true, true) => Ordering::Equal,
         (true, false) => Ordering::Less,
         (false, true) => Ordering::Greater,
         (false, false) => left.partial_cmp(&right).unwrap_or(Ordering::Equal),
-    })
+    };
+    // One equality definition for every surface: `eq` here, and
+    // `CALCULATED_VALUE_MISMATCH` in `Val::values_equal`, decide the same
+    // pair the same way (SPEC V-8). `eq` is also the identity used by
+    // `gt`/`lt`/`gte`/`lte`, so a difference within EPSILON now reads as
+    // equality there too instead of ordering on a float difference the
+    // contract considers insignificant. The tolerance is the shared
+    // `EPSILON`; the two integer paths above are exact and exempt.
+    if (left - right).abs() < super::EPSILON {
+        return Ok(Ordering::Equal);
+    }
+    Ok(ordering)
 }

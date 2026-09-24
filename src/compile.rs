@@ -85,6 +85,14 @@ pub fn compile(
     let compiled_form_json = json::canonical(&Json::Object(compiled_form));
     let compiled_ui_json = compiled_ui.map(|value| json::canonical(&value));
     let compiled_rules_json = compiled_rules.map(|value| json::canonical(&value));
+    // Charge the final documents too, so the byte budget covers output the
+    // field-level charge cannot see (top-level keys, the documents a caller
+    // supplied without references).
+    context.budget.charge_bytes(
+        compiled_form_json.len()
+            + compiled_ui_json.as_deref().map(str::len).unwrap_or(0)
+            + compiled_rules_json.as_deref().map(str::len).unwrap_or(0),
+    )?;
 
     let dependency_metadata_json = context
         .build_dependency_metadata_json(&compiled_form_json, compiled_rules_json.as_deref())?;

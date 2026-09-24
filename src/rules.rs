@@ -11,6 +11,7 @@ mod model;
 mod number;
 mod refs;
 mod rows;
+mod shape;
 mod value;
 
 pub use analyze::{analyze, validate_dependencies};
