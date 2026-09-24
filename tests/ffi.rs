@@ -307,12 +307,23 @@ fn validate_schema_rejects_a_wrong_typed_optional_key() {
         colander_validate_schema,
         r#"{"kind":"instance","schemaJson":"{}","instanceJson":"{}","label":3}"#,
     );
-    // `published` must be a boolean when present.
-    assert_validation_failure(
+}
+
+#[test]
+fn workflow_retires_published() {
+    // `published` was accepted and read by nothing; it is not accepted now (SPEC X-2).
+    let base = r#"{"kind":"workflow","workflowSchemaJson":"{}","published":@,
+        "schemas":{"workflowSchema":"{}"}}"#;
+    assert_validation_failure(colander_validate_schema, &base.replace('@', "true"));
+    assert_validation_failure(colander_validate_schema, &base.replace('@', "3"));
+
+    let envelope = call(
         colander_validate_schema,
-        r#"{"kind":"workflow","workflowSchemaJson":"{}",
-            "schemas":{"workflowSchema":"{}"},"published":3}"#,
+        r#"{"kind":"workflow","workflowSchemaJson":"{}","schemas":{"workflowSchema":"{}"}}"#,
     );
+    let result = envelope.as_object().unwrap().get("result").unwrap();
+    let valid = json::get_bool(result.as_object().unwrap(), "valid");
+    assert_eq!(valid, Some(true));
 }
 
 #[test]

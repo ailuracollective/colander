@@ -94,12 +94,6 @@ pub fn optional_object<'a>(request: &'a JsonMap, key: &str) -> Result<Option<&'a
     optional_typed(request, key, "object", Json::as_object)
 }
 
-/// Read an optional key that must be a boolean when present. See
-/// [`optional_string`].
-pub fn optional_bool(request: &JsonMap, key: &str) -> Result<Option<bool>> {
-    optional_typed(request, key, "boolean", Json::as_bool)
-}
-
 /// The shared shape of the optional accessors: absent is `None`, a value of
 /// the expected type is `Some`, and any other type is a validation error.
 fn optional_typed<'a, T>(

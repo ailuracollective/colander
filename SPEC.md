@@ -32,15 +32,16 @@ satisfied when no `decided` requirement remains unresolved.
 | E     | The six operations              | 7      | 2         | 0          |
 | D     | Documents, fields, id and code  | 3      | 0         | 0          |
 | R     | Rules and the dependency check  | 5      | 3         | 0          |
-| V     | Response validation             | 4      | 3         | 0          |
+| V     | Response validation             | 5      | 2         | 0          |
 | S     | JSON Schema subset              | 2      | 5         | 0          |
 | H     | Canonical form and hashing      | 3      | 2         | 0          |
 | P     | Compilation, components, semver | 4      | 3         | 0          |
-| X     | Retired behaviour               | 0      | 3         | 0          |
+| X     | Retirements and reversals       | 2      | 1         | 0          |
 | F     | The frozen vectors              | 1      | 0         | 0          |
 
 The counts are derived from the markers below, so move a marker and its count
-together.
+together. The ten groups hold 59 requirements: 38 `live`, 21 `decided` and 0
+`proposed`.
 
 ## C — Wire contract and the ABI
 
@@ -159,8 +160,10 @@ behaviour, not shape.
   symmetric between scalar fields and repeater children.
 - **V-4** `live`. The error codes in `docs/validation.md` are the contract; the
   message wording is not.
-- **V-5** `decided`. `CALCULATED_VALUE_INVALID` is retired: its branch cannot fire
-  because a non-finite calculation is normalized to `null` first.
+- **V-5** `live`. A calculated value that is not finite when it is stored is
+  skipped in `Draft` and reports `CALCULATED_VALUE_INVALID` in `Complete`. The
+  case is reachable: a `number` field rounds by scaling to its decimal places,
+  and a finite value near the top of the `f64` range overflows that scale.
 - **V-6** `decided`. An answer keyed by an unknown field still reports
   `UNKNOWN_FIELD` even when another answer in the same call is unusable. Today
   those already-collected errors are discarded.
@@ -244,12 +247,15 @@ behaviour, not shape.
   inspects `fields`, and it does not check `type` against the known list. Array
   order belongs to the caller.
 
-## X — Retired behaviour
+## X — Retirements and reversals
 
-- **X-1** `decided`. `CALCULATED_VALUE_INVALID` is removed from the code and from
-  `docs/validation.md` (see V-5).
-- **X-2** `decided`. `published` stops being accepted for `kind:"workflow"` unless
-  it acquires a meaning. Today it is accepted and read by nothing.
+- **X-1** `live`. `CALCULATED_VALUE_INVALID` is **not** retired. Removing it was
+  decided and then reversed before landing, because the decision rested on the
+  claim that the branch was unreachable and that claim is false (see V-5). Keep
+  the branch: it is the safety net for the overflow, and without it an
+  unrepresentable value degrades into a silent `null`.
+- **X-2** `live`. `published` is not accepted for `kind:"workflow"`: a present key
+  fails the call with `kind:"validation"`.
 - **X-3** `decided`. `DISABLED_FIELD_VALUE` stops being the reported code for a
   read-only field (see V-3).
 

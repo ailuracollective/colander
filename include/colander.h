@@ -58,7 +58,7 @@
  *
  *     {"kind":"form"|"component"|"workflow","formSchemaJson":"<json>",
  *      "uiSchemaJson":"<json>|null","rulesSchemaJson":"<json>|null",
- *      "workflowSchemaJson":"<json>","published":bool,
+ *      "workflowSchemaJson":"<json>",
  *      "schemas":{"formSchema":"<json schema>","uiSchema":"<json schema>",
  *                 "rulesSchema":"<json schema>","workflowSchema":"<json schema>"}}
  *     -> {"valid":true}

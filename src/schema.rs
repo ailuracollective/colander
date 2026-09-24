@@ -46,15 +46,7 @@ pub fn validate_form_draft(
 }
 
 /// Validate a workflow document against the published workflow schema.
-///
-/// `published` is accepted but ignored: only JSON Schema validation is
-/// performed here, not workflow semantic validation.
-pub fn validate_workflow(
-    workflow_schema_json: &str,
-    published: bool,
-    schemas: &PublishedSchemas<'_>,
-) -> Result<()> {
-    let _ = published;
+pub fn validate_workflow(workflow_schema_json: &str, schemas: &PublishedSchemas<'_>) -> Result<()> {
     validate_text(
         schemas.workflow_schema,
         workflow_schema_json,

@@ -295,13 +295,16 @@ first five errors:
 Invalid form schema: required: required property 'schemaVersion' is missing; type: expected object but found string
 ```
 
-`published` is accepted for `kind:"workflow"` but is not used by the core.
+`published` is not accepted for `kind:"workflow"`: a present key fails the call
+(SPEC X-2). Workflow semantic validation, including any notion of a published
+version, is out of scope; only JSON Schema validation runs.
 
 ### Errors
 
 | Message                                                                                                          | Cause                                               |
 | ---------------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
 | `Unknown schema kind 'x' (expected 'form', 'component', 'workflow' or 'instance').`                              | Unrecognized `kind`                                 |
+| `'published' is not accepted for kind:"workflow".`                                                               | `published` present with `kind:"workflow"`          |
 | `schemas is required: pass the JSON Schema text for each document kind, e.g. {"formSchema":"…","uiSchema":"…"}.` | `schemas` missing or not an object                  |
 | `schemas.formSchema is required to validate this request.`                                                       | A needed entry is absent or not a string            |
 | `Invalid form schema definition: …`                                                                              | A schema in `schemas` is not valid JSON             |

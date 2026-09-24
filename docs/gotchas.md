@@ -36,9 +36,13 @@ has surprised someone.
    type does not match the documented one fails the call, the same as a bad
    required key; it is not silently ignored. "Absent" still means "use the
    default", so an omitted `mode` is `"Draft"` while `{"mode": 3}` is an error.
-8. **`published` is accepted and ignored** by `kind:"workflow"`.
-9. **`CALCULATED_VALUE_INVALID` is unreachable**, because a non-finite
-   calculation becomes `null` first.
+8. **Retired (SPEC X-2):** `published` is no longer accepted for
+   `kind:"workflow"`; a present key is a validation failure.
+9. **A finite number can become non-finite while rounding.** A `number` field
+   rounds to its decimal places by scaling, and a value near the top of the
+   `f64` range overflows that scale. A calculated value that is not finite when
+   it is stored is skipped in `Draft` and reports `CALCULATED_VALUE_INVALID` in
+   `Complete`; it is not turned into `null`.
 10. **Version comparison is not semver-strict.** `1..0.0`, `01.0.0` and
     `"  1.2.3  "` are valid; pre-release and build suffixes are not.
 11. **`compile` drops unknown top-level keys** from the form, UI and rules

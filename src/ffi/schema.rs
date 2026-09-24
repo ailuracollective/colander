@@ -7,7 +7,7 @@ use crate::error::{ColanderError, Result};
 use crate::json::{self, Json, JsonMap};
 use crate::schema;
 
-use super::envelope::{dispatch, optional_bool, optional_string, require_string};
+use super::envelope::{dispatch, optional_string, require_string};
 
 /// `colander_validate_schema`: Draft 2020-12 structural validation.
 ///
@@ -50,13 +50,16 @@ pub unsafe extern "C" fn colander_validate_schema(request: *const c_char) -> *mu
                     )?;
                 }
                 "workflow" => {
+                    // `published` was accepted and read by nothing. It is not
+                    // accepted now: an accepted no-op is a trap (SPEC X-2).
+                    if request.contains_key("published") {
+                        return Err(ColanderError::new(
+                            "'published' is not accepted for kind:\"workflow\".",
+                        ));
+                    }
                     let workflow = require_string(request, "workflowSchemaJson")?;
                     let schemas = read_schemas(request, &[("workflowSchema", true)])?;
-                    schema::validate_workflow(
-                        &workflow,
-                        optional_bool(request, "published")?.unwrap_or(false),
-                        &schemas,
-                    )?;
+                    schema::validate_workflow(&workflow, &schemas)?;
                 }
                 "instance" => {
                     let schema_json = require_string(request, "schemaJson")?;
