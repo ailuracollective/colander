@@ -37,7 +37,10 @@ Two behaviours worth memorising:
   `{"mode": "Draft"}`. An explicit `null` counts as the wrong type, not as an
   absence, so a caller that would serialise an absent value as `null` must omit
   the key: `{"mode": null}` fails. The failure is the request failing its own type
-  check, so it comes back as `kind:"validation"`.
+  check, so it comes back as `kind:"validation"`. The same check reaches the keys
+  of an object the request carries: a `components[]` entry's `uiSchemaJson` or
+  `contentHash` of the wrong type is rejected (SPEC C-8), so `{"contentHash": 7}`
+  fails instead of compiling with an empty hash.
 
 ## colander_compile
 
@@ -63,6 +66,9 @@ Each entry of `components` is an object:
 | `formSchemaJson` | string | yes      |
 | `uiSchemaJson`   | string | no       |
 | `contentHash`    | string | no       |
+
+`uiSchemaJson` and `contentHash` must be strings when present: `{"contentHash": 7}`
+is a validation failure, not an empty pin.
 
 There is no repository and no callback: the caller decides what "published"
 means by choosing which component versions to hand in.
@@ -111,7 +117,9 @@ order**, no whitespace, number literals preserved.
 
 `components` is always present (empty when there are no references), sorted by
 `code`, then by version, with `contentHash` set to the empty string when the
-caller did not supply one. `rules` appears only when a rules schema was
+caller did not supply one. An empty string is not a pin, so it is carried
+unverified; a non-empty pin is checked first (see **Component references** below).
+`rules` appears only when a rules schema was
 compiled; `calculatedFieldIds` is in document order and `evaluationOrder` is the
 topological order calculations run in. The metadata is **not** part of the
 content hash.
@@ -138,23 +146,32 @@ Components are resolved by exact `(code, version)` match against the `components
 batch you pass, and resolution is memoized, so referencing the same version twice
 yields one metadata entry.
 
+Each resolved component is pinned by its `contentHash` (SPEC P-3). When the field
+is a non-empty string, colander compiles the component on its own — its nested
+`component-ref` fields expanded from the same batch and no rules document — and
+compares the digest. A mismatch fails the call with `COMPONENT_HASH_MISMATCH`.
+An absent key, or an empty string, is **not** a pin: the component compiles and is
+carried into `dependencyMetadataJson` with the empty string, unverified. The pin
+covers exact bytes, so `1.50` and `1.5` hash differently.
+
 ### Errors
 
-| Message                                                                                                                 | Cause                                                                                                                            |
-| ----------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| `'formSchemaJson' is required and must be a string.`                                                                    | Missing or non-string required key                                                                                               |
-| `Invalid form schema: expected a JSON object.`                                                                          | Valid JSON that is not an object                                                                                                 |
-| `Expected array at /fields.`                                                                                            | The form has no `fields` array                                                                                                   |
-| `Expected field object at /fields/0.`                                                                                   | A field is not an object                                                                                                         |
-| `Expected non-empty string at /fields/0/type.`                                                                          | A field has no `type`                                                                                                            |
-| `components[] entries must be objects.`                                                                                 | A `components` element is not an object                                                                                          |
-| `components[].code is required.`                                                                                        | Missing `code` (same for `version`, `formSchemaJson`)                                                                            |
-| `COMPONENT_VERSION_REQUIRED: component-ref at /fields/0 must include componentVersion before publication.`              | Blank or absent `componentVersion`                                                                                               |
-| `COMPONENT_VERSION_NOT_FOUND: component 'x' version '1.0.0' referenced at /fields/0 was not found or is not published.` | No matching entry in `components`                                                                                                |
-| `CIRCULAR_COMPONENT_REFERENCE: component 'x' references itself through a -> b -> x.`                                    | A component reference cycle                                                                                                      |
-| `Invalid semantic version: 1.0`                                                                                         | Bad `componentVersion`                                                                                                           |
-| `Expected field id at /fields/0/id.`                                                                                    | A field lacks a string `id`, raised while analysing the rules for `dependencyMetadataJson` — only when a rules schema is present |
-| `The node must be of type 'JsonObject'.`                                                                                | A `fields` element is not an object                                                                                              |
+| Message                                                                                                                  | Cause                                                                                                                            |
+| ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| `'formSchemaJson' is required and must be a string.`                                                                     | Missing or non-string required key                                                                                               |
+| `Invalid form schema: expected a JSON object.`                                                                           | Valid JSON that is not an object                                                                                                 |
+| `Expected array at /fields.`                                                                                             | The form has no `fields` array                                                                                                   |
+| `Expected field object at /fields/0.`                                                                                    | A field is not an object                                                                                                         |
+| `Expected non-empty string at /fields/0/type.`                                                                           | A field has no `type`                                                                                                            |
+| `components[] entries must be objects.`                                                                                  | A `components` element is not an object                                                                                          |
+| `components[].code is required.`                                                                                         | Missing `code` (same for `version`, `formSchemaJson`)                                                                            |
+| `COMPONENT_VERSION_REQUIRED: component-ref at /fields/0 must include componentVersion before publication.`               | Blank or absent `componentVersion`                                                                                               |
+| `COMPONENT_VERSION_NOT_FOUND: component 'x' version '1.0.0' referenced at /fields/0 was not found or is not published.`  | No matching entry in `components`                                                                                                |
+| `CIRCULAR_COMPONENT_REFERENCE: component 'x' references itself through a -> b -> x.`                                     | A component reference cycle                                                                                                      |
+| `COMPONENT_HASH_MISMATCH: component 'x' version '1.0.0' declares contentHash '…' but its compiled triple hashes to '…'.` | A non-empty `contentHash` pin does not match the component's own compiled triple                                                 |
+| `Invalid semantic version: 1.0`                                                                                          | Bad `componentVersion`                                                                                                           |
+| `Expected field id at /fields/0/id.`                                                                                     | A field lacks a string `id`, raised while analysing the rules for `dependencyMetadataJson` — only when a rules schema is present |
+| `The node must be of type 'JsonObject'.`                                                                                 | A `fields` element is not an object                                                                                              |
 
 ## colander_evaluate_rules
 

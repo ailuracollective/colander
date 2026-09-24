@@ -28,19 +28,19 @@ satisfied when no `decided` requirement remains unresolved.
 
 | Group | Subject                         | `live` | `decided` | `proposed` |
 | ----- | ------------------------------- | ------ | --------- | ---------- |
-| C     | Wire contract and the ABI       | 6      | 3         | 0          |
+| C     | Wire contract and the ABI       | 7      | 2         | 0          |
 | E     | The six operations              | 7      | 2         | 0          |
 | D     | Documents, fields, id and code  | 3      | 0         | 0          |
 | R     | Rules and the dependency check  | 5      | 3         | 0          |
 | V     | Response validation             | 5      | 2         | 0          |
 | S     | JSON Schema subset              | 2      | 5         | 0          |
 | H     | Canonical form and hashing      | 3      | 2         | 0          |
-| P     | Compilation, components, semver | 4      | 3         | 0          |
+| P     | Compilation, components, semver | 5      | 2         | 0          |
 | X     | Retirements and reversals       | 2      | 1         | 0          |
 | F     | The frozen vectors              | 1      | 0         | 0          |
 
 The counts are derived from the markers below, so move a marker and its count
-together. The ten groups hold 59 requirements: 38 `live`, 21 `decided` and 0
+together. The ten groups hold 59 requirements: 40 `live`, 19 `decided` and 0
 `proposed`.
 
 ## C — Wire contract and the ABI
@@ -66,11 +66,10 @@ together. The ten groups hold 59 requirements: 38 `live`, 21 `decided` and 0
 - **C-7** `decided`. No panic reaches the caller, including the final envelope
   serialization. Today the panic boundary covers request parsing and the core
   body, but the last `encode` call runs outside it.
-- **C-8** `decided`. C-6 reaches a key of an object the request carries, not only a
+- **C-8** `live`. C-6 reaches a key of an object the request carries, not only a
   top-level key: a `components[]` entry's `uiSchemaJson` or `contentHash` with the
-  wrong type is rejected. Today both are silently ignored, so `{"contentHash": 7}`
-  compiles with an empty hash. This lands with P-3, which reworks the same
-  function.
+  wrong type is rejected, so `{"contentHash": 7}` fails instead of compiling with
+  an empty hash.
 - **C-9** `decided`. When `schemas` is present it must be an object, for every
   `kind`, `instance` included. Today a wrong-typed `schemas` is ignored for
   `kind:"instance"`.
@@ -226,11 +225,12 @@ behaviour, not shape.
 - **P-2** `live`. `dependencyMetadataJson` lists the resolved components sorted by
   `code` then version, plus the calculated field ids and the evaluation order. A
   component's missing `contentHash` becomes the empty string.
-- **P-3** `decided`. A component's `contentHash` is verified: it is recomputed from
-  that component's own compiled triple and compared, and a mismatch is a hard
-  error `COMPONENT_HASH_MISMATCH`. The pin covers exact bytes, so `1.50` and `1.5`
-  hash differently, which is intended. Today the field is read, carried and
-  printed, and never compared.
+- **P-3** `live`. A component's `contentHash` is verified: when it is a non-empty
+  string it is recomputed from that component's own compiled triple — nested
+  `component-ref` fields expanded and no rules document — and compared, and a
+  mismatch is a hard error `COMPONENT_HASH_MISMATCH`. An absent key or an empty
+  string is not a pin and is carried into `dependencyMetadataJson` unverified. The
+  pin covers exact bytes, so `1.50` and `1.5` hash differently, which is intended.
 - **P-4** `live`. `colander_next_version` returns `"1.0.0"` when nothing is
   published, and otherwise increments the patch of the highest published version
   with no carry.

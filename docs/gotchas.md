@@ -48,8 +48,12 @@ has surprised someone.
 11. **`compile` drops unknown top-level keys** from the form, UI and rules
     documents, and unknown keys from layout nodes, while preserving unknown keys
     inside fields.
-12. **A component's `contentHash` is never verified.** colander carries it into
-    `dependencyMetadataJson` and trusts it.
+12. **A component's `contentHash` is a pin, and a pin is verified.** A non-empty
+    `contentHash` on a `components[]` entry is recomputed from that component's own
+    compiled triple and compared; a mismatch fails the call with
+    `COMPONENT_HASH_MISMATCH`. An absent key or an empty string is **not** a pin:
+    colander carries it into `dependencyMetadataJson` as the empty string and does
+    not compare it.
 13. **The dependency check is skipped when no rules document is supplied.**
     `colander_validate_response` and `colander_compile` treat absent or blank
     rules as no rules, so a malformed rules document cannot reach them; only a

@@ -70,7 +70,7 @@ pub(super) fn component_from_json(value: &Json) -> Result<compile::ComponentVers
         form_schema_json: json::get_str(object, "formSchemaJson")
             .ok_or_else(|| ColanderError::new("components[].formSchemaJson is required."))?
             .to_string(),
-        ui_schema_json: json::get_str(object, "uiSchemaJson").map(str::to_string),
-        content_hash: json::get_str(object, "contentHash").map(str::to_string),
+        ui_schema_json: optional_string(object, "uiSchemaJson")?,
+        content_hash: optional_string(object, "contentHash")?,
     })
 }

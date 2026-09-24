@@ -3,12 +3,16 @@
 use indexmap::IndexMap;
 
 use crate::error::{ColanderError, Result};
+use crate::hash;
 use crate::json::{self, Json, JsonMap};
 use crate::keys::schema_json_keys;
 use crate::rules;
 use crate::semver;
 
 use super::ComponentVersionData;
+use super::fields::compile_field_array;
+use super::schemas::compile_ui_schema;
+use super::util::{clone_or_null, present, require_array};
 
 // ---------------------------------------------------------------------------
 // Compilation context
@@ -28,6 +32,11 @@ pub(super) struct CompilationContext<'a> {
     pub(super) resolution_stack: Vec<String>,
     pub(super) dependencies: IndexMap<String, ResolvedComponentDependency>,
     pub(super) expanded_reference_layouts: IndexMap<String, Json>,
+    /// Whether resolving a component also verifies its `contentHash` pin
+    /// (SPEC P-3). The context that recomputes a component's own triple turns
+    /// this off, so the nested resolutions it performs for the bytes do not
+    /// recurse back into verification.
+    pub(super) verify_hashes: bool,
 }
 
 impl<'a> CompilationContext<'a> {
@@ -37,6 +46,7 @@ impl<'a> CompilationContext<'a> {
             resolution_stack: Vec::new(),
             dependencies: IndexMap::new(),
             expanded_reference_layouts: IndexMap::new(),
+            verify_hashes: true,
         }
     }
 
@@ -73,6 +83,10 @@ impl<'a> CompilationContext<'a> {
                 })?;
                 ui_fields = json::get_object(ui_root, schema_json_keys::FIELDS).cloned();
                 layout_children = json::get_array(ui_root, schema_json_keys::LAYOUT).cloned();
+            }
+
+            if self.verify_hashes {
+                verify_component_hash(found, self.components)?;
             }
 
             self.dependencies.insert(
@@ -154,4 +168,89 @@ impl<'a> CompilationContext<'a> {
 
         Ok(json::canonical(&Json::Object(metadata)))
     }
+}
+
+// ---------------------------------------------------------------------------
+// Component hash pins (SPEC P-3)
+// ---------------------------------------------------------------------------
+
+/// Verify a component's `contentHash` against its own compiled triple.
+///
+/// An absent pin, or an explicit empty string, is not a pin: `docs/entry-points.md`
+/// records that a missing `contentHash` becomes the empty string, and an empty
+/// string means "unpinned". Only a non-empty pin is recomputed and compared.
+fn verify_component_hash(
+    component: &ComponentVersionData,
+    components: &[ComponentVersionData],
+) -> Result<()> {
+    let Some(pin) = component
+        .content_hash
+        .as_deref()
+        .filter(|pin| !pin.is_empty())
+    else {
+        return Ok(());
+    };
+
+    let recomputed = compiled_component_hash(component, components)?;
+    if recomputed != pin {
+        return Err(ColanderError::new(format!(
+            "COMPONENT_HASH_MISMATCH: component '{}' version '{}' declares contentHash '{pin}' but its compiled triple hashes to '{recomputed}'.",
+            component.code, component.version
+        )));
+    }
+    Ok(())
+}
+
+/// The SHA-256 of a component compiled on its own.
+///
+/// The component is treated as the top-level form — its own `component-ref`
+/// fields are expanded from the same batch and it carries no rules — so the
+/// digest covers the compiled triple, not the source text, and matches what
+/// `colander_compile` reports for that component alone.
+fn compiled_component_hash(
+    component: &ComponentVersionData,
+    components: &[ComponentVersionData],
+) -> Result<String> {
+    let form_root = json::parse_object(
+        &component.form_schema_json,
+        &format!("component '{}' form schema", component.code),
+    )?;
+    let ui_root = match &component.ui_schema_json {
+        Some(text) => Some(json::parse_object(
+            text,
+            &format!("component '{}' UI schema", component.code),
+        )?),
+        None => None,
+    };
+
+    let mut context = CompilationContext::new(components);
+    context.verify_hashes = false;
+
+    let fields_path = format!("/components/{}/fields", component.code);
+    let fields = require_array(
+        json::get(&form_root, schema_json_keys::FIELDS),
+        &fields_path,
+    )?;
+    let compiled_fields = compile_field_array(fields, &fields_path, &mut context)?;
+
+    let mut compiled_form = JsonMap::new();
+    compiled_form.insert(
+        schema_json_keys::SCHEMA_VERSION.to_string(),
+        clone_or_null(&form_root, schema_json_keys::SCHEMA_VERSION),
+    );
+    if let Some(schema_uri) = present(&form_root, schema_json_keys::SCHEMA) {
+        compiled_form.insert(schema_json_keys::SCHEMA.to_string(), schema_uri.clone());
+    }
+    compiled_form.insert(
+        schema_json_keys::FIELDS.to_string(),
+        Json::Array(compiled_fields),
+    );
+    let compiled_form_json = json::canonical(&Json::Object(compiled_form));
+
+    let compiled_ui_json = match &ui_root {
+        Some(root) => Some(json::canonical(&compile_ui_schema(root, &context)?)),
+        None => None,
+    };
+
+    hash::content_hash(&compiled_form_json, compiled_ui_json.as_deref(), None)
 }

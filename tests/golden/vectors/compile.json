@@ -178,15 +178,14 @@
         "code": "comp",
         "version": "1.0.0",
         "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
-        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\n\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\n\"layout\":[{\"type\":\"field\",\"fieldId\":\"c1\"},{\"type\":\"field\",\"fieldId\":\"c2\"}]}",
-        "contentHash": "hash-comp-1.0.0"
+        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\n\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\n\"layout\":[{\"type\":\"field\",\"fieldId\":\"c1\"},{\"type\":\"field\",\"fieldId\":\"c2\"}]}"
       }
     ],
     "expected": {
       "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
       "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\"layout\":[{\"children\":[{\"fieldId\":\"c1\",\"type\":\"field\"},{\"fieldId\":\"c2\",\"type\":\"field\"}],\"fieldId\":\"ref1\",\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
       "rulesSchemaJson": null,
-      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.0\",\"version\":\"1.0.0\"}]}",
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"\",\"version\":\"1.0.0\"}]}",
       "contentHash": "b93e88daf4d15fe5890eb530d58e802a30f4f85877cf9b28b888896ff792869c"
     },
     "error": null
@@ -227,15 +226,14 @@
         "code": "comp",
         "version": "1.0.0",
         "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
-        "uiSchemaJson": null,
-        "contentHash": "hash-comp-1.0.0"
+        "uiSchemaJson": null
       }
     ],
     "expected": {
       "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
       "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"layout\":[{\"children\":[{\"fieldId\":\"c1\",\"type\":\"field\"},{\"fieldId\":\"c2\",\"type\":\"field\"}],\"fieldId\":\"ref1\",\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
       "rulesSchemaJson": null,
-      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.0\",\"version\":\"1.0.0\"}]}",
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"\",\"version\":\"1.0.0\"}]}",
       "contentHash": "bad8d94df83f87cd9f6fc1ec7ca32e8410299e7e8ab898238dabc2770090402d"
     },
     "error": null
@@ -266,15 +264,14 @@
         "code": "comp",
         "version": "1.0.0",
         "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
-        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\n\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\n\"layout\":[{\"type\":\"field\",\"fieldId\":\"c1\"},{\"type\":\"field\",\"fieldId\":\"c2\"}]}",
-        "contentHash": "hash-comp-1.0.0"
+        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\n\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\n\"layout\":[{\"type\":\"field\",\"fieldId\":\"c1\"},{\"type\":\"field\",\"fieldId\":\"c2\"}]}"
       }
     ],
     "expected": {
       "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
       "uiSchemaJson": null,
       "rulesSchemaJson": null,
-      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.0\",\"version\":\"1.0.0\"}]}",
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"\",\"version\":\"1.0.0\"}]}",
       "contentHash": "ba371356e6acefc795a7da7964902a78d29ffaf1014c7fe26b67639cae882533"
     },
     "error": null
@@ -315,22 +312,20 @@
         "code": "A",
         "version": "1.0.0",
         "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a1\",\"code\":\"a.1\",\"type\":\"text\"},{\"id\":\"refB\",\"code\":\"refB\",\"type\":\"component-ref\",\"componentCode\":\"B\",\"componentVersion\":\"2.0.0\"}]}",
-        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"a1\":{\"label\":\"A1\"}},\"layout\":[{\"type\":\"field\",\"fieldId\":\"a1\"},{\"type\":\"field\",\"fieldId\":\"refB\"}]}",
-        "contentHash": "hash-A"
+        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"a1\":{\"label\":\"A1\"}},\"layout\":[{\"type\":\"field\",\"fieldId\":\"a1\"},{\"type\":\"field\",\"fieldId\":\"refB\"}]}"
       },
       {
         "code": "B",
         "version": "2.0.0",
         "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"b1\",\"code\":\"b.1\",\"type\":\"text\"}]}",
-        "uiSchemaJson": null,
-        "contentHash": "hash-B"
+        "uiSchemaJson": null
       }
     ],
     "expected": {
       "formSchemaJson": "{\"fields\":[{\"code\":\"refA\",\"id\":\"refA\",\"items\":[{\"code\":\"a.1\",\"id\":\"a1\",\"type\":\"text\"},{\"code\":\"refB\",\"id\":\"refB\",\"items\":[{\"code\":\"b.1\",\"id\":\"b1\",\"type\":\"text\"}],\"type\":\"group\"}],\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
       "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"a1\":{\"label\":\"A1\"}},\"layout\":[{\"children\":[{\"fieldId\":\"a1\",\"type\":\"field\"},{\"children\":[{\"fieldId\":\"b1\",\"type\":\"field\"}],\"fieldId\":\"refB\",\"type\":\"group\"}],\"fieldId\":\"refA\",\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
       "rulesSchemaJson": null,
-      "dependencyMetadataJson": "{\"components\":[{\"code\":\"A\",\"contentHash\":\"hash-A\",\"version\":\"1.0.0\"},{\"code\":\"B\",\"contentHash\":\"hash-B\",\"version\":\"2.0.0\"}]}",
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"A\",\"contentHash\":\"\",\"version\":\"1.0.0\"},{\"code\":\"B\",\"contentHash\":\"\",\"version\":\"2.0.0\"}]}",
       "contentHash": "4c1f0c6cb62040768d4dd08ec4a32a0e482ce28706d46711e1d7f9ada458fd1d"
     },
     "error": null
@@ -382,15 +377,14 @@
         "code": "comp",
         "version": "1.0.0",
         "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
-        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\n\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\n\"layout\":[{\"type\":\"field\",\"fieldId\":\"c1\"},{\"type\":\"field\",\"fieldId\":\"c2\"}]}",
-        "contentHash": "hash-comp-1.0.0"
+        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\n\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\n\"layout\":[{\"type\":\"field\",\"fieldId\":\"c1\"},{\"type\":\"field\",\"fieldId\":\"c2\"}]}"
       }
     ],
     "expected": {
       "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"},{\"code\":\"ref2\",\"id\":\"ref2\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
       "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\"layout\":[{\"children\":[{\"fieldId\":\"c1\",\"type\":\"field\"},{\"fieldId\":\"c2\",\"type\":\"field\"}],\"fieldId\":\"ref1\",\"type\":\"group\"},{\"children\":[{\"fieldId\":\"c1\",\"type\":\"field\"},{\"fieldId\":\"c2\",\"type\":\"field\"}],\"fieldId\":\"ref2\",\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
       "rulesSchemaJson": null,
-      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.0\",\"version\":\"1.0.0\"}]}",
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"\",\"version\":\"1.0.0\"}]}",
       "contentHash": "a32eac3cdf37eee1fb8f9e224754d6ddc1f9f920098619a2692b5b06730ec03c"
     },
     "error": null
@@ -428,22 +422,20 @@
         "code": "comp",
         "version": "1.0.0",
         "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
-        "uiSchemaJson": null,
-        "contentHash": "hash-comp-1.0.0"
+        "uiSchemaJson": null
       },
       {
         "code": "comp",
         "version": "1.0.1",
         "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
-        "uiSchemaJson": null,
-        "contentHash": "hash-comp-1.0.1"
+        "uiSchemaJson": null
       }
     ],
     "expected": {
       "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"},{\"code\":\"ref2\",\"id\":\"ref2\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
       "uiSchemaJson": null,
       "rulesSchemaJson": null,
-      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.0\",\"version\":\"1.0.0\"},{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.1\",\"version\":\"1.0.1\"}]}",
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"\",\"version\":\"1.0.0\"},{\"code\":\"comp\",\"contentHash\":\"\",\"version\":\"1.0.1\"}]}",
       "contentHash": "38200a7469560dacdba64d0d4a9d67439fa21439c133be2bb117d0c122274ed5"
     },
     "error": null
@@ -648,15 +640,14 @@
         "code": "comp",
         "version": "1.0.0",
         "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"grp\",\"code\":\"grp\",\"type\":\"group\",\"items\":[{\"id\":\"inner\",\"code\":\"grp.inner\",\"type\":\"text\"}]}]}",
-        "uiSchemaJson": null,
-        "contentHash": "hash-grp"
+        "uiSchemaJson": null
       }
     ],
     "expected": {
       "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"grp\",\"id\":\"grp\",\"items\":[{\"code\":\"grp.inner\",\"id\":\"inner\",\"type\":\"text\"}],\"type\":\"group\"}],\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
       "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"layout\":[{\"children\":[{\"fieldId\":\"grp\",\"type\":\"field\"}],\"fieldId\":\"ref1\",\"type\":\"group\"}],\"schemaVersion\":\"1.0.0\"}",
       "rulesSchemaJson": null,
-      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-grp\",\"version\":\"1.0.0\"}]}",
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"\",\"version\":\"1.0.0\"}]}",
       "contentHash": "926be19064fb581aa6342294590628dbe8075e8d802db6ab77904470f6345784"
     },
     "error": null
@@ -742,15 +733,14 @@
         "code": "comp",
         "version": "1.0.0",
         "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
-        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\n\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\n\"layout\":[{\"type\":\"field\",\"fieldId\":\"c1\"},{\"type\":\"field\",\"fieldId\":\"c2\"}]}",
-        "contentHash": "hash-comp-1.0.0"
+        "uiSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\n\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\n\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"}},\n\"layout\":[{\"type\":\"field\",\"fieldId\":\"c1\"},{\"type\":\"field\",\"fieldId\":\"c2\"}]}"
       }
     ],
     "expected": {
       "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"},{\"code\":\"rows\",\"id\":\"rows\",\"items\":[{\"code\":\"rows.n\",\"id\":\"rn\",\"type\":\"text\"}],\"type\":\"repeater\"},{\"code\":\"plain\",\"id\":\"plain\",\"type\":\"text\"}],\"schemaVersion\":\"1.0.0\"}",
       "uiSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"label\":\"Component C1\",\"widget\":\"text-input\"},\"c2\":{\"label\":\"Component C2\",\"widget\":\"number-input\"},\"plain\":{\"label\":\"Plain\"}},\"layout\":[{\"children\":[{\"children\":[{\"fieldId\":\"c1\",\"type\":\"field\"},{\"fieldId\":\"c2\",\"type\":\"field\"}],\"fieldId\":\"ref1\",\"type\":\"group\"},{\"fieldId\":\"plain\",\"type\":\"field\"}],\"description\":\"d\",\"id\":\"s1\",\"title\":\"Section A\",\"type\":\"section\"},{\"addButtonLabel\":\"Add\",\"fieldId\":\"rows\",\"itemTemplate\":[{\"fieldId\":\"rn\",\"type\":\"field\"}],\"removeButtonLabel\":\"Remove\",\"type\":\"repeater\"}],\"schemaVersion\":\"1.0.0\"}",
       "rulesSchemaJson": null,
-      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.0\",\"version\":\"1.0.0\"}]}",
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"\",\"version\":\"1.0.0\"}]}",
       "contentHash": "d2fac1fce518e165ec4f51cd04136e5025c5bf3f5215a797a55c07c416fa55f7"
     },
     "error": null
@@ -1098,15 +1088,14 @@
         "code": "comp",
         "version": "1.0.0",
         "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[\n{\"id\":\"c1\",\"code\":\"component.c1\",\"type\":\"text\"},\n{\"id\":\"c2\",\"code\":\"component.c2\",\"type\":\"number\"}]}",
-        "uiSchemaJson": null,
-        "contentHash": "hash-comp-1.0.0"
+        "uiSchemaJson": null
       }
     ],
     "expected": {
       "formSchemaJson": "{\"fields\":[{\"code\":\"ref1\",\"id\":\"ref1\",\"items\":[{\"code\":\"component.c1\",\"id\":\"c1\",\"type\":\"text\"},{\"code\":\"component.c2\",\"id\":\"c2\",\"type\":\"number\"}],\"type\":\"group\"},{\"code\":\"calc\",\"id\":\"calc\",\"readOnly\":true,\"type\":\"number\"}],\"schemaVersion\":\"1.0.0\"}",
       "uiSchemaJson": null,
       "rulesSchemaJson": "{\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"calc\":{\"calculate\":{\"args\":[{\"ref\":\"component.c2\"},{\"lit\":1}],\"op\":\"add\"}}},\"schemaVersion\":\"1.0.0\"}",
-      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"hash-comp-1.0.0\",\"version\":\"1.0.0\"}],\"rules\":{\"calculatedFieldIds\":[\"calc\"],\"evaluationOrder\":[\"calc\"]}}",
+      "dependencyMetadataJson": "{\"components\":[{\"code\":\"comp\",\"contentHash\":\"\",\"version\":\"1.0.0\"}],\"rules\":{\"calculatedFieldIds\":[\"calc\"],\"evaluationOrder\":[\"calc\"]}}",
       "contentHash": "f7a33473decbc4edaaa5de392b46818353491714cac6455500051d747884e67d"
     },
     "error": null
