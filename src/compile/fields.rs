@@ -117,7 +117,6 @@ pub(super) fn expand_component_reference(
     }
 
     let dependency = context.resolve(&component_code, component_version, path)?;
-    let dependency_form = dependency.form_schema_json.clone();
     let dependency_layout = dependency.layout_children.clone();
 
     // P-8: expand the component once per `(code, version)` and clone the
@@ -132,18 +131,33 @@ pub(super) fn expand_component_reference(
             cached.clone()
         }
         None => {
+            // P-11: the source form is needed only for this first expansion;
+            // take it out of the dependency so a large batch does not keep
+            // every source document alive until the call ends.
+            let source = context
+                .dependencies
+                .get_mut(&reference_key)
+                .and_then(|dependency| dependency.form_schema_json.take())
+                .ok_or_else(|| {
+                    ColanderError::new(format!(
+                        "COMPONENT_SOURCE_UNAVAILABLE: component '{component_code}' version '{component_version}' was already expanded but its source form is gone."
+                    ))
+                })?;
             let component_form = json::parse_object(
-                &dependency_form,
+                &source,
                 &format!("component '{component_code}' form schema"),
             )?;
+            drop(source);
             let component_fields = require_array(
                 json::get(&component_form, schema_json_keys::FIELDS),
                 &format!("/components/{component_code}/fields"),
-            )?;
+            )?
+            .clone();
+            drop(component_form);
 
             context.resolution_stack.push(reference_key.clone());
             let compiled = compile_field_array(
-                component_fields,
+                &component_fields,
                 &format!("/components/{component_code}/fields"),
                 context,
             );

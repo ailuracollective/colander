@@ -36,9 +36,16 @@ the child holds an array, one entry per row, and a plain reference to the child
 observes that array. The flat values never carry the rows themselves — only the
 repeater's row count — so a `ref` to an empty repeater is `0` (falsy) on every
 entry point, and an N-row calculation does not clone the row payload per row
-(SPEC R-13). `count` returns how many rows a repeater has (0 with none);
+(SPEC R-13). A calculation that chains from a sibling calculated child reads
+that child's value **for the current row**; the whole-column array is what a
+reference observes outside row scope (an aggregate, a predicate, a
+validation). Keeping the per-row arrays out of the row template is also what
+makes chained per-row calculations linear instead of quadratic (SPEC R-14). `count` returns how many rows a repeater has (0 with none);
 `sum` adds a child across the rows as numbers, treating a missing or non-numeric
-child as 0, and is `null` with no rows. Per-row `visibility`, `enabled`,
+child as 0, and is `null` with no rows. The accumulation is compensated, so a
+long repeater of small decimals no longer drifts in its last digits; the total
+is still row-order sensitive by construction, because floating-point addition
+is not associative (SPEC R-15). Per-row `visibility`, `enabled`,
 `required` and validations, index addressing, and other aggregates are out of
 scope.
 

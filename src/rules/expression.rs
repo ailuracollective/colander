@@ -146,6 +146,13 @@ fn row_count(values: &IndexMap<String, Val>, rows: &RowSet, code: &str) -> usize
 /// child contributes zero; with no rows there is no sum. The result is always
 /// a `Double`, which the number writer spells exactly like an integer when the
 /// value is one.
+///
+/// The accumulation is compensated (Kahan): summing thousands of small
+/// decimals in row order otherwise loses cents in the last digits, and a
+/// consumer that reordered the rows would see a different-looking total.
+/// The sum remains row-order sensitive by construction (IEEE-754 addition is
+/// not associative); compensation bounds the error, it does not remove it
+/// (SPEC R-15).
 fn sum_child(rows: &RowSet, repeater_code: &str, child_code: &str) -> Val {
     let Some(row_list) = rows.rows(repeater_code) else {
         return Val::Null;
@@ -153,10 +160,16 @@ fn sum_child(rows: &RowSet, repeater_code: &str, child_code: &str) -> Val {
     if row_list.is_empty() {
         return Val::Null;
     }
-    let mut total = 0.0;
+    let mut total = 0.0f64;
+    let mut compensation = 0.0f64;
     for row in row_list {
-        if let Some(value) = row.get(child_code) {
-            total += value.to_double().unwrap_or(0.0);
+        if let Some(value) = row.get(child_code)
+            && let Ok(number) = value.to_double()
+        {
+            let adjusted = number - compensation;
+            let next = total + adjusted;
+            compensation = (next - total) - adjusted;
+            total = next;
         }
     }
     if total.is_finite() {

@@ -43,6 +43,13 @@ empty. `0` and `false` are **not** empty. A `requiredWhen` predicate overwrites
 the schema default in both directions: `requiredWhen: false` unsets a schema
 `required: true`, symmetric with `visibleWhen`/`enabledWhen`.
 
+A calculated field is server-authored: the read-only/hidden gates do not apply
+to it (a client-supplied value is checked against the calculation, not
+rejected as read-only), and its value is normalized even when the field is
+hidden. A _submitted_ value for a calculated field is therefore reported as
+`CALCULATED_VALUE_MISMATCH`, never as `READONLY_FIELD_MODIFIED` or
+`HIDDEN_FIELD_VALUE`.
+
 Normalization is sparse: an empty scalar answer is omitted from
 `normalizedAnswersJson` rather than stored as `null` or `""` — absent and
 empty stay indistinguishable downstream. Repeaters always serialize, even

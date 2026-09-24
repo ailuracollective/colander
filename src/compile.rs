@@ -55,7 +55,7 @@ pub fn compile(
         None => None,
     };
 
-    let mut context = CompilationContext::new(components);
+    let mut context = CompilationContext::new(components)?;
 
     let fields = require_array(json::get(&form_root, schema_json_keys::FIELDS), "/fields")?;
     let compiled_fields = compile_field_array(fields, "/fields", &mut context)?;

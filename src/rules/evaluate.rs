@@ -7,7 +7,7 @@ use crate::index::{self, FieldInfo};
 use crate::json::{self, JsonMap};
 use crate::keys::schema_json_keys;
 
-use super::analyze::{analyze, validate_dependencies};
+use super::analyze::analyze;
 use super::expression::evaluate_expression;
 use super::model::{FormRuleEvaluationResult, RuleDependencyMetadata, RuleValidationError};
 use super::number::normalize_calculated_value;
@@ -27,24 +27,37 @@ pub fn evaluate(
     ui_schema_json: Option<&str>,
     rows: &mut RowSet,
 ) -> Result<FormRuleEvaluationResult> {
-    validate_dependencies(form_root, rules_root)?;
-    evaluate_core(form_root, rules_root, values, ui_schema_json, rows)
+    let metadata = super::analyze::analyze_checked(form_root, rules_root)?;
+    evaluate_core(
+        form_root,
+        rules_root,
+        values,
+        ui_schema_json,
+        rows,
+        Some(metadata),
+    )
 }
 
 /// Evaluates a form/rules pair whose dependency contract is already satisfied.
 ///
 /// The response validator synthesizes an empty rules document when the caller
 /// supplies none, and that document must not be run through the dependency
-/// check, so it reaches this function instead of [`evaluate`].
+/// check, so it reaches this function instead of [`evaluate`]. `metadata` is
+/// passed in by callers that already analyzed the pair, so one call analyzes
+/// once (SPEC R-14).
 pub(crate) fn evaluate_core(
     form_root: &JsonMap,
     rules_root: &JsonMap,
     values: &IndexMap<String, Val>,
     ui_schema_json: Option<&str>,
     rows: &mut RowSet,
+    metadata: Option<super::RuleDependencyMetadata>,
 ) -> Result<FormRuleEvaluationResult> {
     let fields_by_id = index::build_by_id(form_root)?;
-    let metadata = analyze(form_root, rules_root)?;
+    let metadata = match metadata {
+        Some(metadata) => metadata,
+        None => analyze(form_root, rules_root)?,
+    };
 
     let mut working_values = values.clone();
     // R-7a/R-13: a repeater's rows live in `RowSet`, never in the flat working
@@ -120,6 +133,9 @@ fn apply_calculations(
     parents: &IndexMap<String, String>,
     rows: &mut RowSet,
 ) -> Result<()> {
+    // Calculated codes already materialised per row, with the repeater they
+    // belong to; used to keep those arrays out of the next row template.
+    let mut per_row_outputs: IndexMap<String, String> = IndexMap::new();
     for field_id in &metadata.evaluation_order {
         let Some(rules) = json::get_object(field_rules, field_id) else {
             continue;
@@ -148,7 +164,20 @@ fn apply_calculations(
             // visible to the next row. Cloning the template once per
             // calculation instead of once per row is what keeps an N-row
             // calculation linear rather than quadratic (SPEC R-13).
-            let template = working_values.clone();
+            // R-7/R-13/R-14: the per-row scope is the row over the outer
+            // values, and the working set carries only the row *count* for a
+            // repeater — never its rows and never the arrays a previous
+            // per-row calculation produced. Cloning an N-element array once
+            // per row would make chained per-row calculations quadratic, so
+            // those arrays stay out of the template; a row referencing a
+            // sibling calculated child reads that child's value *for this
+            // row* from the row map (where the write-back already put it),
+            // not the whole array. Outside row scope the array is still what
+            // a reference observes.
+            let mut template = working_values.clone();
+            for code in per_row_calculated_codes(repeater_code, &per_row_outputs) {
+                template.shift_remove(code);
+            }
             let mut results = Vec::with_capacity(row_list.len());
             for row in row_list {
                 let mut scoped = template.clone();
@@ -169,6 +198,7 @@ fn apply_calculations(
             let array = Val::List(results);
             calculated_values.insert(field_info.code.clone(), array.clone());
             working_values.insert(field_info.code.clone(), array);
+            per_row_outputs.insert(field_info.code.clone(), repeater_code.to_string());
             continue;
         }
 
@@ -180,6 +210,17 @@ fn apply_calculations(
         working_values.insert(field_info.code.clone(), calculated);
     }
     Ok(())
+}
+
+/// Codes whose per-row arrays belong to `repeater_code`.
+fn per_row_calculated_codes<'a>(
+    repeater_code: &str,
+    per_row_outputs: &'a IndexMap<String, String>,
+) -> impl Iterator<Item = &'a String> {
+    per_row_outputs
+        .iter()
+        .filter(move |(_, owner)| owner.as_str() == repeater_code)
+        .map(|(code, _)| code)
 }
 
 fn apply_field_predicates(

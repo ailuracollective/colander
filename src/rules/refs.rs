@@ -1,5 +1,7 @@
 //! Reference collectors and the row-scope check over rule expressions.
 
+use std::collections::HashSet;
+
 use indexmap::IndexMap;
 
 use crate::error::{ColanderError, Result};
@@ -8,24 +10,29 @@ use crate::json::{self, Json};
 /// Collects referenced field codes in document order.
 ///
 /// Callers that report "the first unknown code" always name the first one in
-/// document order.
+/// document order. Deduplication uses a set so a wide expression costs
+/// O(refs), not O(refs²) (SPEC R-14).
 pub fn collect_references(expression: &Json) -> Vec<String> {
     let mut references = Vec::new();
-    collect_references_recursive(expression, &mut references);
+    let mut seen = HashSet::new();
+    collect_references_recursive(expression, &mut references, &mut seen);
     references
 }
 
-fn collect_references_recursive(node: &Json, references: &mut Vec<String>) {
+fn collect_references_recursive(
+    node: &Json,
+    references: &mut Vec<String>,
+    seen: &mut HashSet<String>,
+) {
     let Some(object) = node.as_object() else {
         return;
     };
 
     if let Some(code) = json::get_str(object, "ref")
         && !code.is_empty()
+        && seen.insert(code.to_string())
     {
-        if !references.iter().any(|item| item == code) {
-            references.push(code.to_string());
-        }
+        references.push(code.to_string());
         return;
     }
 
@@ -34,7 +41,7 @@ fn collect_references_recursive(node: &Json, references: &mut Vec<String>) {
     };
     for arg in args {
         if !arg.is_null() {
-            collect_references_recursive(arg, references);
+            collect_references_recursive(arg, references, seen);
         }
     }
 }
@@ -45,21 +52,25 @@ fn collect_references_recursive(node: &Json, references: &mut Vec<String>) {
 /// they are not direct reads.
 pub fn collect_direct_references(expression: &Json) -> Vec<String> {
     let mut references = Vec::new();
-    collect_direct_references_recursive(expression, &mut references);
+    let mut seen = HashSet::new();
+    collect_direct_references_recursive(expression, &mut references, &mut seen);
     references
 }
 
-fn collect_direct_references_recursive(node: &Json, references: &mut Vec<String>) {
+fn collect_direct_references_recursive(
+    node: &Json,
+    references: &mut Vec<String>,
+    seen: &mut HashSet<String>,
+) {
     let Some(object) = node.as_object() else {
         return;
     };
 
     if let Some(code) = json::get_str(object, "ref")
         && !code.is_empty()
+        && seen.insert(code.to_string())
     {
-        if !references.iter().any(|item| item == code) {
-            references.push(code.to_string());
-        }
+        references.push(code.to_string());
         return;
     }
 
@@ -72,7 +83,7 @@ fn collect_direct_references_recursive(node: &Json, references: &mut Vec<String>
     };
     for arg in args {
         if !arg.is_null() {
-            collect_direct_references_recursive(arg, references);
+            collect_direct_references_recursive(arg, references, seen);
         }
     }
 }

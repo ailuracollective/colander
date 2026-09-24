@@ -23,6 +23,14 @@ pub fn analyze(form_root: &JsonMap, rules_root: &JsonMap) -> Result<RuleDependen
         return Ok(RuleDependencyMetadata::default());
     };
 
+    // One code → id map for the whole analysis: resolving a reference used to
+    // scan every field, which made a dense dependency graph quadratic
+    // (SPEC R-14).
+    let id_by_code: IndexMap<&str, &str> = fields_by_id
+        .values()
+        .map(|field| (field.code.as_str(), field.id.as_str()))
+        .collect();
+
     let mut calculated_field_ids: Vec<String> = Vec::new();
     let mut dependencies: IndexMap<String, Vec<String>> = IndexMap::new();
 
@@ -39,11 +47,14 @@ pub fn analyze(form_root: &JsonMap, rules_root: &JsonMap) -> Result<RuleDependen
 
         calculated_field_ids.push(field_id.clone());
         let mut deps: Vec<String> = Vec::new();
+        // Per-field dedupe: a dependency is resolved for every field that
+        // references it, so the set must not leak across fields.
+        let mut seen: HashSet<&str> = HashSet::new();
         for code in collect_references(calculate) {
-            if let Some(id) = resolve_field_id(&fields_by_id, &code)
-                && !deps.iter().any(|item| item == id)
+            if let Some(id) = id_by_code.get(code.as_str())
+                && seen.insert(*id)
             {
-                deps.push(id.to_string());
+                deps.push((*id).to_string());
             }
         }
         dependencies.insert(field_id.clone(), deps);
@@ -57,8 +68,12 @@ pub fn analyze(form_root: &JsonMap, rules_root: &JsonMap) -> Result<RuleDependen
 }
 
 /// Validates rule references, calculated-field read-only status and the
-/// form/rules version match.
-pub fn validate_dependencies(form_root: &JsonMap, rules_root: &JsonMap) -> Result<()> {
+/// form/rules version match, and returns the analysis it computed so callers
+/// that need both pay for one pass (SPEC R-14).
+pub fn analyze_checked(
+    form_root: &JsonMap,
+    rules_root: &JsonMap,
+) -> Result<RuleDependencyMetadata> {
     let fields_by_id = index::build_by_id(form_root)?;
     let fields_by_code = index::build_by_code(form_root)?;
 
@@ -87,17 +102,13 @@ pub fn validate_dependencies(form_root: &JsonMap, rules_root: &JsonMap) -> Resul
             "RULE_CYCLIC_DEPENDENCY: calculated fields contain a cyclic dependency.",
         ));
     }
-    Ok(())
+    Ok(metadata)
 }
 
-fn resolve_field_id<'a>(
-    fields_by_id: &'a IndexMap<String, FieldInfo>,
-    code: &str,
-) -> Option<&'a str> {
-    fields_by_id
-        .values()
-        .find(|field| field.code == code)
-        .map(|field| field.id.as_str())
+/// Validates rule references, calculated-field read-only status and the
+/// form/rules version match.
+pub fn validate_dependencies(form_root: &JsonMap, rules_root: &JsonMap) -> Result<()> {
+    analyze_checked(form_root, rules_root).map(|_| ())
 }
 
 fn validate_form_version_match(form_root: &JsonMap, rules_root: &JsonMap) -> Result<()> {
@@ -268,13 +279,19 @@ fn topological_sort(
     dependencies: &IndexMap<String, Vec<String>>,
 ) -> Vec<String> {
     let mut in_degree: IndexMap<&str, usize> = IndexMap::new();
+    // Reverse adjacency, built once: `dependents[dep]` lists the fields that
+    // wait on `dep`. Kahn's algorithm then touches every edge once instead of
+    // rescanning every dependency list per dequeued node (SPEC R-14).
+    let mut dependents: IndexMap<&str, Vec<&str>> = IndexMap::new();
     for field_id in calculated_field_ids {
         in_degree.insert(field_id.as_str(), 0);
+        dependents.insert(field_id.as_str(), Vec::new());
     }
     for field_id in calculated_field_ids {
         if let Some(deps) = dependencies.get(field_id) {
             for dependency in deps {
-                if in_degree.contains_key(dependency.as_str()) {
+                if let Some(waiters) = dependents.get_mut(dependency.as_str()) {
+                    waiters.push(field_id.as_str());
                     *in_degree.get_mut(field_id.as_str()).expect("present") += 1;
                 }
             }
@@ -290,14 +307,15 @@ fn topological_sort(
 
     while let Some(current) = queue.pop_front() {
         order.push(current.to_string());
-        for (field_id, field_dependencies) in dependencies {
-            if !field_dependencies.iter().any(|item| item == current) {
-                continue;
-            }
-            let degree = in_degree.get_mut(field_id.as_str()).expect("present");
+        for field_id in dependents
+            .get(current)
+            .map(|waiters| waiters.as_slice())
+            .unwrap_or(&[])
+        {
+            let degree = in_degree.get_mut(field_id).expect("present");
             *degree -= 1;
             if *degree == 0 {
-                queue.push_back(field_id.as_str());
+                queue.push_back(field_id);
             }
         }
     }

@@ -48,7 +48,10 @@ pub(super) fn type_error(field: &AnswerFieldDefinition, expected: &str) -> FormR
     FormResponseFieldError {
         code: "INVALID_TYPE".to_string(),
         path: field.path.clone(),
-        message: format!("Field '{}' must be {expected}.", field.code),
+        message: format!(
+            "Field '{}' must be {expected}.",
+            crate::validate::ellipsize(&field.code)
+        ),
     }
 }
 
@@ -163,7 +166,10 @@ pub(super) fn invalid_schema_error(field: &AnswerFieldDefinition) -> FormRespons
     FormResponseFieldError {
         code: "INVALID_SCHEMA".to_string(),
         path: field.path.clone(),
-        message: format!("Choice field '{}' is missing options.", field.code),
+        message: format!(
+            "Choice field '{}' is missing options.",
+            crate::validate::ellipsize(&field.code)
+        ),
     }
 }
 
@@ -185,7 +191,10 @@ pub(super) fn convert_multi_choice(
             return Err(FormResponseFieldError {
                 code: "CONSTRAINT_VIOLATION".to_string(),
                 path: field.path.clone(),
-                message: format!("Field '{}' contains an invalid choice value.", field.code),
+                message: format!(
+                    "Field '{}' contains an invalid choice value.",
+                    crate::validate::ellipsize(&field.code)
+                ),
             });
         }
         selected.push(Val::Str(choice.to_string()));
@@ -207,7 +216,10 @@ pub(super) fn convert_single_choice(
         return Err(FormResponseFieldError {
             code: "CONSTRAINT_VIOLATION".to_string(),
             path: field.path.clone(),
-            message: format!("Field '{}' contains an invalid choice value.", field.code),
+            message: format!(
+                "Field '{}' contains an invalid choice value.",
+                crate::validate::ellipsize(&field.code)
+            ),
         });
     }
 

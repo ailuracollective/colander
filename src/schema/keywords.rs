@@ -2,7 +2,7 @@
 
 use crate::json::{self, Json, JsonMap};
 
-use super::check::{check_into, evaluate, value_equal};
+use super::check::{check_into, evaluate, value_equal, value_hash};
 use super::model::SchemaError;
 
 /// The closed set of `type` names. The structural classifier rejects anything
@@ -270,14 +270,22 @@ pub(super) fn check_array_keywords(
     }
 
     if json::get_bool(schema, "uniqueItems").unwrap_or(false) {
+        // Hash-bucketed uniqueness: O(n) expected instead of the O(n^2)
+        // pairwise scan, with the full deep comparison kept inside a bucket
+        // so numeric equality (`1` == `1.0`) and hash collisions stay exact
+        // (SPEC S-9).
+        let mut buckets: std::collections::HashMap<u64, Vec<usize>> =
+            std::collections::HashMap::new();
         for (index, item) in items.iter().enumerate() {
-            if items[..index].iter().any(|other| value_equal(other, item)) {
+            let bucket = buckets.entry(value_hash(item)).or_default();
+            if bucket.iter().any(|&other| value_equal(&items[other], item)) {
                 errors.push(SchemaError {
                     keyword: "uniqueItems".to_string(),
                     message: format!("array items must be unique (index {index} repeats)"),
                 });
                 break;
             }
+            bucket.push(index);
         }
     }
 }

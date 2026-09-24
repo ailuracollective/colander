@@ -22,7 +22,10 @@ pub(super) struct ResolvedComponentDependency {
     pub(super) code: String,
     pub(super) version: String,
     pub(super) content_hash: String,
-    pub(super) form_schema_json: String,
+    /// The component's source form, dropped after the first expansion:
+    /// the compiled fields are memoized, so keeping the source alive for
+    /// the whole call only inflates the peak (SPEC P-11).
+    pub(super) form_schema_json: Option<String>,
     pub(super) ui_fields: Option<JsonMap>,
     pub(super) layout_children: Option<Vec<Json>>,
 }
@@ -37,6 +40,9 @@ pub(super) struct CompilationContext<'a> {
     /// instead of re-resolving and re-verifying (SPEC P-8). Cloning is linear
     /// in the output, which is the irreducible cost of materialising N copies.
     pub(super) compiled_components: IndexMap<String, Vec<Json>>,
+    /// Batch indexed by `(code, version)`; two entries with the same key are
+    /// rejected when the index is built (SPEC P-10).
+    pub(super) component_index: IndexMap<String, usize>,
     pub(super) budget: ExpansionBudget,
     /// Whether resolving a component also verifies its `contentHash` pin
     /// (SPEC P-3). The context that recomputes a component's own triple turns
@@ -55,6 +61,23 @@ pub(super) struct CompilationContext<'a> {
 pub(super) struct ExpansionBudget {
     fields: usize,
     bytes: usize,
+}
+
+/// Indexes the component batch by `(code, version)`, rejecting a batch that
+/// carries the same key twice: which one wins would otherwise depend on the
+/// caller's ordering (SPEC P-10).
+fn index_components(components: &[ComponentVersionData]) -> Result<IndexMap<String, usize>> {
+    let mut index = IndexMap::new();
+    for (position, component) in components.iter().enumerate() {
+        let key = format!("{}@{}", component.code, component.version);
+        if index.insert(key.clone(), position).is_some() {
+            return Err(ColanderError::new(format!(
+                "COMPONENT_DUPLICATE_VERSION: the components batch lists '{}' twice.",
+                component.code
+            )));
+        }
+    }
+    Ok(index)
 }
 
 impl ExpansionBudget {
@@ -92,17 +115,19 @@ impl ExpansionBudget {
 }
 
 impl<'a> CompilationContext<'a> {
-    pub(super) fn new(components: &'a [ComponentVersionData]) -> Self {
-        Self {
+    pub(super) fn new(components: &'a [ComponentVersionData]) -> Result<Self> {
+        let component_index = index_components(components)?;
+        Ok(Self {
             components,
             resolution_stack: Vec::new(),
             dependencies: IndexMap::new(),
             expanded_reference_layouts: IndexMap::new(),
             compiled_components: IndexMap::new(),
+            component_index,
             budget: ExpansionBudget::new(),
             verify_hashes: true,
             verified_pins: IndexMap::new(),
-        }
+        })
     }
 
     pub(super) fn resolve(
@@ -113,10 +138,13 @@ impl<'a> CompilationContext<'a> {
     ) -> Result<&ResolvedComponentDependency> {
         let key = format!("{component_code}@{component_version}");
         if !self.dependencies.contains_key(&key) {
+            // Indexed lookup instead of a linear scan per reference: a batch
+            // of C components and R references costs O(C + R), not O(C·R)
+            // (SPEC P-10).
             let found = self
-                .components
-                .iter()
-                .find(|item| item.code == component_code && item.version == component_version)
+                .component_index
+                .get(&key)
+                .map(|&position| &self.components[position])
                 .ok_or_else(|| {
                     ColanderError::new(format!(
                         "COMPONENT_VERSION_NOT_FOUND: component '{component_code}' version '{component_version}' referenced at {ref_path} was not found or is not published."
@@ -128,12 +156,12 @@ impl<'a> CompilationContext<'a> {
             if let Some(ui_json) = &found.ui_schema_json {
                 let ui_root = json::parse(ui_json).map_err(|_| {
                     ColanderError::new(format!(
-                        "Invalid UI schema for component '{component_code}' version '{component_version}'."
+                        "JSON_PARSE_ERROR: Invalid UI schema for component '{component_code}' version '{component_version}'."
                     ))
                 })?;
                 let ui_root = ui_root.as_object().ok_or_else(|| {
                     ColanderError::new(format!(
-                        "Invalid UI schema for component '{component_code}' version '{component_version}'."
+                        "JSON_NOT_OBJECT: Invalid UI schema for component '{component_code}' version '{component_version}'."
                     ))
                 })?;
                 ui_fields = json::get_object(ui_root, schema_json_keys::FIELDS).cloned();
@@ -153,7 +181,7 @@ impl<'a> CompilationContext<'a> {
                     code: component_code.to_string(),
                     version: component_version.to_string(),
                     content_hash: found.content_hash.clone().unwrap_or_default(),
-                    form_schema_json: found.form_schema_json.clone(),
+                    form_schema_json: Some(found.form_schema_json.clone()),
                     ui_fields,
                     layout_children,
                 },
@@ -293,7 +321,7 @@ fn compiled_component_hash(
         None => None,
     };
 
-    let mut context = CompilationContext::new(components);
+    let mut context = CompilationContext::new(components)?;
     context.verify_hashes = false;
 
     let fields_path = format!("/components/{}/fields", component.code);

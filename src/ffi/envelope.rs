@@ -124,7 +124,7 @@ fn request_object<C: Codec>(codec: &C, bytes: &[u8]) -> Result<JsonMap> {
     match value {
         Json::Object(map) => Ok(map),
         _ => Err(ColanderError::new(
-            "Invalid request: expected a JSON object.",
+            "JSON_NOT_OBJECT: Invalid request: expected a JSON object.",
         )),
     }
 }
@@ -195,7 +195,7 @@ pub const MAX_REQUEST_BYTES: usize = 64 * 1024 * 1024;
 /// pointer's storage and must not outlive it.
 unsafe fn read_request<'a>(request: *const c_char) -> Result<&'a [u8]> {
     if request.is_null() {
-        return Err(ColanderError::new("request pointer is null"));
+        return Err(ColanderError::new("NULL_REQUEST: request pointer is null"));
     }
     // SAFETY: the caller guarantees a NUL-terminated string.
     let bytes = unsafe { CStr::from_ptr(request) }.to_bytes();

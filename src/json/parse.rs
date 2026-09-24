@@ -56,14 +56,18 @@ pub fn ordered_stream(text: &str) -> Result<String> {
 /// Parse a JSON object, labelling failures with `label`.
 ///
 /// A document that is valid JSON but not an object is a deliberate ordinary
-/// error: callers never see a panic.
+/// error: callers never see a panic. Both shapes carry a contract code
+/// (`JSON_PARSE_ERROR`, `JSON_NOT_OBJECT`) so callers branch on the code, not
+/// on the prose (SPEC C-11).
 pub fn parse_object(text: &str, label: &str) -> Result<JsonMap> {
     match parse(text) {
         Ok(Json::Object(map)) => Ok(map),
         Ok(_) => Err(ColanderError::new(format!(
-            "Invalid {label}: expected a JSON object."
+            "JSON_NOT_OBJECT: Invalid {label}: expected a JSON object."
         ))),
-        Err(e) => Err(ColanderError::new(format!("Invalid {label}: {e}"))),
+        Err(e) => Err(ColanderError::new(format!(
+            "JSON_PARSE_ERROR: Invalid {label}: {e}"
+        ))),
     }
 }
 
@@ -71,9 +75,11 @@ pub fn parse_object(text: &str, label: &str) -> Result<JsonMap> {
 pub fn parse_answers(text: &str) -> Result<JsonMap> {
     match parse(text) {
         Ok(Json::Object(map)) => Ok(map),
-        Ok(_) => Err(ColanderError::new("Answers must be a JSON object.")),
+        Ok(_) => Err(ColanderError::new(
+            "JSON_NOT_OBJECT: Answers must be a JSON object.",
+        )),
         Err(e) => Err(ColanderError::new(format!(
-            "Answers must be valid JSON: {e}"
+            "JSON_PARSE_ERROR: Answers must be valid JSON: {e}"
         ))),
     }
 }

@@ -56,7 +56,7 @@ pub fn parse(version: &str) -> Result<VersionParts> {
     }
 
     Err(ColanderError::new(format!(
-        "Invalid semantic version: {version}"
+        "INVALID_SEMVER: invalid semantic version: {version}"
     )))
 }
 
@@ -92,7 +92,7 @@ impl Bump {
             "minor" => Ok(Bump::Minor),
             "major" => Ok(Bump::Major),
             other => Err(ColanderError::new(format!(
-                "Unknown bump '{other}' (expected 'patch', 'minor' or 'major')."
+                "INVALID_SEMVER: unknown bump '{other}' (expected 'patch', 'minor' or 'major')."
             ))),
         }
     }

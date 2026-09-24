@@ -60,9 +60,29 @@ has surprised someone.
 14. **`compile` does not sort or inspect `fields`**; it only expands references
     and recurses into `items`. Canonical serialization sorts object keys, but
     array order is yours to define.
+15. **Integers beyond 2^53 are reported, not rounded.** A calculated `integer`
+    field that lands outside the exactly-representable double range is
+    `CALCULATED_VALUE_INVALID` and is not stored, and an exact answer the
+    server cannot reproduce is `CALCULATED_VALUE_MISMATCH` — integer
+    comparison against an integral double is exact, not tolerant.
+16. **A calculated field is server-authored.** Submitting a value for one is
+    checked against the calculation (`CALCULATED_VALUE_MISMATCH`), never
+    rejected as read-only or hidden, and its value is normalized even when the
+    field is hidden.
+17. **A wrong-typed value that looks empty vanishes in Draft.** `[]` and `{}`
+    count as empty, so a `number` field receiving `[]` produces no
+    `INVALID_TYPE` in Draft — the value is simply dropped. `false` and `0` are
+    not empty and do produce `INVALID_TYPE`.
+18. **`sum` is row-order sensitive.** Compensated accumulation bounds the
+    error, but IEEE-754 addition is not associative: the same rows in another
+    order can total differently. Do not reorder rows before submitting.
+19. **WASM is 5–8× slower than native for the same call** (measured; see
+    [conformance.md](conformance.md)), and the request allocator is the
+    wrapper's obligation: a forgotten `colander_free_buffer` leaks per call.
 
 ## Next
 
+- Cross-runtime parity and the cost a wrapper inherits: [conformance.md](conformance.md)
 - What stays hand-written, and why: [dependencies.md](dependencies.md)
 - Response validation codes: [validation.md](validation.md)
 - The wire contract and its surprises: [abi.md](abi.md)

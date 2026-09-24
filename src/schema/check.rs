@@ -106,3 +106,55 @@ pub fn value_equal(left: &Json, right: &Json) -> bool {
         _ => left == right,
     }
 }
+
+/// A hash consistent with [`value_equal`]: equal values hash equal, so a
+/// hash bucket can stand in for the pairwise comparison. Numbers hash by
+/// their `f64` value (so `1`, `1.0` and `1e0` share a bucket) and fall back to
+/// their literal text when they do not parse. Object keys are visited in
+/// sorted order so key order does not change the hash.
+pub fn value_hash(node: &Json) -> u64 {
+    use std::collections::hash_map::DefaultHasher;
+    use std::hash::{Hash, Hasher};
+
+    fn write(node: &Json, hasher: &mut DefaultHasher) {
+        match node {
+            Json::Null => 0u8.hash(hasher),
+            Json::Bool(value) => {
+                1u8.hash(hasher);
+                value.hash(hasher);
+            }
+            Json::Number(_) => {
+                2u8.hash(hasher);
+                match node.as_f64() {
+                    Some(number) => number.to_bits().hash(hasher),
+                    None => node.as_number_text().hash(hasher),
+                }
+            }
+            Json::String(text) => {
+                3u8.hash(hasher);
+                text.hash(hasher);
+            }
+            Json::Array(items) => {
+                4u8.hash(hasher);
+                items.len().hash(hasher);
+                for item in items {
+                    write(item, hasher);
+                }
+            }
+            Json::Object(map) => {
+                5u8.hash(hasher);
+                map.len().hash(hasher);
+                let mut keys: Vec<&String> = map.keys().collect();
+                keys.sort_unstable();
+                for key in keys {
+                    key.hash(hasher);
+                    write(&map[key], hasher);
+                }
+            }
+        }
+    }
+
+    let mut hasher = DefaultHasher::new();
+    write(node, &mut hasher);
+    hasher.finish()
+}

@@ -33,8 +33,11 @@ pub(super) fn validate_known_top_level_keys(
         if !allowed.contains(key.as_str()) {
             errors.push(FormResponseFieldError {
                 code: "UNKNOWN_FIELD".to_string(),
-                path: format!("/answers/{key}"),
-                message: format!("Unknown answer field '{key}'."),
+                path: format!("/answers/{}", crate::validate::ellipsize(key)),
+                message: format!(
+                    "Unknown answer field '{}'.",
+                    crate::validate::ellipsize(key)
+                ),
             });
         }
     }
@@ -117,7 +120,7 @@ pub(super) fn try_reject_inactive_value(
             path: field.path.clone(),
             message: format!(
                 "Field '{}' cannot accept values while hidden or disabled.",
-                field.code
+                crate::validate::ellipsize(&field.code)
             ),
         });
     }
@@ -139,7 +142,10 @@ pub(super) fn try_reject_read_only_value(
         errors.push(FormResponseFieldError {
             code: "READONLY_FIELD_MODIFIED".to_string(),
             path: field.path.clone(),
-            message: format!("Field '{}' is read-only.", field.code),
+            message: format!(
+                "Field '{}' is read-only.",
+                crate::validate::ellipsize(&field.code)
+            ),
         });
     }
 
@@ -161,7 +167,10 @@ pub(super) fn try_reject_required_empty(
         errors.push(FormResponseFieldError {
             code: "REQUIRED_FIELD_MISSING".to_string(),
             path: field.path.clone(),
-            message: format!("Field '{}' is required.", field.code),
+            message: format!(
+                "Field '{}' is required.",
+                crate::validate::ellipsize(&field.code)
+            ),
         });
     }
 

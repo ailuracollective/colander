@@ -28,19 +28,19 @@ satisfied when no `decided` requirement remains unresolved.
 
 | Group | Subject                         | `live` | `decided` | `proposed` |
 | ----- | ------------------------------- | ------ | --------- | ---------- |
-| C     | Wire contract and the ABI       | 10     | 0         | 0          |
+| C     | Wire contract and the ABI       | 11     | 0         | 0          |
 | E     | The six operations              | 9      | 0         | 0          |
 | D     | Documents, fields, id and code  | 4      | 0         | 0          |
-| R     | Rules and the dependency check  | 14     | 0         | 0          |
-| V     | Response validation             | 8      | 1         | 0          |
-| S     | JSON Schema subset              | 8      | 0         | 0          |
+| R     | Rules and the dependency check  | 16     | 0         | 0          |
+| V     | Response validation             | 10     | 1         | 0          |
+| S     | JSON Schema subset              | 9      | 0         | 0          |
 | H     | Key-sorted form and hashing     | 5      | 0         | 0          |
-| P     | Compilation, components, semver | 9      | 0         | 0          |
+| P     | Compilation, components, semver | 11     | 0         | 0          |
 | X     | Retirements and reversals       | 2      | 1         | 0          |
 | F     | The frozen vectors              | 1      | 0         | 0          |
 
 The counts are derived from the markers below, so move a marker and its count
-together. The ten groups hold 72 requirements: 70 `live`, 2 `decided` and 0
+together. The ten groups hold 80 requirements: 78 `live`, 2 `decided` and 0
 `proposed`.
 
 ## C — Wire contract and the ABI
@@ -75,6 +75,11 @@ together. The ten groups hold 72 requirements: 70 `live`, 2 `decided` and 0
 - **C-10** `live`. A request larger than 64 MiB is refused with
   `REQUEST_TOO_LARGE` before it is parsed, so the boundary is bounded for
   untrusted callers.
+- **C-11** `live`. Every failure carries a `SCREAMING_SNAKE` code a caller can
+  branch on: `JSON_PARSE_ERROR`, `JSON_NOT_OBJECT`, `INVALID_UTF8`,
+  `NULL_REQUEST`, `INVALID_SEMVER`, `REQUEST_TOO_LARGE`, the `RULE_*`,
+  `FIELD_*`, `UI_*`, `COMPONENT_*`, `REPEATER_*` and validation-code families.
+  Message wording is never part of the contract.
 
 ## E — The six operations
 
@@ -184,6 +189,17 @@ behaviour, not shape.
   values + rows), not O(outer values × rows): the per-row scope overlays a
   template cloned once per calculation, so an N-row calculation does not
   clone the working set N times.
+- **R-14** `live`. The engine's analysis is linear in the work it is given,
+  and every entry point pays for it once per call: dependency ordering walks
+  a reverse adjacency (O(fields + edges)) instead of rescanning every
+  dependency list per node; reference collection dedupes through a set; and
+  a call that both validates and evaluates analyzes the pair a single time.
+  Chained per-row calculations stay linear: the per-row template never
+  carries a previously calculated per-row array, and a row referencing a
+  sibling calculated child reads that child's value _for that row_.
+- **R-15** `live`. `sum` accumulates with compensation (Kahan). The result is
+  still row-order sensitive — IEEE-754 addition is not associative — but
+  summing thousands of small decimals no longer drifts in the last digits.
 
 ## V — Response validation
 
@@ -221,6 +237,16 @@ behaviour, not shape.
   collected the last entry is `VALIDATION_ERRORS_TRUNCATED` and its message
   states the total, so an invalid submission cannot amplify the response
   without bound.
+- **V-10** `live`. The error list is bounded in bytes as well as in count:
+  caller-controlled strings echoed inside a message or path are elided after
+  256 characters (marking what was elided), and the errors kept together
+  total at most 64 KiB. A multi-megabyte field code cannot turn a small
+  failure into a large response.
+- **V-11** `live`. Integer comparison is exact against an integral double: an
+  exact answer beyond the exactly-representable `f64` range (2^53) is a
+  `CALCULATED_VALUE_MISMATCH`, and a calculation that lands outside that range
+  on an `integer` field is `CALCULATED_VALUE_INVALID` and is not stored. The
+  core never rounds a client's exact integer away in silence.
 
 ## S — JSON Schema subset
 
@@ -251,6 +277,10 @@ behaviour, not shape.
 - **S-8** `live`. The `type` vocabulary is closed: `object`, `array`,
   `string`, `boolean`, `null`, `number` and `integer`. Any other name is a
   schema error, not an assertion that every instance fails.
+- **S-9** `live`. `uniqueItems` is linear in the number of items: items are
+  bucketed by a value hash that agrees with JSON Schema numeric equality
+  (`1` and `1.0` share a bucket), and the full deep comparison runs inside a
+  bucket, so collisions stay exact.
 
 ## H — Canonical form and hashing
 
@@ -303,6 +333,14 @@ behaviour, not shape.
   1,000,000 field nodes and 256 MiB of materialised output, failing with
   `COMPONENT_BUDGET_EXCEEDED`. A depth limit alone is not a complexity
   bound.
+- **P-10** `live`. The `components` batch is indexed by `(code, version)`
+  before expansion, so resolving R references over a batch of C costs
+  O(C + R) rather than O(C·R); a batch that lists the same `(code, version)`
+  twice is rejected with `COMPONENT_DUPLICATE_VERSION` instead of letting
+  document order decide which one wins.
+- **P-11** `live`. A resolved component keeps its source form only until its
+  first expansion; later references use the memoized compiled fields, so a
+  large batch does not retain every source document for the whole call.
 - **P-4** `live`. `colander_next_version` returns `"1.0.0"` when nothing is
   published, and otherwise increments the patch of the highest published version
   with no carry.

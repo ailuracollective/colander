@@ -95,7 +95,7 @@ pub(super) fn gate_repeater_access(
                 path: repeater.path.clone(),
                 message: format!(
                     "Repeater '{}' cannot accept values while hidden or disabled.",
-                    repeater.code
+                    crate::validate::ellipsize(&repeater.code)
                 ),
             });
         }
@@ -150,8 +150,11 @@ pub(super) fn validate_repeater_row(
         if !child_codes.contains(name.as_str()) {
             errors.push(FormResponseFieldError {
                 code: "UNKNOWN_FIELD".to_string(),
-                path: format!("{row_path}/{name}"),
-                message: format!("Unknown repeater field '{name}'."),
+                path: format!("{row_path}/{}", crate::validate::ellipsize(name)),
+                message: format!(
+                    "Unknown repeater field '{}'.",
+                    crate::validate::ellipsize(name)
+                ),
             });
             continue;
         }
@@ -279,7 +282,7 @@ fn apply_calculated_repeater_child(
     }
 
     if let Val::Double(number) = element
-        && !number.is_finite()
+        && (!number.is_finite() || !super::calculated::is_representable(field, *number))
     {
         if mode == FormResponseValidationMode::Complete {
             errors.push(FormResponseFieldError {

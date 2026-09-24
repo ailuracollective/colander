@@ -49,12 +49,12 @@ fn json_decode_preserves_the_request_error_text() {
         run(&JsonCodec, b"[]", |_| Ok(Json::Null))
             .unwrap_err()
             .message,
-        "Invalid request: expected a JSON object."
+        "JSON_NOT_OBJECT: Invalid request: expected a JSON object."
     );
-    // The UTF-8 failure stays bare, as `read_request` produced it.
+    // The UTF-8 failure carries its own code so callers branch on it.
     assert_eq!(
         codec.decode(&[0xFF], "request").unwrap_err().message,
-        "request is not valid UTF-8"
+        "INVALID_UTF8: request is not valid UTF-8"
     );
 }
 
@@ -206,7 +206,7 @@ fn the_seam_runs_a_messagepack_request_end_to_end() {
     let array = codec.encode_ordered(&json::parse("[1,2]").expect("fixture"));
     assert_eq!(
         run(&codec, &array, |_| Ok(Json::Null)).unwrap_err().message,
-        "Invalid request: expected a JSON object."
+        "JSON_NOT_OBJECT: Invalid request: expected a JSON object."
     );
 }
 

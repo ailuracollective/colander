@@ -42,7 +42,7 @@ pub fn canonical_payload(
 
 fn document(text: &str, label: &str) -> Result<String> {
     json::ordered_stream(text)
-        .map_err(|e| ColanderError::new(format!("Invalid {label} schema: {e}")))
+        .map_err(|e| ColanderError::new(format!("JSON_PARSE_ERROR: Invalid {label} schema: {e}")))
 }
 
 /// Lowercase hex SHA-256 of the canonical payload.

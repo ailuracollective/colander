@@ -168,7 +168,7 @@ covers exact bytes, so `1.50` and `1.5` hash differently.
 | Message                                                                                                                  | Cause                                                                            |
 | ------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------- |
 | `'formSchemaJson' is required and must be a string.`                                                                     | Missing or non-string required key                                               |
-| `Invalid form schema: expected a JSON object.`                                                                           | Valid JSON that is not an object                                                 |
+| `JSON_NOT_OBJECT: Invalid form schema: expected a JSON object.`                                                          | Valid JSON that is not an object                                                 |
 | `COMPILE_EXPECTED_ARRAY: expected an array at /fields.`                                                                  | The form has no `fields` array                                                   |
 | `FIELD_NOT_OBJECT: /fields/0 must be an object.`                                                                         | A field is not an object                                                         |
 | `COMPILE_EXPECTED_STRING: expected a non-empty string at /fields/0/type.`                                                | A field has no `type`                                                            |
@@ -180,7 +180,7 @@ covers exact bytes, so `1.50` and `1.5` hash differently.
 | `COMPONENT_VERSION_NOT_FOUND: component 'x' version '1.0.0' referenced at /fields/0 was not found or is not published.`  | No matching entry in `components`                                                |
 | `CIRCULAR_COMPONENT_REFERENCE: component 'x' references itself through a -> b -> x.`                                     | A component reference cycle                                                      |
 | `COMPONENT_HASH_MISMATCH: component 'x' version '1.0.0' declares contentHash '…' but its compiled triple hashes to '…'.` | A non-empty `contentHash` pin does not match the component's own compiled triple |
-| `Invalid semantic version: 1.0`                                                                                          | Bad `componentVersion`                                                           |
+| `INVALID_SEMVER: invalid semantic version: 1.0`                                                                          | Bad `componentVersion`                                                           |
 | `UI_UNKNOWN_KEY: UI schema carries unknown top-level key 'k'.`                                                           | An unknown top-level UI key (also for layout nodes)                              |
 | `FIELD_MISSING_KEY: field id at /fields/0/id is required.`                                                               | A field lacks a string `id` or `code`                                            |
 | `FIELD_INVALID_TYPE: /fields/0/id is Number, expected String.`                                                           | A field key has the wrong JSON type                                              |
@@ -328,7 +328,7 @@ most the first five errors. When there are more, the message says so with
 `(truncated: 5 of N errors shown)` (SPEC S-7):
 
 ```
-Invalid form schema: required: required property 'schemaVersion' is missing; type: expected object but found string
+JSON_PARSE_ERROR: Invalid form schema: required: required property 'schemaVersion' is missing; type: expected object but found string
 ```
 
 `published` is not accepted for `kind:"workflow"`: a present key fails the call
@@ -343,8 +343,8 @@ version, is out of scope; only JSON Schema validation runs.
 | `'published' is not accepted for kind:"workflow".`                                                               | `published` present with `kind:"workflow"`          |
 | `schemas is required: pass the JSON Schema text for each document kind, e.g. {"formSchema":"…","uiSchema":"…"}.` | `schemas` missing or not an object                  |
 | `schemas.formSchema is required to validate this request.`                                                       | A needed entry is absent or not a string            |
-| `Invalid form schema definition: …`                                                                              | A schema in `schemas` is not valid JSON             |
-| `Invalid form schema: …`                                                                                         | The document is not valid JSON, or fails the schema |
+| `JSON_PARSE_ERROR: Invalid form schema definition: …`                                                            | A schema in `schemas` is not valid JSON             |
+| `JSON_PARSE_ERROR: Invalid form schema: …`                                                                       | The document is not valid JSON, or fails the schema |
 
 An empty string counts as present, so `{"formSchema":""}` satisfies the
 requirement and then fails as a non-object schema.
@@ -423,7 +423,7 @@ first.
 
 A present `published` must be an array of strings; any other JSON type is
 rejected. Every entry is parsed, so one invalid entry fails the whole call with
-`Invalid semantic version: <entry>`.
+`INVALID_SEMVER: invalid semantic version: <entry>`.
 
 ### Accepted version syntax
 

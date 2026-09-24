@@ -116,23 +116,50 @@ pub fn validate(
     })
 }
 
-/// At most `MAX_ERRORS` field errors are returned; when more were collected
-/// the last entry is a `VALIDATION_ERRORS_TRUNCATED` marker carrying the total,
-/// so a response is bounded no matter how hostile the answers are (S-7's rule
-/// applied to response validation, not only to the schema subset).
+/// At most `MAX_ERRORS` field errors are returned and their combined size is
+/// bounded by `MAX_ERROR_BYTES`, so a caller cannot make one response huge by
+/// choosing long field codes or answer keys: a present-but-over-long string is
+/// elided inside the message (S-7's rule applied to response validation, not
+/// only to the schema subset).
 const MAX_ERRORS: usize = 100;
+const MAX_ERROR_BYTES: usize = 64 * 1024;
+
+/// The longest caller-controlled string echoed inside an error message.
+pub(crate) const MAX_ECHO_CHARS: usize = 256;
+
+/// Shortens a caller-controlled string for use in an error message, marking
+/// what was elided so the reader knows the value was truncated.
+pub(crate) fn ellipsize(text: &str) -> String {
+    let count = text.chars().count();
+    if count <= MAX_ECHO_CHARS {
+        return text.to_string();
+    }
+    let head: String = text.chars().take(MAX_ECHO_CHARS).collect();
+    format!("{head}… ({} more chars)", count - MAX_ECHO_CHARS)
+}
 
 fn cap_errors(errors: Vec<FormResponseFieldError>) -> Vec<FormResponseFieldError> {
-    if errors.len() <= MAX_ERRORS {
-        return errors;
-    }
     let total = errors.len();
-    let mut capped: Vec<FormResponseFieldError> = errors.into_iter().take(MAX_ERRORS - 1).collect();
-    capped.push(FormResponseFieldError {
-        code: "VALIDATION_ERRORS_TRUNCATED".to_string(),
-        path: "/".to_string(),
-        message: format!("Showing {MAX_ERRORS} of {total} validation errors."),
-    });
+    let mut capped: Vec<FormResponseFieldError> = Vec::new();
+    let mut bytes = 0usize;
+    for error in errors {
+        if capped.len() >= MAX_ERRORS - 1 {
+            break;
+        }
+        let cost = error.message.len() + error.path.len();
+        if !capped.is_empty() && bytes + cost > MAX_ERROR_BYTES {
+            break;
+        }
+        bytes += cost;
+        capped.push(error);
+    }
+    if capped.len() < total {
+        capped.push(FormResponseFieldError {
+            code: "VALIDATION_ERRORS_TRUNCATED".to_string(),
+            path: "/".to_string(),
+            message: format!("Showing {} of {total} validation errors.", capped.len()),
+        });
+    }
     capped
 }
 

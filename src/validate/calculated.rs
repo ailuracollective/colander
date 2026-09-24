@@ -54,7 +54,7 @@ pub(super) fn apply_calculated_fields(
         }
 
         if let Val::Double(number) = calculated_value
-            && !number.is_finite()
+            && (!number.is_finite() || !is_representable(field, *number))
         {
             if mode == FormResponseValidationMode::Complete {
                 errors.push(FormResponseFieldError {
@@ -86,7 +86,19 @@ pub(super) fn apply_calculated_fields(
     Ok(())
 }
 
-// ---------------------------------------------------------------------------
+/// Whether a calculated value is exactly representable for its field.
+///
+/// Arithmetic runs in `f64`, so an `integer` field only keeps full precision
+/// while its value fits the exactly-representable integer range (2^53). Above
+/// it, rounding would silently rewrite the client's exact integer (SPEC V-11):
+/// the safety net reports `CALCULATED_VALUE_INVALID` instead of storing a
+/// value the client never sent.
+pub(crate) fn is_representable(field: &AnswerFieldDefinition, number: f64) -> bool {
+    if field.field_type != field_type_names::INTEGER {
+        return true;
+    }
+    number.abs() <= 9_007_199_254_740_992.0 // 2^53
+}
 // Rules input and evaluation
 // ---------------------------------------------------------------------------
 
@@ -173,5 +185,6 @@ pub(super) fn evaluate_rules(
         rule_values,
         ui_schema_json,
         &mut *rows,
+        None,
     )
 }

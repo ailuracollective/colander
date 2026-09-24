@@ -121,16 +121,18 @@ impl Val {
     }
 
     /// Doubles compare equal within [`EPSILON`] absolute tolerance.
-    /// Integers and doubles compare numerically, so a calculated `3.0`
-    /// matches a submitted integer literal `3`: the two spell different
-    /// variants of the same value, not different values. Lists compare
-    /// element-wise with the same rule.
+    /// An integer and a double compare **exactly** when the double is
+    /// integral: `2^53 + 1` (an exact `i64`) is not the same value as the
+    /// `2^53` a double can hold, and casting the integer down to `f64` would
+    /// call them equal and let a calculated integer silently round away the
+    /// client's digits. Non-integral doubles keep the tolerance rule.
+    /// Lists compare element-wise with the same rules.
     pub fn values_equal(left: &Val, right: &Val) -> bool {
         match (left, right) {
             (Val::Double(left), Val::Double(right)) => (left - right).abs() < EPSILON,
             (Val::Int(left), Val::Int(right)) => left == right,
-            (Val::Int(left), Val::Double(right)) => (*left as f64 - right).abs() < EPSILON,
-            (Val::Double(left), Val::Int(right)) => (left - *right as f64).abs() < EPSILON,
+            (Val::Int(left), Val::Double(right)) => int_equals_double(*left, *right),
+            (Val::Double(left), Val::Int(right)) => int_equals_double(*right, *left),
             (Val::List(left), Val::List(right)) => {
                 left.len() == right.len()
                     && left
@@ -166,6 +168,24 @@ impl Val {
             Val::Raw(text) => json::parse(text).unwrap_or(Json::Null),
         }
     }
+}
+
+/// Exact comparison of an `i64` against a double. An integral double is
+/// compared through `i128` so no precision is lost on either side; a
+/// fractional double falls back to the shared tolerance.
+fn int_equals_double(integer: i64, number: f64) -> bool {
+    if !number.is_finite() {
+        return false;
+    }
+    if number.fract() == 0.0 {
+        // `as i128` saturates outside the range, and the bound check keeps a
+        // saturated cast from ever comparing equal.
+        if number < i128::MIN as f64 || number > i128::MAX as f64 {
+            return false;
+        }
+        return number as i128 == integer as i128;
+    }
+    (integer as f64 - number).abs() < EPSILON
 }
 
 /// Parses a string as a number: signs, exponents and the `Infinity`/`NaN`
