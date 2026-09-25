@@ -85,10 +85,6 @@ strictness rules, too — see [documents.md](documents.md).
 
 ## Caller-side field types
 
-This repository has no dependency on any model-facing code, at build time or at
-run time. The optional AI layer lives in its own repository, `slate-ai`, and
-depends on this one; the edge never points the other way.
-
 A related mechanical fact: colander accepts exactly thirteen field type names,
 matched case-sensitively, and **no aliases**. Callers that use names such as
 `email`, `bool`, `dropdown` or `section` must convert them to one of the supported
