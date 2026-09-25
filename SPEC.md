@@ -111,13 +111,14 @@ behaviour, not shape.
 
 - **D-1** `live`. A form is three documents — form, UI and rules — sharing one
   version lineage; a version mismatch between form and rules is an error.
-- **D-2** `live`. Exactly twelve field type names exist, matched case-sensitively,
-  with no aliases.
+- **D-2** `live`. Exactly thirteen field type names exist, matched case-sensitively,
+  with no aliases. `file` validates metadata references only; it never carries or
+  manages binary content.
 - **D-3** `live`. Rules and the UI reference fields by `id`; answers and calculated
   values are keyed by `code`. The two are not interchangeable.
-- **D-4** `live`. Repeater children are flat scalar fields: anything with
-  nested `items` under a repeater is rejected under the code
-  `REPEATER_NESTED_FIELD`.
+- **D-4** `live`. Repeater children are flat answer-bearing fields: `file` is
+  supported as a child, while nested `group`, `repeater` and `component-ref`
+  fields are rejected under the code `REPEATER_NESTED_FIELD`.
 
 ## R — Rules and the dependency check
 
@@ -209,7 +210,9 @@ behaviour, not shape.
 
 - **V-1** `live`. `Draft` accepts an incomplete response; `Complete` requires every
   required field. Within one field only the first applicable error is reported, and
-  a field that errors is never normalized.
+  a field that errors is never normalized. For `file`, an empty object is a
+  malformed present reference (`FILE_INVALID_REFERENCE`), while an empty list is
+  an absent value.
 - **V-2** `live`. The check order within a field is hidden/disabled, then
   read-only, then required, then type conversion, then constraints.
 - **V-3** `decided`. A read-only field that carries a submitted value reports

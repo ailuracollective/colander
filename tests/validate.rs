@@ -220,6 +220,71 @@ fn an_uncompilable_pattern_is_an_error() {
 // E-8: a multi-select `choice` answer validates end to end, and normalizes to
 // the selected values.
 #[test]
+fn validates_a_file_reference_and_normalizes_metadata() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"attachment","code":"attachment","type":"file","maxSize":10,"maxNameLength":20,
+         "accept":["application/pdf"]}]}"#;
+    let result = validate(
+        form,
+        None,
+        None,
+        r#"{"attachment":{"id":"file_123","name":"contract.pdf","size":8,"contentType":"Application/PDF; version=1","sha256":"ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789"}}"#,
+        FormResponseValidationMode::Draft,
+    )
+    .unwrap();
+    assert!(result.is_valid(), "{:?}", result.errors);
+    assert_eq!(
+        result.normalized_answers_json,
+        r#"{"attachment":{"id":"file_123","name":"contract.pdf","size":8,"contentType":"application/pdf","sha256":"abcdef0123456789abcdef0123456789abcdef0123456789abcdef0123456789"}}"#
+    );
+}
+
+#[test]
+fn rejects_an_empty_file_reference_as_malformed() {
+    let form =
+        r#"{"fields":[{"id":"attachment","code":"attachment","type":"file","required":true}]}"#;
+    let result = validate(
+        form,
+        None,
+        None,
+        r#"{"attachment":{}}"#,
+        FormResponseValidationMode::Complete,
+    )
+    .unwrap();
+    assert_eq!(result.errors[0].code, "FILE_INVALID_REFERENCE");
+}
+
+#[test]
+fn validates_multiple_files_and_total_size() {
+    let form = r#"{"fields":[{"id":"files","code":"files","type":"file","allowMultiple":true,"maxSize":10,"maxTotalSize":15,"accept":["application/pdf"]}]}"#;
+    let valid = validate(form, None, None, r#"{"files":[{"id":"1","name":"a.pdf","size":7,"contentType":"application/pdf"},{"id":"2","name":"b.pdf","size":8,"contentType":"application/pdf"}]}"#, FormResponseValidationMode::Draft).unwrap();
+    assert!(valid.is_valid(), "{:?}", valid.errors);
+    let invalid = validate(form, None, None, r#"{"files":[{"id":"1","name":"a.pdf","size":8,"contentType":"application/pdf"},{"id":"2","name":"b.pdf","size":8,"contentType":"application/pdf"}]}"#, FormResponseValidationMode::Draft).unwrap();
+    assert_eq!(invalid.errors[0].code, "FILE_TOTAL_SIZE_LIMIT");
+}
+
+#[test]
+fn validates_a_file_inside_a_repeater() {
+    let form = r#"{"fields":[{"id":"rows","code":"rows","type":"repeater","items":[{"id":"file","code":"file","type":"file"}]}]}"#;
+    let result = validate(
+        form,
+        None,
+        None,
+        r#"{"rows":[{"file":{"id":"1","name":"a.pdf","size":1,"contentType":"application/pdf"}}]}"#,
+        FormResponseValidationMode::Draft,
+    )
+    .unwrap();
+    assert!(result.is_valid(), "{:?}", result.errors);
+}
+
+#[test]
+fn rejects_file_configuration_on_other_types() {
+    let form = r#"{"fields":[{"id":"text","code":"text","type":"text","maxSize":10}]}"#;
+    let error = validate(form, None, None, "{}", FormResponseValidationMode::Draft).unwrap_err();
+    assert!(error.message.starts_with("FILE_INVALID_CONFIG"), "{error}");
+}
+
+#[test]
 fn validates_a_multi_select_answer() {
     let form = r#"{"schemaVersion":"1.0.0","fields":[
         {"id":"tags","code":"patient.tags","type":"choice","allowMultiple":true,

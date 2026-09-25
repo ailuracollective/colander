@@ -90,10 +90,10 @@ This repository has no dependency on any model-facing code, at build time or at
 run time. The optional AI layer lives in its own repository, `slate-ai`, and
 depends on this one; the edge never points the other way.
 
-A related mechanical fact: colander accepts exactly twelve field type names,
-matched case-sensitively, and **no aliases**. If you want `email`, `bool`,
-`dropdown` or `section` to work, the sibling crate `slate-ai` is what maps them
-onto those twelve.
+A related mechanical fact: colander accepts exactly thirteen field type names,
+matched case-sensitively, and **no aliases**. Callers that use names such as
+`email`, `bool`, `dropdown` or `section` must convert them to one of the supported
+types before submitting a document.
 
 ## Next
 

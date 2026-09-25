@@ -70,6 +70,7 @@ fn index_fields(
         let id = require_string(field, schema_json_keys::ID, &field_path)?;
         let code = require_string(field, schema_json_keys::CODE, &field_path)?;
         let field_type = require_string(field, schema_json_keys::TYPE, &field_path)?;
+        validate_file_configuration(field, field_type, &field_path)?;
 
         if under_repeater && json::get_array(field, schema_json_keys::ITEMS).is_some() {
             return Err(ColanderError::new(format!(
@@ -101,6 +102,92 @@ fn index_fields(
 
 /// An absent or JSON-null key reports the missing-field message; a present key
 /// of the wrong type reports a conversion error.
+fn validate_file_configuration(field: &JsonMap, field_type: &str, path: &str) -> Result<()> {
+    let file_keys = ["maxSize", "maxTotalSize", "maxNameLength", "accept"];
+    if field_type != field_type_names::FILE {
+        if let Some(key) = file_keys.iter().find(|key| field.contains_key(**key)) {
+            return Err(ColanderError::new(format!(
+                "FILE_INVALID_CONFIG: key '{key}' at {path} is only valid for file fields."
+            )));
+        }
+        return Ok(());
+    }
+
+    for key in ["maxSize", "maxTotalSize", "maxNameLength"] {
+        if let Some(value) = json::get(field, key) {
+            let text = match value {
+                Json::Number(text) => text,
+                _ => {
+                    return Err(ColanderError::new(format!(
+                        "FILE_INVALID_CONFIG: key '{key}' at {path} must be a non-negative integer."
+                    )));
+                }
+            };
+            if text.parse::<i64>().map_or(true, |value| value < 0) {
+                return Err(ColanderError::new(format!(
+                    "FILE_INVALID_CONFIG: key '{key}' at {path} must be a non-negative integer."
+                )));
+            }
+        }
+    }
+
+    if let Some(value) = json::get(field, "allowMultiple")
+        && value.as_bool().is_none()
+    {
+        return Err(ColanderError::new(format!(
+            "FILE_INVALID_CONFIG: key 'allowMultiple' at {path} must be a boolean."
+        )));
+    }
+    let allow_multiple = json::get_bool(field, "allowMultiple").unwrap_or(false);
+    if !allow_multiple && field.contains_key("maxTotalSize") {
+        return Err(ColanderError::new(format!(
+            "FILE_INVALID_CONFIG: maxTotalSize at {path} requires allowMultiple:true."
+        )));
+    }
+
+    if let Some(value) = json::get(field, "accept") {
+        let Some(values) = value.as_array() else {
+            return Err(ColanderError::new(format!(
+                "FILE_INVALID_CONFIG: key 'accept' at {path} must be an array."
+            )));
+        };
+        for value in values {
+            let Some(text) = value.as_str() else {
+                return Err(ColanderError::new(format!(
+                    "FILE_INVALID_CONFIG: key 'accept' at {path} must contain MIME strings."
+                )));
+            };
+            if !is_mime_type(text) {
+                return Err(ColanderError::new(format!(
+                    "FILE_INVALID_CONFIG: key 'accept' at {path} contains invalid MIME '{text}'."
+                )));
+            }
+        }
+    }
+
+    Ok(())
+}
+
+fn is_mime_type(value: &str) -> bool {
+    let value = value
+        .split(';')
+        .next()
+        .unwrap_or_default()
+        .trim()
+        .to_ascii_lowercase();
+    let Some((kind, subtype)) = value.split_once('/') else {
+        return false;
+    };
+    !kind.is_empty()
+        && !subtype.is_empty()
+        && kind
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || b"-._+".contains(&byte))
+        && subtype
+            .bytes()
+            .all(|byte| byte.is_ascii_alphanumeric() || b"-._+".contains(&byte))
+}
+
 fn require_string<'a>(field: &'a JsonMap, key: &str, path: &str) -> Result<&'a str> {
     match json::get(field, key) {
         None | Some(Json::Null) => Err(ColanderError::new(format!(
@@ -203,6 +290,7 @@ fn index_answer_fields(
         let id = require_string(field, schema_json_keys::ID, &field_path)?;
         let code = require_string(field, schema_json_keys::CODE, &field_path)?;
         let field_type = require_string(field, schema_json_keys::TYPE, &field_path)?;
+        validate_file_configuration(field, field_type, &field_path)?;
 
         let mut children = Vec::new();
         if let Some(items) = json::get_array(field, schema_json_keys::ITEMS) {
@@ -246,6 +334,7 @@ fn index_child_fields(
         let id = require_string(field, schema_json_keys::ID, &field_path)?;
         let code = require_string(field, schema_json_keys::CODE, &field_path)?;
         let field_type = require_string(field, schema_json_keys::TYPE, &field_path)?;
+        validate_file_configuration(field, field_type, &field_path)?;
 
         if json::get_array(field, schema_json_keys::ITEMS).is_some() {
             return Err(ColanderError::new(format!(

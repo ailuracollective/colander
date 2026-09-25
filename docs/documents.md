@@ -79,14 +79,31 @@ them empty. A `null` is treated as absent, and a wrong type is an error:
 | `datetime`      | string, ISO-like date-time                                                                                                                | `YYYY-MM-DDTHH:MM:SS.fffffff±HH:MM`       |
 | `time`          | string, `HH:MM` or `HH:MM:SS`                                                                                                             | `HH:MM:SS`                                |
 | `choice`        | string (or array when `allowMultiple`)                                                                                                    | string (or list)                          |
+| `file`          | strict reference object, or array when `allowMultiple`                                                                                    | normalized reference object (or list)     |
 | `group`         | —                                                                                                                                         | never validated directly; its `items` are |
 | `repeater`      | array of row objects                                                                                                                      | array of row objects                      |
 | `component-ref` | —                                                                                                                                         | expanded to a `group` by `compile`        |
 
 Anything else yields `UNSUPPORTED_FIELD_TYPE`. The names are matched exactly and
-case-sensitively: **`colander` accepts no aliases**. If you want `email`,
-`bool`, `dropdown` or `section` to work, the sibling crate `slate-ai` is what
-maps them onto these twelve.
+case-sensitively: **`colander` accepts no aliases**. Callers that need `email`,
+`bool`, `dropdown` or `section` must convert those names to one of the supported
+field types before submitting the document.
+
+### File references
+
+A `file` answer is a metadata reference, not binary content or an upload. Each
+reference contains `id`, `name`, `size` and `contentType`; `sha256` is optional.
+References reject unknown keys. `size` is a non-negative byte count, and
+`contentType` uses a strict `type/subtype` MIME form. MIME values are normalized
+to lowercase and MIME parameters are removed. `sha256`, when present, must be 64
+hexadecimal characters and is normalized to lowercase.
+
+`allowMultiple` false expects one reference object; true expects a list. The
+file-only `maxSize`, `maxTotalSize`, `maxNameLength` and `accept` properties
+constrain each reference or list. A zero limit means no limit, and
+`maxTotalSize` is valid only with `allowMultiple: true`. An empty `accept` list
+allows every MIME type. The core does not upload, store, inspect or verify the
+referenced file.
 
 ### Dates
 

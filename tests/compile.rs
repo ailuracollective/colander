@@ -53,6 +53,13 @@ fn compiles_without_components() {
 }
 
 #[test]
+fn rejects_invalid_file_configuration() {
+    let form = r#"{"fields":[{"id":"file","code":"file","type":"file","maxTotalSize":10}]}"#;
+    let error = compile(form, None, None, &[]).unwrap_err();
+    assert!(error.message.starts_with("FILE_INVALID_CONFIG"), "{error}");
+}
+
+#[test]
 fn expands_component_references_with_default_layout() {
     let component = demographics(None);
     let ui = r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0",

@@ -37,6 +37,7 @@ pub mod field_type_names {
     pub const GROUP: &str = "group";
     pub const REPEATER: &str = "repeater";
     pub const COMPONENT_REF: &str = "component-ref";
+    pub const FILE: &str = "file";
 }
 
 pub mod widget_names {

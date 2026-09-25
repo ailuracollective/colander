@@ -46,11 +46,12 @@
             "datetime",
             "time",
             "choice",
+            "file",
             "group",
             "repeater",
             "component-ref"
           ],
-          "description": "Exactly these twelve names, matched case-sensitively with no aliases (SPEC D-2). Anything else fails response validation with UNSUPPORTED_FIELD_TYPE."
+          "description": "Exactly these thirteen names, matched case-sensitively with no aliases (SPEC D-2). Anything else fails response validation with UNSUPPORTED_FIELD_TYPE."
         },
         "required": {
           "type": "boolean",
@@ -84,7 +85,27 @@
         },
         "allowMultiple": {
           "type": "boolean",
-          "description": "True makes a choice accept an array answer."
+          "description": "True makes a choice accept an array answer or a file field accept a list of file references."
+        },
+        "maxSize": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "File-only maximum size of one reference in bytes; 0 means no limit."
+        },
+        "maxTotalSize": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "File-only maximum sum of reference sizes for allowMultiple:true; 0 means no limit."
+        },
+        "maxNameLength": {
+          "type": "integer",
+          "minimum": 0,
+          "description": "File-only maximum name length in UTF-16 code units; 0 means no limit."
+        },
+        "accept": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "File-only list of accepted MIME types; an empty list is unrestricted."
         },
         "minLength": {
           "type": "integer",
@@ -144,6 +165,15 @@
         {
           "if": { "properties": { "type": { "const": "component-ref" } } },
           "then": { "required": ["componentCode", "componentVersion"] }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": { "const": "file" },
+              "allowMultiple": { "const": false }
+            }
+          },
+          "then": { "not": { "required": ["maxTotalSize"] } }
         }
       ]
     }

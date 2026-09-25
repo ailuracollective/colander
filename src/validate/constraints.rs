@@ -2,7 +2,7 @@
 
 use crate::error::{ColanderError, Result};
 use crate::index::AnswerFieldDefinition;
-use crate::json::{self};
+use crate::json::{self, Json};
 use crate::keys::field_type_names;
 use crate::rules::Val;
 
@@ -32,6 +32,7 @@ pub(super) fn validate_constraints(
             };
             validate_numeric_constraints(field, number)
         }
+        field_type_names::FILE => return validate_file_constraints(field, value, errors),
         _ => None,
     };
 
@@ -41,6 +42,123 @@ pub(super) fn validate_constraints(
             Ok(false)
         }
         None => Ok(true),
+    }
+}
+
+fn validate_file_constraints(
+    field: &AnswerFieldDefinition,
+    value: &Val,
+    errors: &mut Vec<FormResponseFieldError>,
+) -> Result<bool> {
+    let values: Vec<(Json, String)> = match value {
+        Val::Raw(value) => vec![(json::parse(value).unwrap_or(Json::Null), field.path.clone())],
+        Val::List(values) => values
+            .iter()
+            .enumerate()
+            .filter_map(|(index, value)| match value {
+                Val::Raw(value) => json::parse(value)
+                    .ok()
+                    .map(|value| (value, format!("{}/{index}", field.path))),
+                _ => None,
+            })
+            .collect(),
+        _ => return Ok(true),
+    };
+    let max_size = json::get_i64(&field.schema, "maxSize").unwrap_or(0);
+    let max_total_size = json::get_i64(&field.schema, "maxTotalSize").unwrap_or(0);
+    let max_name_length = json::get_i64(&field.schema, "maxNameLength").unwrap_or(0);
+    let accept = json::get_array(&field.schema, "accept")
+        .cloned()
+        .unwrap_or_default();
+    let allowed = accept
+        .iter()
+        .filter_map(Json::as_str)
+        .filter_map(normalize_mime)
+        .collect::<std::collections::HashSet<_>>();
+    let mut total = 0i64;
+    for (value, path) in &values {
+        let Some(object) = value.as_object() else {
+            continue;
+        };
+        let size = object.get("size").and_then(Json::as_i64).unwrap_or(0);
+        total = total.saturating_add(size);
+        if max_size > 0 && size > max_size {
+            errors.push(file_constraint_error(
+                field,
+                &format!("{path}/size"),
+                "FILE_SIZE_LIMIT",
+                format!("at most {max_size} bytes"),
+            ));
+            return Ok(false);
+        }
+        if max_name_length > 0
+            && object
+                .get("name")
+                .and_then(Json::as_str)
+                .is_some_and(|name| utf16_len(name) as i64 > max_name_length)
+        {
+            errors.push(file_constraint_error(
+                field,
+                &format!("{path}/name"),
+                "FILE_CONSTRAINT_VIOLATION",
+                format!("at most {max_name_length} UTF-16 code units"),
+            ));
+            return Ok(false);
+        }
+        if !allowed.is_empty()
+            && object
+                .get("contentType")
+                .and_then(Json::as_str)
+                .is_some_and(|value| !allowed.contains(&normalize_mime(value).unwrap_or_default()))
+        {
+            errors.push(file_constraint_error(
+                field,
+                &format!("{path}/contentType"),
+                "FILE_MIME_NOT_ALLOWED",
+                "an accepted MIME type".to_string(),
+            ));
+            return Ok(false);
+        }
+    }
+    if max_total_size > 0 && total > max_total_size {
+        errors.push(file_constraint_error(
+            field,
+            &field.path,
+            "FILE_TOTAL_SIZE_LIMIT",
+            format!("at most {max_total_size} bytes"),
+        ));
+        return Ok(false);
+    }
+    Ok(true)
+}
+
+fn normalize_mime(value: &str) -> Option<String> {
+    let value = value.split(';').next()?.trim().to_ascii_lowercase();
+    let (kind, subtype) = value.split_once('/')?;
+    if kind.is_empty()
+        || subtype.is_empty()
+        || !kind.bytes().all(valid_mime_byte)
+        || !subtype.bytes().all(valid_mime_byte)
+    {
+        return None;
+    }
+    Some(value)
+}
+
+fn valid_mime_byte(byte: u8) -> bool {
+    byte.is_ascii_alphanumeric() || b"-._+".contains(&byte)
+}
+
+fn file_constraint_error(
+    field: &AnswerFieldDefinition,
+    path: &str,
+    code: &str,
+    expected: String,
+) -> FormResponseFieldError {
+    FormResponseFieldError {
+        code: code.to_string(),
+        path: path.to_string(),
+        message: format!("File field '{}' must be {expected}.", field.code),
     }
 }
 

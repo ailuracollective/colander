@@ -159,7 +159,10 @@ pub(super) fn try_reject_required_empty(
     required: bool,
     errors: &mut Vec<FormResponseFieldError>,
 ) -> bool {
-    if !is_empty_element(value) {
+    if !is_empty_element(value)
+        || (field.field_type == crate::keys::field_type_names::FILE
+            && matches!(value, Some(Json::Object(_))))
+    {
         return false;
     }
 

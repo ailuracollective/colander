@@ -24,7 +24,7 @@ instances are finite.
 Strictness follows the contract, not the other way round: a key is
 `required`, enumerated or closed (`additionalProperties: false`) only where
 the core rejects or drops it — field `id`/`code`/`type`, layout `type`,
-validation `code`/`assert`, the twelve field types (SPEC D-2), top-level keys
+validation `code`/`assert`, the thirteen field types (SPEC D-2), top-level keys
 (SPEC P-7). Everywhere the core tolerates or preserves (unknown keys inside
 form fields, opaque UI entries, null-or-expression rules), the schema stays
 permissive and says so in its `description`.

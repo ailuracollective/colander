@@ -26,6 +26,13 @@ Use `Draft` for autosave, `Complete` for submit.
 | `UNKNOWN_FIELD`               | An answer key matches no field code, or a repeater row carries a key that is not one of its children                                                                                                                                                                           |
 | `INVALID_TYPE`                | A value has the wrong JSON type for its field, a repeater is not an array, or a repeater row is not an object                                                                                                                                                                  |
 | `UNSUPPORTED_FIELD_TYPE`      | The field's `type` is not one of the validated types                                                                                                                                                                                                                           |
+| `FILE_INVALID_CONFIG`         | A file-only configuration key or constraint is invalid                                                                                                                                                                                                                         |
+| `FILE_INVALID_REFERENCE`      | A file reference is incomplete, has an unknown key, or has invalid metadata                                                                                                                                                                                                    |
+| `FILE_INVALID_LIST`           | A file field receives the wrong object/list shape                                                                                                                                                                                                                              |
+| `FILE_MIME_NOT_ALLOWED`       | A file MIME is not accepted by `accept`                                                                                                                                                                                                                                        |
+| `FILE_SIZE_LIMIT`             | A file size is invalid or exceeds `maxSize`                                                                                                                                                                                                                                    |
+| `FILE_TOTAL_SIZE_LIMIT`       | The sum of a multiple file answer exceeds `maxTotalSize`                                                                                                                                                                                                                       |
+| `FILE_INVALID_HASH`           | An optional `sha256` is not exactly 64 hexadecimal characters                                                                                                                                                                                                                  |
 | `INVALID_SCHEMA`              | A `choice` field has no `options`, or an empty `options` array                                                                                                                                                                                                                 |
 | `CONSTRAINT_VIOLATION`        | A length, pattern, bound, `multipleOf` or choice-membership constraint failed                                                                                                                                                                                                  |
 | `DISABLED_FIELD_VALUE`        | A value was submitted for a field that is currently disabled                                                                                                                                                                                                                   |
@@ -38,8 +45,10 @@ Use `Draft` for autosave, `Complete` for submit.
 | `REPEATER_MAX_ITEMS`          | In Complete mode, more rows than `maxItems`                                                                                                                                                                                                                                    |
 | `CALCULATED_VALUE_INVALID`    | In Complete mode, a calculated value is not finite when it is stored, a finite value can overflow while rounding to the field's decimal places, or the computed value does not satisfy its own field's type and constraints (`maximum`, `minimum`, `multipleOf`, `pattern`, …) |
 
-Emptiness for `required` purposes: an absent key, `null`, `""`, `[]` and `{}` are
-empty. `0` and `false` are **not** empty. A `requiredWhen` predicate overwrites
+Emptiness for `required` purposes: an absent key, `null`, `""` and `[]` are
+empty. For a `file` field, `{}` is a malformed present reference and reports
+`FILE_INVALID_REFERENCE`; it is not treated as a missing value. `0` and
+`false` are **not** empty. A `requiredWhen` predicate overwrites
 the schema default in both directions: `requiredWhen: false` unsets a schema
 `required: true`, symmetric with `visibleWhen`/`enabledWhen`.
 
@@ -69,6 +78,21 @@ supports, look-around and backreferences included; a pattern that cannot be
 compiled fails the call instead of being treated as a non-match. `multipleOf` is
 checked with an absolute tolerance of 1e-6 on the quotient, and a `multipleOf` of
 `0` is ignored.
+
+## File references
+
+A `file` answer is a metadata reference, not binary content. `allowMultiple`
+false expects one strict object; true expects a list of strict objects. Each
+object requires `id`, `name`, `size` and `contentType`; `sha256` is optional.
+MIME values are normalized to lowercase and parameters are removed. `maxSize`
+applies to each reference, `maxTotalSize` to the list, `maxNameLength` counts
+UTF-16 code units, and `accept` contains MIME types. A zero limit means no
+limit, an empty `accept` list is unrestricted, and `maxTotalSize` requires
+`allowMultiple: true`.
+
+The core does not upload, store, inspect or verify the referenced file. Within a
+repeater, a file child and its `maxTotalSize` are evaluated independently per
+row.
 
 ## Next
 
