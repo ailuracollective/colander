@@ -3,10 +3,23 @@
 [package]
 name = "colander"
 description = "Domain-neutral form core: compile triples, evaluate rules, validate responses (C ABI)"
-version = "0.1.0"
+version = "1.0.0"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/ailuracollective/colander"
+# The published crate is the library, its tests, its contract documents and the
+# generated header. Repository tooling does not belong in a consumer's
+# download: these paths are what the maintainers use, not what a caller reads.
+# `benches/` is absent on purpose — the three [[bench]] targets below are
+# declared in this manifest, so cargo has to ship their sources.
+exclude = [
+  ".github/",
+  "hk.pkl",
+  "cog.toml",
+  "Makefile.toml",
+  "dprint.json",
+  "scripts/",
+]
 
 [lib]
 crate-type = ["cdylib", "rlib"]
