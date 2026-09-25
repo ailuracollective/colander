@@ -1,23 +1,10 @@
-# Bump workflow: the semantic-release step. A push to `master` runs
-# `cog bump --auto`, which derives the next version from the Conventional
-# Commits since the last tag, updates Cargo.toml, writes CHANGELOG.md, commits
-# `chore(version): X.Y.Z` and pushes both `master` and the new `v*` tag.
-#
-# Only the TAG is automated. A `v*` tag push is verified by ci.yml and never
-# creates a GitHub Release: `release.yml` stays `workflow_dispatch`, and
-# publishing to crates.io stays manual (see docs/releases.md).
-#
-# A range whose commits are only `chore`/`docs`/`refactor`/`test`/`ci`/
-# `build`/`perf` produces no tag and a green run: cocogitto prints "No
-# conventional commits for your repository that required a bump" and exits 0
-# without touching anything. No guard step predicts bump-worthiness here —
-# cocogitto is the only source of truth for it.
-
 name: Bump
 
 on:
   push:
     branches: [master]
+  pull_request:
+    types: [closed]
   workflow_dispatch:
     inputs:
       dry_run:
@@ -26,18 +13,16 @@ on:
         type: boolean
         default: false
       version:
-        description: 'Force a version (for example 0.1.0); empty means automatic'
+        description: 'Force a version (for example 0.2.0); empty means automatic'
         required: false
         type: string
         default: ''
 
-# The bump pushes a commit and a tag, and must be able to read every tag to
-# compute the range. Two pushes must never bump at once.
 permissions:
   contents: write
 
 concurrency:
-  group: bump-master
+  group: bump-${{ github.ref }}
   cancel-in-progress: false
 
 env:
@@ -45,14 +30,13 @@ env:
 
 jobs:
   bump:
-    name: Version, changelog and tag
-    runs-on: ubuntu-latest
+    name: Open the version pull request
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
-          # cocogitto computes from the last tag, so the whole history AND
-          # every tag must be present; the default shallow fetch hides both.
           fetch-depth: 0
 
       - name: Install the Rust toolchain
@@ -95,10 +79,6 @@ jobs:
           cog --version
 
       - name: Install cbindgen
-        # scripts/check-header.sh is a pre-bump hook and runs cbindgen. The
-        # prebuilt binary is used because `cargo install cbindgen` would add
-        # minutes to every run. cbindgen ships one bare binary per platform
-        # (no archive), built for Ubuntu 22.04, which runs on ubuntu-latest.
         run: |
           curl -fsSL -o cbindgen \
             https://github.com/mozilla/cbindgen/releases/download/0.29.4/cbindgen-ubuntu22.04
@@ -113,39 +93,140 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Sync master and the tags
-        # A bump must always build on the tip of master, not on whichever
-        # SHA happened to trigger the run: a previous run's tag and version
-        # commit may have landed in between.
         run: |
           git fetch origin master --tags --quiet
           git reset --hard origin/master
 
+      - name: Guard against a redundant bump
+        run: |
+          head_subject=$(git log -1 --pretty=%s origin/master)
+          case "${head_subject}" in
+            "chore(version):"*)
+              echo "::notice::master already ends with '${head_subject}'; the tag job owns that version."
+              echo "SKIP_BUMP=1" >> "${GITHUB_ENV}"
+              ;;
+          esac
+          open=$(gh pr list --base master --state open --limit 100 \
+            --json headRefName \
+            --jq '[.[] | select(.headRefName | startswith("chore/version-"))] | length')
+          if [ "${open}" -ne 0 ]; then
+            echo "::notice::A version pull request is already open; skipping."
+            echo "SKIP_BUMP=1" >> "${GITHUB_ENV}"
+          fi
+          echo "SKIP_BUMP=${SKIP_BUMP:-0}" >> "${GITHUB_ENV}"
+
       - name: Bump
+        id: bump
         env:
+          GH_TOKEN: ${{ github.token }}
           DRY_RUN: ${{ inputs.dry_run }}
           VERSION: ${{ inputs.version }}
         run: |
-          if [ "${DRY_RUN:-false}" = "true" ]; then
-            cargo make bump-dry-run
-          elif [ -n "${VERSION:-}" ]; then
-            # The one command line not delegated to `cargo make`, because
-            # `cog bump --version` takes a value and the task is argument-free.
-            cog bump --version "${VERSION}"
-          else
-            cargo make bump
-          fi
-
-      - name: Report the outcome
-        # Never fails the run: it only states what exists after the bump.
-        run: |
-          tag=$(git tag --sort=-creatordate | head -1)
-          if [ -z "$tag" ]; then
-            echo "No tag exists: the commits since the last one did not require a bump."
+          if [ "${SKIP_BUMP}" = "1" ]; then
+            echo "Nothing to bump." >> "${GITHUB_STEP_SUMMARY}"
             exit 0
           fi
-          echo "Newest local tag: $tag"
-          if git ls-remote --tags origin "refs/tags/$tag" | grep -q .; then
-            echo "$tag is on origin."
-          else
-            echo "$tag is local only: the post-bump push did not complete."
+          if [ "${DRY_RUN:-false}" = "true" ]; then
+            echo "### Bump preview" >> "${GITHUB_STEP_SUMMARY}"
+            echo '```' >> "${GITHUB_STEP_SUMMARY}"
+            cargo make bump-dry-run >> "${GITHUB_STEP_SUMMARY}"
+            echo '```' >> "${GITHUB_STEP_SUMMARY}"
+            exit 0
           fi
+          if [ -n "${VERSION:-}" ]; then
+            # The one command line not delegated to `cargo make`, because
+            # `cog bump --version` takes a value and the task is argument-free.
+            cog bump --version "${VERSION}" --hook-profile ci
+          else
+            cog bump --auto --hook-profile ci
+          fi
+          # Cargo.toml is the single version source (scripts/bump-version.sh), so
+          # it is what says which version this bump produced.
+          version=$(sed -ne 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          if [ -z "${version}" ]; then
+            echo "::error::could not read the bumped version from Cargo.toml"
+            exit 1
+          fi
+          echo "version=${version}" >> "${GITHUB_OUTPUT}"
+          echo "### Bumped to \`${version}\`" >> "${GITHUB_STEP_SUMMARY}"
+
+      - name: Open the version pull request
+        if: steps.bump.outputs.version != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.bump.outputs.version }}
+        run: |
+          branch="chore/version-${VERSION}"
+          # cocogitto tagged the pre-merge commit. The `tag` job makes the real
+          # tag on the merge commit, so drop the wrong one here rather than leave
+          # it one push away from origin.
+          git tag -d "v${VERSION}" || true
+          git branch "${branch}"
+          git push origin "${branch}"
+          # The body goes through a file: a multi-line --body argument is a YAML
+          # quoting problem, and a quoted heredoc keeps the shell out of it.
+          body="${RUNNER_TEMP}/version-pr-body.md"
+          cat > "${body}" <<'BODY'
+          Automated version bump to `vVERSION_PLACEHOLDER`.
+
+          `Cargo.toml` carries the single version source and `CHANGELOG.md` is
+          generated by cocogitto; both were written by `cog bump --hook-profile ci`.
+
+          Merging this pull request makes the merge commit the release commit. The
+          `tag` job of this workflow then creates and pushes the tag on it, so do
+          not create the tag by hand.
+          BODY
+          # The heredoc is quoted, so `${VERSION}` is left literal above; the only
+          # substitution wanted is the version itself.
+          sed -i "s/VERSION_PLACEHOLDER/${VERSION}/" "${body}"
+          gh pr create \
+            --base master \
+            --head "${branch}" \
+            --title "chore(version): v${VERSION}" \
+            --body-file "${body}"
+          echo "Opened the pull request for v${VERSION}."
+
+      - name: Report the outcome
+        run: |
+          version="${{ steps.bump.outputs.version }}"
+          if [ -z "${version}" ]; then
+            echo "No version was bumped: the commits since the last tag did not require one."
+            exit 0
+          fi
+          echo "Opened the pull request for v${version}."
+
+  tag:
+    name: Tag the release commit
+    if: >-
+      github.event_name == 'pull_request' &&
+      github.event.pull_request.merged == true &&
+      startsWith(github.event.pull_request.head.ref, 'chore/version-')
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the merge commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.pull_request.merge_commit_sha }}
+          fetch-depth: 0
+
+      - name: Create and push the tag
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          # The title is `chore(version): vX.Y.Z`.
+          tag=$(printf '%s' "${PR_TITLE}" | sed -n 's/^chore(version): \(v[0-9][0-9.]*\)$/\1/p')
+          if [ -z "${tag}" ]; then
+            echo "::notice::'${PR_TITLE}' is not a version title; nothing to tag."
+            exit 0
+          fi
+          if git ls-remote --exit-code --tags origin "refs/tags/${tag}" >/dev/null 2>&1; then
+            echo "::notice::${tag} already exists on origin; nothing to do."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git tag -a "${tag}" -m "${tag}"
+          git push origin "${tag}"
+          echo "### Pushed ${tag}" >> "${GITHUB_STEP_SUMMARY}"
+          echo "The tag is on the merge commit. Its push runs the full ci.yml verification and does not create a GitHub Release."

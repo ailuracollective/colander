@@ -13,6 +13,14 @@ post_bump_hooks = [
   "git push origin {{version_tag}}",
 ]
 
+[bump_profiles.ci]
+pre_bump_hooks = [
+  "sh ./scripts/check-header.sh",
+  "sh ./scripts/bump-version.sh {{version}}",
+  "cargo check",
+]
+post_bump_hooks = []
+
 [changelog]
 path = "CHANGELOG.md"
 template = "remote"

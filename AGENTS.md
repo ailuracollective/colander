@@ -11,9 +11,11 @@ crates.io.** This crate declares no path dependency and no dev-dependency. Keep
 it that way: Cargo resolves one graph covering dev-dependencies, so any path
 dependency would break every cargo command, not just `cargo test`.
 
-**The repository has an `origin` remote and commits.** `v0.1.0` is tagged and
-0.1.0 is published on crates.io. Do not create commits, branches or remotes
-unless explicitly asked.
+**The repository has an `origin` remote and commits.** It currently has
+**no tags at all**, and **no `colander` version is published on crates.io** —
+an earlier `v0.1.0` was cut prematurely and its publication was deleted, so
+`docs/releases.md` is the authority on release state, not this file. Do not
+create commits, branches or remotes unless explicitly asked.
 
 ## Commands
 
@@ -127,18 +129,26 @@ hand-editing the header.
 
 ## Releases
 
-Only the **tag** is automated. Every push to `master` runs the `Bump`
-workflow (`.github/workflows/bump.yml`), which bumps without asking: the
-pre-bump hooks guard the generated header (`scripts/check-header.sh`) and
-bump the single version source (`scripts/bump-version.sh`, Cargo.toml ->
-CARGO_PKG_VERSION), then cocogitto writes the changelog, commits
-`chore(version): X.Y.Z` and pushes both `master` and the new `v*` tag.
-`cargo make bump` is the identical local path, and `cargo make bump-dry-run`
-previews it. A range whose commits are only `chore`/`docs`/`refactor`/
-`test`/`ci`/`build`/`perf` produces no tag and a green run: cocogitto is the
-only source of truth for what deserves a bump. The tag push runs the full CI
-verification only (`ci.yml`); it NEVER creates a GitHub Release. To create
-the Release, run the `Release` workflow yourself (Actions UI or
+Every push to `master` runs the `Bump` workflow
+(`.github/workflows/bump.yml`), which bumps without asking: the pre-bump
+hooks guard the generated header (`scripts/check-header.sh`) and bump the
+single version source (`scripts/bump-version.sh`, Cargo.toml ->
+CARGO_PKG_VERSION), then cocogitto writes the changelog and commits
+`chore(version): vX.Y.Z`. **`master` is protected** (pull request, one
+approving review, two required checks) and the `GITHUB_TOKEN` is not an
+admin, so the workflow cannot push to it: the version commit goes to a
+`chore/version-*` branch and lands as a **pull request**. Merging it is
+what makes the release commit, and the workflow's `tag` job then creates
+`vX.Y.Z` on that merge commit and pushes it — the tag can never point at a
+pre-merge commit, which matters because the repository squash-merges.
+`cargo make bump` is the identical local path (its post-bump hooks push
+`master` directly, so it needs an account that can bypass the protection),
+and `cargo make bump-dry-run` previews it. A range whose commits are only
+`chore`/`docs`/`refactor`/`test`/`ci`/`build`/`perf` produces no pull
+request and a green run: cocogitto is the only source of truth for what
+deserves a bump. The tag push runs the full CI verification only
+(`ci.yml`); it NEVER creates a GitHub Release. To create the Release, run
+the `Release` workflow yourself (Actions UI or
 `gh workflow run release.yml -f tag=vX.Y.Z`) — it verifies again, builds the
 cdylib, and creates the GitHub Release with changelog notes and the
 artifact. Publishing to crates.io is a manual step for now (see
