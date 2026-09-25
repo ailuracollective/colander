@@ -29,15 +29,32 @@ pub fn canonical_payload(
         None => None,
     };
 
+    Ok(payload(&form, ui.as_deref(), rules.as_deref()))
+}
+
+/// Hashes the canonical compile documents without parsing them again.
+///
+/// The compile façade has already produced these documents in their public
+/// document order, so they are the same ordered payload accepted by
+/// [`content_hash`] without a second parse.
+pub(crate) fn content_hash_from_canonical_documents(
+    form_schema_json: &str,
+    ui_schema_json: Option<&str>,
+    rules_schema_json: Option<&str>,
+) -> String {
+    sha256_hex(payload(form_schema_json, ui_schema_json, rules_schema_json).as_bytes())
+}
+
+fn payload(form: &str, ui: Option<&str>, rules: Option<&str>) -> String {
     let mut payload = String::new();
     payload.push_str("{\"form\":");
-    payload.push_str(&form);
+    payload.push_str(form);
     payload.push_str(",\"ui\":");
-    payload.push_str(ui.as_deref().unwrap_or("null"));
+    payload.push_str(ui.unwrap_or("null"));
     payload.push_str(",\"rules\":");
-    payload.push_str(rules.as_deref().unwrap_or("null"));
+    payload.push_str(rules.unwrap_or("null"));
     payload.push('}');
-    Ok(payload)
+    payload
 }
 
 fn document(text: &str, label: &str) -> Result<String> {

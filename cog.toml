@@ -1,10 +1,3 @@
-# Cocogitto release configuration for colander.
-# `cog bump --auto` on master runs the pre-bump hooks (contract header guard,
-# version bump of the single version source), then appends CHANGELOG.md,
-# creates the version commit and tag, then runs post-bump hooks.
-# Post-bump hooks are push-only because cocogitto has no rollback for them;
-# publishing and GitHub Release creation happen in CI (release.yml) instead.
-
 branch_whitelist = ["master"]
 from_latest_tag = true
 tag_prefix = "v"

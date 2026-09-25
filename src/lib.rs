@@ -19,6 +19,7 @@ pub mod keys;
 pub mod pattern;
 pub mod rules;
 pub mod schema;
+mod semantic;
 pub mod semver;
 pub mod validate;
 

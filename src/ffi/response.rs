@@ -4,7 +4,6 @@ use std::ffi::c_char;
 
 use crate::codec::json::JsonCodec;
 use crate::error::ColanderError;
-use crate::json::{Json, JsonMap};
 use crate::validate;
 
 use super::envelope::{dispatch, optional_string, require_string};
@@ -37,30 +36,7 @@ pub unsafe extern "C" fn colander_validate_response(request: *const c_char) -> *
             let result =
                 validate::validate(&form, ui.as_deref(), rules_json.as_deref(), &answers, mode)?;
 
-            let mut out = JsonMap::new();
-            out.insert(
-                "normalizedAnswersJson".to_string(),
-                Json::String(result.normalized_answers_json.clone()),
-            );
-            out.insert(
-                "errors".to_string(),
-                Json::Array(
-                    result
-                        .errors
-                        .iter()
-                        .map(|error| {
-                            let mut entry = JsonMap::new();
-                            entry.insert("code".to_string(), Json::String(error.code.clone()));
-                            entry.insert("path".to_string(), Json::String(error.path.clone()));
-                            entry
-                                .insert("message".to_string(), Json::String(error.message.clone()));
-                            Json::Object(entry)
-                        })
-                        .collect(),
-                ),
-            );
-            out.insert("isValid".to_string(), Json::Bool(result.is_valid()));
-            Ok(Json::Object(out))
+            Ok(validate::project_result(&result))
         })
     }
 }

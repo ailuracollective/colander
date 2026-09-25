@@ -3,16 +3,14 @@
 use indexmap::IndexMap;
 
 use crate::error::{ColanderError, Result};
-use crate::hash;
 use crate::json::{self, Json, JsonMap};
 use crate::keys::schema_json_keys;
 use crate::rules;
+use crate::semantic::FormSemantics;
 use crate::semver;
 
 use super::ComponentVersionData;
-use super::fields::compile_field_array;
-use super::schemas::compile_ui_schema;
-use super::util::{clone_or_null, present, require_array};
+use super::projection::component_hash;
 
 // ---------------------------------------------------------------------------
 // Compilation context
@@ -114,6 +112,20 @@ impl ExpansionBudget {
     }
 }
 
+/// The metadata analyzer is only needed when a checked rules document has at
+/// least one non-null calculation. Validation above has already established
+/// that every field id is known, so this is a safe projection fast path.
+fn has_calculations(form_semantics: &FormSemantics, rules_root: &JsonMap) -> bool {
+    !form_semantics.fields_by_id.is_empty()
+        && json::get_object(rules_root, schema_json_keys::FIELDS).is_some_and(|fields| {
+            fields.values().any(|rule| {
+                rule.as_object()
+                    .and_then(|object| json::get(object, schema_json_keys::CALCULATE))
+                    .is_some_and(|calculate| !calculate.is_null())
+            })
+        })
+}
+
 impl<'a> CompilationContext<'a> {
     pub(super) fn new(components: &'a [ComponentVersionData]) -> Result<Self> {
         let component_index = index_components(components)?;
@@ -151,26 +163,32 @@ impl<'a> CompilationContext<'a> {
                     ))
                 })?;
 
+            let mut ui_root = None;
             let mut ui_fields = None;
             let mut layout_children = None;
             if let Some(ui_json) = &found.ui_schema_json {
-                let ui_root = json::parse(ui_json).map_err(|_| {
+                let parsed = json::parse(ui_json).map_err(|_| {
                     ColanderError::new(format!(
                         "JSON_PARSE_ERROR: Invalid UI schema for component '{component_code}' version '{component_version}'."
                     ))
                 })?;
-                let ui_root = ui_root.as_object().ok_or_else(|| {
-                    ColanderError::new(format!(
-                        "JSON_NOT_OBJECT: Invalid UI schema for component '{component_code}' version '{component_version}'."
-                    ))
-                })?;
-                ui_fields = json::get_object(ui_root, schema_json_keys::FIELDS).cloned();
-                layout_children = json::get_array(ui_root, schema_json_keys::LAYOUT).cloned();
+                let root = match parsed {
+                    Json::Object(root) => root,
+                    _ => {
+                        return Err(ColanderError::new(format!(
+                            "JSON_NOT_OBJECT: Invalid UI schema for component '{component_code}' version '{component_version}'."
+                        )));
+                    }
+                };
+                ui_fields = json::get_object(&root, schema_json_keys::FIELDS).cloned();
+                layout_children = json::get_array(&root, schema_json_keys::LAYOUT).cloned();
+                ui_root = Some(root);
             }
 
             if self.verify_hashes {
                 let mut verified = std::mem::take(&mut self.verified_pins);
-                let result = verify_component_hash(found, self.components, &mut verified);
+                let result =
+                    verify_component_hash(found, self.components, &mut verified, ui_root.as_ref());
                 self.verified_pins = verified;
                 result?;
             }
@@ -192,8 +210,9 @@ impl<'a> CompilationContext<'a> {
 
     pub(super) fn build_dependency_metadata_json(
         &self,
-        compiled_form_json: &str,
-        compiled_rules_json: Option<&str>,
+        form_semantics: &FormSemantics,
+        compiled_form: &JsonMap,
+        compiled_rules: Option<&JsonMap>,
     ) -> Result<String> {
         let mut ordered: Vec<&ResolvedComponentDependency> = self.dependencies.values().collect();
         ordered.sort_by(|left, right| {
@@ -222,11 +241,13 @@ impl<'a> CompilationContext<'a> {
         let mut metadata = JsonMap::new();
         metadata.insert("components".to_string(), Json::Array(components));
 
-        if let Some(rules_json) = compiled_rules_json {
-            let form_root = json::parse_object(compiled_form_json, "form schema")?;
-            let rules_root = json::parse_object(rules_json, "rules schema")?;
-            rules::validate_dependencies(&form_root, &rules_root)?;
-            let rule_metadata = rules::analyze(&form_root, &rules_root)?;
+        if let Some(rules_root) = compiled_rules {
+            rules::validate_dependencies(compiled_form, rules_root)?;
+            let rule_metadata = if has_calculations(form_semantics, rules_root) {
+                rules::analyze(compiled_form, rules_root)?
+            } else {
+                rules::RuleDependencyMetadata::default()
+            };
 
             let mut rules_entry = JsonMap::new();
             rules_entry.insert(
@@ -272,6 +293,7 @@ fn verify_component_hash(
     component: &ComponentVersionData,
     components: &[ComponentVersionData],
     verified_pins: &mut IndexMap<String, String>,
+    ui_root: Option<&JsonMap>,
 ) -> Result<()> {
     let Some(pin) = component
         .content_hash
@@ -285,7 +307,7 @@ fn verify_component_hash(
     let recomputed = match verified_pins.get(&key) {
         Some(digest) => digest.clone(),
         None => {
-            let digest = compiled_component_hash(component, components)?;
+            let digest = component_hash(component, components, ui_root)?;
             verified_pins.insert(key, digest.clone());
             digest
         }
@@ -297,58 +319,4 @@ fn verify_component_hash(
         )));
     }
     Ok(())
-}
-
-/// The SHA-256 of a component compiled on its own.
-///
-/// The component is treated as the top-level form — its own `component-ref`
-/// fields are expanded from the same batch and it carries no rules — so the
-/// digest covers the compiled triple, not the source text, and matches what
-/// `colander_compile` reports for that component alone.
-fn compiled_component_hash(
-    component: &ComponentVersionData,
-    components: &[ComponentVersionData],
-) -> Result<String> {
-    let form_root = json::parse_object(
-        &component.form_schema_json,
-        &format!("component '{}' form schema", component.code),
-    )?;
-    let ui_root = match &component.ui_schema_json {
-        Some(text) => Some(json::parse_object(
-            text,
-            &format!("component '{}' UI schema", component.code),
-        )?),
-        None => None,
-    };
-
-    let mut context = CompilationContext::new(components)?;
-    context.verify_hashes = false;
-
-    let fields_path = format!("/components/{}/fields", component.code);
-    let fields = require_array(
-        json::get(&form_root, schema_json_keys::FIELDS),
-        &fields_path,
-    )?;
-    let compiled_fields = compile_field_array(fields, &fields_path, &mut context)?;
-
-    let mut compiled_form = JsonMap::new();
-    compiled_form.insert(
-        schema_json_keys::SCHEMA_VERSION.to_string(),
-        clone_or_null(&form_root, schema_json_keys::SCHEMA_VERSION),
-    );
-    if let Some(schema_uri) = present(&form_root, schema_json_keys::SCHEMA) {
-        compiled_form.insert(schema_json_keys::SCHEMA.to_string(), schema_uri.clone());
-    }
-    compiled_form.insert(
-        schema_json_keys::FIELDS.to_string(),
-        Json::Array(compiled_fields),
-    );
-    let compiled_form_json = json::canonical(&Json::Object(compiled_form));
-
-    let compiled_ui_json = match &ui_root {
-        Some(root) => Some(json::canonical(&compile_ui_schema(root, &context)?)),
-        None => None,
-    };
-
-    hash::content_hash(&compiled_form_json, compiled_ui_json.as_deref(), None)
 }

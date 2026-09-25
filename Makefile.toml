@@ -1,19 +1,4 @@
-# Task runner for colander.
-#
-# This file is the single source of truth for the command lines a contributor
-# runs. The git hooks in hk.pkl invoke these tasks by name; they never restate the
-# underlying command line.
-#
-# Formatting covers two languages: Rust through rustfmt and Markdown through
-# dprint. `fmt` and `fmt-check` are composites that run both, while
-# `rust-fmt`/`rust-fmt-check` and `md-fmt`/`md-check` stay available on their own.
-#
-# The crate declares no sibling dependency, so every task below runs from a clean
-# clone with nothing but crates.io — no checkout of ../slate-ai is needed.
-
 [config]
-# Cargo.toml declares an empty [workspace] with no members, so there is nothing
-# to fan out to. Run every task once, in this directory.
 default_to_workspace = false
 
 [tasks.rust-fmt]
