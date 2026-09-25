@@ -5,31 +5,31 @@ use std::collections::{HashSet, VecDeque};
 use indexmap::IndexMap;
 
 use crate::error::{ColanderError, Result};
-use crate::index::{self, FieldInfo};
+use crate::index::FieldInfo;
 use crate::json::{self, Json, JsonMap};
 use crate::keys::schema_json_keys;
+use crate::semantic::FormSemantics;
 
 use super::model::RuleDependencyMetadata;
 use super::refs::{collect_references, validate_aggregate_targets, validate_row_scope};
-use super::rows::RowSet;
 use super::shape::{validate_aggregate_arguments, validate_expression_shape};
 
 /// Builds dependency metadata: the calculated field ids in document order and
 /// their topological evaluation order.
 pub fn analyze(form_root: &JsonMap, rules_root: &JsonMap) -> Result<RuleDependencyMetadata> {
-    let fields_by_id = index::build_by_id(form_root)?;
+    let semantics = FormSemantics::from_form_unchecked(form_root)?;
+    analyze_with_semantics(&semantics, rules_root)
+}
+
+pub(crate) fn analyze_with_semantics(
+    semantics: &FormSemantics,
+    rules_root: &JsonMap,
+) -> Result<RuleDependencyMetadata> {
+    let fields_by_id = &semantics.fields_by_id;
 
     let Some(field_rules) = json::get_object(rules_root, schema_json_keys::FIELDS) else {
         return Ok(RuleDependencyMetadata::default());
     };
-
-    // One code → id map for the whole analysis: resolving a reference used to
-    // scan every field, which made a dense dependency graph quadratic
-    // (SPEC R-14).
-    let id_by_code: IndexMap<&str, &str> = fields_by_id
-        .values()
-        .map(|field| (field.code.as_str(), field.id.as_str()))
-        .collect();
 
     let mut calculated_field_ids: Vec<String> = Vec::new();
     let mut dependencies: IndexMap<String, Vec<String>> = IndexMap::new();
@@ -51,10 +51,10 @@ pub fn analyze(form_root: &JsonMap, rules_root: &JsonMap) -> Result<RuleDependen
         // references it, so the set must not leak across fields.
         let mut seen: HashSet<&str> = HashSet::new();
         for code in collect_references(calculate) {
-            if let Some(id) = id_by_code.get(code.as_str())
-                && seen.insert(*id)
+            if let Some(field) = semantics.fields_by_code.get(code.as_str())
+                && seen.insert(field.id.as_str())
             {
-                deps.push((*id).to_string());
+                deps.push(field.id.clone());
             }
         }
         dependencies.insert(field_id.clone(), deps);
@@ -74,13 +74,16 @@ pub fn analyze_checked(
     form_root: &JsonMap,
     rules_root: &JsonMap,
 ) -> Result<RuleDependencyMetadata> {
-    let fields_by_id = index::build_by_id(form_root)?;
-    let fields_by_code = index::build_by_code(form_root)?;
+    let semantics = FormSemantics::from_form(form_root)?;
+    analyze_checked_with_semantics(form_root, &semantics, rules_root)
+}
 
+pub(crate) fn analyze_checked_with_semantics(
+    form_root: &JsonMap,
+    semantics: &FormSemantics,
+    rules_root: &JsonMap,
+) -> Result<RuleDependencyMetadata> {
     validate_form_version_match(form_root, rules_root)?;
-
-    let child_repeaters = RowSet::child_repeater_by_code(form_root);
-    let repeater_parents = RowSet::repeater_parents(form_root);
 
     // A malformed container must be an error, not a silently ignored one: a
     // caller that sends `fields: []` and gets `ok: true` believes its rules
@@ -107,18 +110,22 @@ pub fn analyze_checked(
     if let Some(field_rules) = json::get_object(rules_root, schema_json_keys::FIELDS) {
         validate_field_rules(
             field_rules,
-            &fields_by_id,
-            &fields_by_code,
-            &child_repeaters,
-            &repeater_parents,
+            &semantics.fields_by_id,
+            &semantics.fields_by_code,
+            &semantics.child_repeater_by_code,
+            &semantics.repeater_parent_by_id,
         )?;
     }
 
     if let Some(validations) = json::get_array(rules_root, schema_json_keys::VALIDATIONS) {
-        validate_validation_entries(validations, &fields_by_code, &child_repeaters)?;
+        validate_validation_entries(
+            validations,
+            &semantics.fields_by_code,
+            &semantics.child_repeater_by_code,
+        )?;
     }
 
-    let metadata = analyze(form_root, rules_root)?;
+    let metadata = analyze_with_semantics(semantics, rules_root)?;
     if metadata.evaluation_order.len() != metadata.calculated_field_ids.len() {
         return Err(ColanderError::new(
             "RULE_CYCLIC_DEPENDENCY: calculated fields contain a cyclic dependency.",

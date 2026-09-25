@@ -8,9 +8,8 @@ I/O, holds no state, has no async runtime and **ships no schema of its own** —
 documents and the JSON Schemas that describe them belong to the caller's domain
 and travel with each request.
 
-This repository has no dependency on any model-facing code, at build time or at
-run time. The optional AI layer lives in its own repository (`slate-ai`) and
-depends on this one; the edge never points the other way.
+The crate is self-contained: it declares no path or development dependency, and a
+clean clone builds and tests with nothing but crates.io.
 
 ## Build
 
@@ -62,8 +61,7 @@ tasks. These tools are prerequisites and ship prebuilt binaries:
 | `cargo make prepush`        | `test`.                                                                 |
 | `cargo make`                | With no task name, lists every task.                                    |
 
-Every task runs from a clean clone with nothing but crates.io; no sibling
-checkout is needed.
+Every task runs from a clean clone with nothing but crates.io.
 
 ## Continuous integration
 
@@ -214,7 +212,6 @@ vectors are frozen: they were captured once from an external implementation and
 the harness that produced them is not part of this repository. See
 `docs/vectors.md`.
 
-The suite covers this crate alone. The optional AI layer lives in the separate
-`slate-ai` repository, which depends on this one; the edge points one way, and
-its own tests — including the `ai` golden group — live there. Nothing in this
-crate references it, so a clone builds and tests with nothing but crates.io.
+The suite covers this crate alone: 249 frozen cases across seven groups, with
+1648 assertions. The harness and its exclusions are part of this repository, so
+the suite runs from a clean clone with nothing but crates.io.

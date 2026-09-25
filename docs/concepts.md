@@ -27,8 +27,7 @@ you write a binding:
 - When you validate a document, the JSON Schemas that describe it travel with
   the request. `colander_validate_schema` validates against a schema you supply,
   not against one bundled with the core.
-- There is no async runtime and no dependency on model-facing code, at build
-  time or at run time.
+- There is no async runtime, and the crate has no path or development dependency.
 
 ## The request/response model
 
@@ -84,16 +83,11 @@ how an answer is labelled. Rules and UI reference fields by `id`; answers and
 calculated values are keyed by `code`. The two are read with different
 strictness rules, too — see [documents.md](documents.md).
 
-## Where the AI layer sits
+## Caller-side field types
 
-This repository has no dependency on any model-facing code, at build time or at
-run time. The optional AI layer lives in its own repository, `slate-ai`, and
-depends on this one; the edge never points the other way.
-
-A related mechanical fact: colander accepts exactly twelve field type names,
-matched case-sensitively, and **no aliases**. If you want `email`, `bool`,
-`dropdown` or `section` to work, the sibling crate `slate-ai` is what maps them
-onto those twelve.
+colander accepts exactly twelve field type names, matched case-sensitively, and
+**no aliases**. Callers that use names such as `email`, `bool`, `dropdown` or
+`section` must convert them to one of the twelve before submitting a document.
 
 ## Next
 

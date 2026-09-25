@@ -7,8 +7,8 @@ Read it when you wonder why the crate has so few dependencies, or whether
 ## Runtime dependencies
 
 `Cargo.toml` declares exactly three direct runtime dependencies, which resolve to
-sixteen transitive crates — nineteen crates in the normal graph. There is no
-dependency on model-facing code, at build time or at run time.
+sixteen transitive crates — nineteen crates in the normal graph. There is no path
+or development dependency.
 
 | Crate         | Version  | What it is used for                                                                                                                                                                                                                                                   |
 | ------------- | -------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -41,15 +41,10 @@ boundary is generic over so the wire format is injectable; there is no plugin
 layer beyond that. As `README.md` puts it, "a second use is what would justify
 extracting anything."
 
-## No build edge
+## Self-contained build
 
 `Cargo.toml` declares three direct runtime dependencies and no dev-dependency.
-This crate has no dependency on model-facing code, at build time or at run time,
-so a clone builds and tests with nothing but crates.io.
-
-The optional AI layer lives in its own repository, `slate-ai`, which depends on
-this one. The edge points one way, and the AI layer's tests — including the `ai`
-golden-vector group — live there rather than here.
+A clean clone builds and tests with nothing but crates.io.
 
 ## Next
 
