@@ -3,11 +3,12 @@
 use indexmap::IndexMap;
 
 use crate::error::{ColanderError, Result};
-use crate::index::{self, FieldInfo};
+use crate::index::FieldInfo;
 use crate::json::{self, JsonMap};
 use crate::keys::schema_json_keys;
+use crate::semantic::FormSemantics;
 
-use super::analyze::analyze;
+use super::analyze::{analyze_checked_with_semantics, analyze_with_semantics};
 use super::expression::evaluate_expression;
 use super::model::{FormRuleEvaluationResult, RuleDependencyMetadata, RuleValidationError};
 use super::number::normalize_calculated_value;
@@ -27,13 +28,33 @@ pub fn evaluate(
     ui_schema_json: Option<&str>,
     rows: &mut RowSet,
 ) -> Result<FormRuleEvaluationResult> {
-    let metadata = super::analyze::analyze_checked(form_root, rules_root)?;
-    evaluate_core(
-        form_root,
+    let semantics = FormSemantics::from_form(form_root)?;
+    let metadata = analyze_checked_with_semantics(form_root, &semantics, rules_root)?;
+    evaluate_with_semantics(
         rules_root,
         values,
         ui_schema_json,
         rows,
+        &semantics,
+        Some(metadata),
+    )
+}
+
+pub(crate) fn evaluate_values(
+    form_root: &JsonMap,
+    rules_root: &JsonMap,
+    values: &IndexMap<String, Val>,
+    ui_schema_json: Option<&str>,
+) -> Result<FormRuleEvaluationResult> {
+    let semantics = FormSemantics::from_form(form_root)?;
+    let mut rows = RowSet::from_values_with_semantics(&semantics, values);
+    let metadata = analyze_checked_with_semantics(form_root, &semantics, rules_root)?;
+    evaluate_with_semantics(
+        rules_root,
+        values,
+        ui_schema_json,
+        &mut rows,
+        &semantics,
         Some(metadata),
     )
 }
@@ -53,10 +74,29 @@ pub(crate) fn evaluate_core(
     rows: &mut RowSet,
     metadata: Option<super::RuleDependencyMetadata>,
 ) -> Result<FormRuleEvaluationResult> {
-    let fields_by_id = index::build_by_id(form_root)?;
+    let semantics = FormSemantics::from_form_unchecked(form_root)?;
+    evaluate_with_semantics(
+        rules_root,
+        values,
+        ui_schema_json,
+        rows,
+        &semantics,
+        metadata,
+    )
+}
+
+pub(crate) fn evaluate_with_semantics(
+    rules_root: &JsonMap,
+    values: &IndexMap<String, Val>,
+    ui_schema_json: Option<&str>,
+    rows: &mut RowSet,
+    semantics: &FormSemantics,
+    metadata: Option<RuleDependencyMetadata>,
+) -> Result<FormRuleEvaluationResult> {
+    let fields_by_id = &semantics.fields_by_id;
     let metadata = match metadata {
         Some(metadata) => metadata,
-        None => analyze(form_root, rules_root)?,
+        None => analyze_with_semantics(semantics, rules_root)?,
     };
 
     let mut working_values = values.clone();
@@ -91,19 +131,18 @@ pub(crate) fn evaluate_core(
     }
 
     if let Some(field_rules) = json::get_object(rules_root, schema_json_keys::FIELDS) {
-        let parents = RowSet::repeater_parents(form_root);
         apply_calculations(
             field_rules,
             &metadata,
-            &fields_by_id,
+            fields_by_id,
             &mut working_values,
             &mut result.calculated_values,
-            &parents,
+            &semantics.repeater_parent_by_id,
             rows,
         )?;
         apply_field_predicates(
             field_rules,
-            &fields_by_id,
+            fields_by_id,
             &working_values,
             &mut result,
             rows,

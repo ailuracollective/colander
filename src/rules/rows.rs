@@ -10,7 +10,7 @@
 use indexmap::IndexMap;
 
 use crate::json::{self, Json, JsonMap};
-use crate::keys::{field_type_names, schema_json_keys};
+use crate::semantic::{FormSemantics, repeater_topology};
 
 use super::value::Val;
 
@@ -49,9 +49,14 @@ impl RowSet {
     /// rows, one per object element. Non-object elements are skipped; an absent
     /// or non-array answer contributes no rows.
     pub fn from_answers(form_root: &JsonMap, answers: &JsonMap) -> RowSet {
+        let topology = repeater_topology(form_root);
+        Self::from_answers_with_codes(&topology.repeater_codes, answers)
+    }
+
+    fn from_answers_with_codes(repeater_codes: &[String], answers: &JsonMap) -> RowSet {
         let mut rows = IndexMap::new();
-        for repeater_code in repeater_codes(form_root) {
-            let Some(Json::Array(elements)) = answers.get(&repeater_code) else {
+        for repeater_code in repeater_codes {
+            let Some(Json::Array(elements)) = answers.get(repeater_code) else {
                 continue;
             };
             let mut row_list = Vec::new();
@@ -72,7 +77,7 @@ impl RowSet {
                 }
                 row_list.push(row);
             }
-            rows.insert(repeater_code, row_list);
+            rows.insert(repeater_code.clone(), row_list);
         }
         RowSet { rows }
     }
@@ -83,9 +88,21 @@ impl RowSet {
     /// preserved, but values are, which is all calculation needs. A `List` of
     /// non-objects, a number, or an absent key contributes no rows.
     pub fn from_values(form_root: &JsonMap, values: &IndexMap<String, Val>) -> RowSet {
+        let topology = repeater_topology(form_root);
+        Self::from_values_with_codes(&topology.repeater_codes, values)
+    }
+
+    pub(crate) fn from_values_with_semantics(
+        semantics: &FormSemantics,
+        values: &IndexMap<String, Val>,
+    ) -> RowSet {
+        Self::from_values_with_codes(&semantics.repeater_codes, values)
+    }
+
+    fn from_values_with_codes(repeater_codes: &[String], values: &IndexMap<String, Val>) -> RowSet {
         let mut rows = IndexMap::new();
-        for repeater_code in repeater_codes(form_root) {
-            let Some(Val::List(elements)) = values.get(&repeater_code) else {
+        for repeater_code in repeater_codes {
+            let Some(Val::List(elements)) = values.get(repeater_code) else {
                 continue;
             };
             let mut row_list = Vec::new();
@@ -109,7 +126,7 @@ impl RowSet {
                 }
                 row_list.push(row);
             }
-            rows.insert(repeater_code, row_list);
+            rows.insert(repeater_code.clone(), row_list);
         }
         RowSet { rows }
     }
@@ -117,11 +134,7 @@ impl RowSet {
     /// Maps every field id to its innermost enclosing repeater code. Fields with
     /// no repeater ancestor, and repeaters themselves, have no entry.
     pub fn repeater_parents(form_root: &JsonMap) -> IndexMap<String, String> {
-        let mut parents = IndexMap::new();
-        if let Some(fields) = json::get_array(form_root, schema_json_keys::FIELDS) {
-            walk_fields(fields, None, &mut parents);
-        }
-        parents
+        repeater_topology(form_root).repeater_parent_by_id
     }
 
     /// Maps every repeater-child field code to its innermost enclosing
@@ -132,96 +145,6 @@ impl RowSet {
     /// an aggregate (`sum`/`count`), never from a predicate, a validation,
     /// or an unrelated calculation.
     pub fn child_repeater_by_code(form_root: &JsonMap) -> IndexMap<String, String> {
-        let mut by_code = IndexMap::new();
-        if let Some(fields) = json::get_array(form_root, schema_json_keys::FIELDS) {
-            walk_child_codes(fields, None, &mut by_code);
-        }
-        by_code
-    }
-}
-
-/// Every repeater code in the form, in document order, including nested ones.
-fn repeater_codes(form_root: &JsonMap) -> Vec<String> {
-    let mut codes = Vec::new();
-    if let Some(fields) = json::get_array(form_root, schema_json_keys::FIELDS) {
-        collect_repeater_codes(fields, &mut codes);
-    }
-    codes
-}
-
-fn collect_repeater_codes(fields: &[Json], codes: &mut Vec<String>) {
-    for field in fields {
-        let Some(object) = field.as_object() else {
-            continue;
-        };
-        let is_repeater =
-            json::get_str(object, schema_json_keys::TYPE) == Some(field_type_names::REPEATER);
-        if is_repeater && let Some(code) = json::get_str(object, schema_json_keys::CODE) {
-            codes.push(code.to_string());
-        }
-        if let Some(items) = json::get_array(object, schema_json_keys::ITEMS) {
-            collect_repeater_codes(items, codes);
-        }
-    }
-}
-
-fn walk_fields(fields: &[Json], repeater: Option<&str>, parents: &mut IndexMap<String, String>) {
-    for field in fields {
-        let Some(object) = field.as_object() else {
-            continue;
-        };
-        let (Some(id), Some(field_type)) = (
-            json::get_str(object, schema_json_keys::ID),
-            json::get_str(object, schema_json_keys::TYPE),
-        ) else {
-            continue;
-        };
-        if field_type == field_type_names::REPEATER {
-            if let (Some(code), Some(items)) = (
-                json::get_str(object, schema_json_keys::CODE),
-                json::get_array(object, schema_json_keys::ITEMS),
-            ) {
-                walk_fields(items, Some(code), parents);
-            }
-            continue;
-        }
-        if let Some(code) = repeater {
-            parents.insert(id.to_string(), code.to_string());
-        }
-        if let Some(items) = json::get_array(object, schema_json_keys::ITEMS) {
-            walk_fields(items, repeater, parents);
-        }
-    }
-}
-
-/// Collects `(child code, enclosing repeater code)` pairs; mirrors
-/// [`walk_fields`] but keys by answer code instead of field id.
-fn walk_child_codes(
-    fields: &[Json],
-    repeater: Option<&str>,
-    by_code: &mut IndexMap<String, String>,
-) {
-    for field in fields {
-        let Some(object) = field.as_object() else {
-            continue;
-        };
-        let (Some(code), Some(field_type)) = (
-            json::get_str(object, schema_json_keys::CODE),
-            json::get_str(object, schema_json_keys::TYPE),
-        ) else {
-            continue;
-        };
-        if field_type == field_type_names::REPEATER {
-            if let Some(items) = json::get_array(object, schema_json_keys::ITEMS) {
-                walk_child_codes(items, Some(code), by_code);
-            }
-            continue;
-        }
-        if let Some(enclosing) = repeater {
-            by_code.insert(code.to_string(), enclosing.to_string());
-        }
-        if let Some(items) = json::get_array(object, schema_json_keys::ITEMS) {
-            walk_child_codes(items, repeater, by_code);
-        }
+        repeater_topology(form_root).child_repeater_by_code
     }
 }

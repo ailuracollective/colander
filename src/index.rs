@@ -35,17 +35,36 @@ pub fn build_by_id(form_root: &JsonMap) -> Result<IndexMap<String, FieldInfo>> {
 /// Builds the code-keyed index; a duplicated field code is an error.
 pub fn build_by_code(form_root: &JsonMap) -> Result<IndexMap<String, FieldInfo>> {
     let by_id = build_by_id(form_root)?;
+    build_by_code_from_id(&by_id)
+}
+
+/// Derives the code-keyed index from the already-built id-keyed index.
+pub(crate) fn build_by_code_from_id(
+    fields_by_id: &IndexMap<String, FieldInfo>,
+) -> Result<IndexMap<String, FieldInfo>> {
     let mut by_code = IndexMap::new();
-    for info in by_id.into_values() {
+    for info in fields_by_id.values() {
         if by_code.contains_key(&info.code) {
             return Err(ColanderError::new(format!(
                 "RULE_DUPLICATE_FIELD_CODE: duplicate field code '{}'.",
                 info.code
             )));
         }
-        by_code.insert(info.code.clone(), info);
+        by_code.insert(info.code.clone(), info.clone());
     }
     Ok(by_code)
+}
+
+/// Derives the legacy, overwrite-on-duplicate code index used by lenient
+/// analysis callers that historically did not reject duplicate codes.
+pub(crate) fn build_by_code_from_id_unchecked(
+    fields_by_id: &IndexMap<String, FieldInfo>,
+) -> IndexMap<String, FieldInfo> {
+    let mut by_code = IndexMap::new();
+    for info in fields_by_id.values() {
+        by_code.insert(info.code.clone(), info.clone());
+    }
+    by_code
 }
 
 /// Rejects a duplicated field code on any form, with or without a rules
