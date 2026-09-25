@@ -137,10 +137,14 @@ CARGO_PKG_VERSION), then cocogitto writes the changelog and commits
 `chore(version): vX.Y.Z`. **`master` is protected** (pull request, one
 approving review, two required checks) and the `GITHUB_TOKEN` is not an
 admin, so the workflow cannot push to it: the version commit goes to a
-`chore/version-*` branch and lands as a **pull request**. Merging it is
-what makes the release commit, and the workflow's `tag` job then creates
-`vX.Y.Z` on that merge commit and pushes it — the tag can never point at a
-pre-merge commit, which matters because the repository squash-merges.
+`chore/version-*` branch and lands as a **pull request**. The push to
+`master` that carries that version commit is the release commit, and the
+workflow's `tag` job then creates `vX.Y.Z` on the tip and pushes it. It
+deliberately does not listen for the pull request being merged: events
+caused by `GITHUB_TOKEN` do not start workflow runs, and `pull_request` with
+the `closed` activity is not one of the exceptions. The price is that the
+required checks on the version pull request need one manual approval,
+because a token-created pull request starts its runs approval-required.
 `cargo make bump` is the identical local path (its post-bump hooks push
 `master` directly, so it needs an account that can bypass the protection),
 and `cargo make bump-dry-run` previews it. A range whose commits are only

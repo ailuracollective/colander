@@ -6,9 +6,9 @@ decision points. The **version bump** is automated: every push to
 next version from Conventional Commits, guards the generated header, bumps
 `Cargo.toml`, writes `CHANGELOG.md` and commits `chore(version): vX.Y.Z` —
 as a **pull request**, because `master` is protected and CI cannot push to
-it. The **tag** is automated too, one step later: merging the version pull
-request makes the merge commit the release commit, and the workflow's
-`tag` job creates `vX.Y.Z` on it. The steps that stay human decisions are
+it. The **tag** is automated too, one push later: the push to `master` that
+carries the version commit is the release commit, and the workflow's `tag`
+job creates `vX.Y.Z` on it. The steps that stay human decisions are
 the **merge of the version pull request** and, explicitly, the **GitHub
 Release** (created only on demand, never from the tag push alone) and, for
 now, the **crates.io publish**. `cargo make bump` is the same pipeline run
@@ -37,7 +37,7 @@ unattended; the local command is the manual equivalent.
 | Changelog      | Cocogitto appends the new section to CHANGELOG.md                                                                                                                                      |
 | Version commit | A `chore(version): vX.Y.Z` commit, committed on a `chore/version-X.Y.Z` branch                                                                                                         |
 | Version PR     | The branch is pushed and a pull request is opened against `master`. Merging it is a human decision                                                                                     |
-| Tag            | On the merge, the `tag` job creates `vX.Y.Z` **on the merge commit** and pushes it                                                                                                     |
+| Tag            | On the push that carries the version commit, the `tag` job creates `vX.Y.Z` on it and pushes it                                                                                        |
 | CI             | The `v*` tag push runs the full CI set (`ci.yml`) as verification only — it never creates a Release                                                                                    |
 | GitHub Release | Created only when you run the `Release` workflow on demand (see below)                                                                                                                 |
 
@@ -57,8 +57,24 @@ The tag is created **after** the merge, not by `cog bump`. Cocogitto tags
 the version commit, but this repository squash-merges, so the commit that
 lands on `master` has a different SHA: a tag made at bump time would point
 at a commit that is not on `master`, and `release.yml` would then build a
-release from a commit CI never verified. The `tag` job therefore checks out
-`github.event.pull_request.merge_commit_sha` and tags that.
+release from a commit CI never verified. The `tag` job therefore runs on the
+push to `master` and tags the tip, and only when that tip is itself a
+`chore(version):` commit.
+
+The tag job deliberately does **not** listen for the version pull request
+being merged. Events caused by `GITHUB_TOKEN` do not start new workflow runs,
+with two exceptions — `workflow_dispatch`, `repository_dispatch`, and
+`pull_request` with the `opened`, `synchronize` or `reopened` activity types.
+A `closed` event is not one of them, so a `tag` job gated on
+`pull_request: closed` would never fire for a pull request the workflow
+itself opened.
+
+That suppression has a second consequence: a pull request created with
+`GITHUB_TOKEN` does not run the required checks automatically. Its
+`opened`/`synchronize` runs are created in an approval-required state, so
+merging the version pull request takes one manual approval on the pull
+request page. The alternative would be a Personal Access Token stored as a
+repository secret, which starts the runs without the prompt.
 
 The CI run uses the `ci` profile in `cog.toml`, which keeps the pre-bump
 hooks and has **no** post-bump hooks. The main profile still pushes, because
