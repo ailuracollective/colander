@@ -6,18 +6,17 @@
 
 use crate::error::Result;
 use crate::hash;
-use crate::json::{self, Json, JsonMap};
-use crate::keys::schema_json_keys;
+use crate::json::{self, JsonMap};
+use crate::semantic::FormSemantics;
 
 mod context;
 mod fields;
+mod projection;
 mod schemas;
 mod util;
 
 use context::CompilationContext;
-use fields::compile_field_array;
-use schemas::{compile_rules_schema, compile_ui_schema};
-use util::{clone_or_null, present, require_array};
+use projection::CompileSemantics;
 
 /// One resolved component version, as handed in by the caller.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -55,36 +54,47 @@ pub fn compile(
         None => None,
     };
 
+    compile_from_roots(
+        &form_root,
+        ui_root.as_ref(),
+        rules_root.as_ref(),
+        components,
+    )
+}
+
+fn compile_from_roots(
+    form_root: &JsonMap,
+    ui_root: Option<&JsonMap>,
+    rules_root: Option<&JsonMap>,
+    components: &[ComponentVersionData],
+) -> Result<FormCompilationResult> {
     let mut context = CompilationContext::new(components)?;
-
-    let fields = require_array(json::get(&form_root, schema_json_keys::FIELDS), "/fields")?;
-    let compiled_fields = compile_field_array(fields, "/fields", &mut context)?;
-
-    let mut compiled_form = JsonMap::new();
-    compiled_form.insert(
-        schema_json_keys::SCHEMA_VERSION.to_string(),
-        clone_or_null(&form_root, schema_json_keys::SCHEMA_VERSION),
-    );
-    if let Some(schema_uri) = present(&form_root, schema_json_keys::SCHEMA) {
-        compiled_form.insert(schema_json_keys::SCHEMA.to_string(), schema_uri.clone());
-    }
-    compiled_form.insert(
-        schema_json_keys::FIELDS.to_string(),
-        Json::Array(compiled_fields),
-    );
+    let inputs = CompileSemantics {
+        form_root,
+        ui_root,
+        rules_root,
+    };
+    let compiled_form = inputs.project_form(&mut context)?;
 
     // R-5: a duplicated field code is rejected on the effective (compiled)
-    // documents, whether or not a rules document is present.
-    crate::index::ensure_unique_codes(&compiled_form)?;
-
-    let compiled_ui = match &ui_root {
-        Some(root) => Some(compile_ui_schema(root, &context)?),
-        None => None,
+    // documents, whether or not a rules document is present. The semantic
+    // projection also supplies the field index used by dependency metadata.
+    let form_semantics = FormSemantics::from_form(
+        compiled_form
+            .as_object()
+            .expect("compiled form projection is an object"),
+    )?;
+    let (compiled_ui, compiled_rules) = inputs.project_ui_rules(&mut context)?;
+    let documents = projection::CompiledDocuments {
+        form: compiled_form,
+        ui: compiled_ui,
+        rules: compiled_rules,
     };
-    let compiled_rules = rules_root.as_ref().map(compile_rules_schema);
-    let compiled_form_json = json::canonical(&Json::Object(compiled_form));
-    let compiled_ui_json = compiled_ui.map(|value| json::canonical(&value));
-    let compiled_rules_json = compiled_rules.map(|value| json::canonical(&value));
+    let compiled_form_root = documents.form_root();
+
+    let compiled_form_json = json::canonical(&documents.form);
+    let compiled_ui_json = documents.ui.as_ref().map(json::canonical);
+    let compiled_rules_json = documents.rules.as_ref().map(json::canonical);
     // Charge the final documents too, so the byte budget covers output the
     // field-level charge cannot see (top-level keys, the documents a caller
     // supplied without references).
@@ -94,13 +104,16 @@ pub fn compile(
             + compiled_rules_json.as_deref().map(str::len).unwrap_or(0),
     )?;
 
-    let dependency_metadata_json = context
-        .build_dependency_metadata_json(&compiled_form_json, compiled_rules_json.as_deref())?;
-    let content_hash = hash::content_hash(
+    let dependency_metadata_json = context.build_dependency_metadata_json(
+        &form_semantics,
+        compiled_form_root,
+        documents.rules_root(),
+    )?;
+    let content_hash = hash::content_hash_from_canonical_documents(
         &compiled_form_json,
         compiled_ui_json.as_deref(),
         compiled_rules_json.as_deref(),
-    )?;
+    );
 
     Ok(FormCompilationResult {
         form_schema_json: compiled_form_json,
@@ -109,4 +122,59 @@ pub fn compile(
         dependency_metadata_json,
         content_hash,
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::compile_from_roots;
+    use crate::hash;
+    use crate::json;
+
+    #[test]
+    fn prepared_compile_projection_matches_facade_and_hash() {
+        let form_text = r#"{"schemaVersion":"1.0.0","fields":[
+            {"id":"amount","code":"amount","type":"number","multipleOf":0.10}]}"#;
+        let ui_text = r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{}}"#;
+        let rules_text = r#"{"schemaVersion":"1.0.0","formSchemaVersion":"1.0.0","fields":{}}"#;
+        let form = json::parse_object(form_text, "form schema").unwrap();
+        let ui = json::parse_object(ui_text, "UI schema").unwrap();
+        let rules = json::parse_object(rules_text, "rules schema").unwrap();
+
+        let prepared = compile_from_roots(&form, Some(&ui), Some(&rules), &[]).unwrap();
+        let facade = super::compile(form_text, Some(ui_text), Some(rules_text), &[]).unwrap();
+        assert_eq!(prepared, facade);
+        assert!(prepared.form_schema_json.contains(r#""multipleOf":0.10"#));
+
+        assert_eq!(
+            prepared.content_hash,
+            hash::content_hash_from_canonical_documents(
+                &prepared.form_schema_json,
+                prepared.ui_schema_json.as_deref(),
+                prepared.rules_schema_json.as_deref(),
+            )
+        );
+        assert_eq!(
+            prepared.content_hash,
+            hash::content_hash(
+                &prepared.form_schema_json,
+                prepared.ui_schema_json.as_deref(),
+                prepared.rules_schema_json.as_deref(),
+            )
+            .unwrap()
+        );
+    }
+
+    #[test]
+    fn effective_code_dupes_precede_ui_projection_errors() {
+        let form = r#"{"schemaVersion":"1.0.0","fields":[
+            {"id":"first","code":"duplicate","type":"text"},
+            {"id":"second","code":"duplicate","type":"number"}]}"#;
+        let ui = r#"{"schemaVersion":"1.0.0","unexpected":true}"#;
+
+        let error = super::compile(form, Some(ui), None, &[]).unwrap_err();
+        assert!(
+            error.message.starts_with("RULE_DUPLICATE_FIELD_CODE"),
+            "{error}"
+        );
+    }
 }
