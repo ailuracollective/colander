@@ -82,6 +82,37 @@
 #define ABI_VERSION 1
 
 /**
+ * Largest request a `char *` entry point will parse. The boundary is the
+ * only place that sees the caller's byte count before any allocation, so the
+ * cap belongs here: a schema or answers document larger than this is a
+ * resource-exhaustion attempt, not a request the core needs to read
+ * (SPEC C-10). The cap is far above any documented form; it exists to make
+ * the bound explicit rather than to enforce a product limit.
+ */
+#define MAX_REQUEST_BYTES ((64 * 1024) * 1024)
+
+/**
+ * The most quantifier and alternation constructs one pattern may contain.
+ *
+ * The engine's cost is driven by these, not by the text it matches: a pattern
+ * of N repeated groups costs superlinear time to compile and to run, and it is
+ * recompiled for every string the schema validates. Measured on this engine,
+ * 1 000 groups take about 29 ms, 4 000 about 374 ms and 32 000 about 17.6 s,
+ * while the length of the text being matched makes no difference once the
+ * group count is fixed. 512 units leaves a two-order-of-magnitude margin over
+ * any hand-written pattern (a password or email rule uses single digits) and
+ * caps the worst case at a few milliseconds.
+ */
+#define MAX_PATTERN_UNITS 512
+
+/**
+ * Absolute tolerance for all double comparisons: calculated-value
+ * mismatch, `multipleOf` quotients (here and in the response validator and
+ * the JSON Schema subset share this constant).
+ */
+#define EPSILON 0.000001
+
+/**
  * `colander_compile`.
  *
  * # Safety
