@@ -1,4 +1,4 @@
-//! The lossless front-end's derived form semantics for rule evaluation.
+//! The lossless front-end's derived form semantics for rules and response validation.
 
 use indexmap::IndexMap;
 

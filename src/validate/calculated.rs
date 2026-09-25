@@ -7,6 +7,7 @@ use crate::index::AnswerFieldDefinition;
 use crate::json::{self, Json, JsonMap};
 use crate::keys::{field_type_names, schema_json_keys};
 use crate::rules::{self, Val};
+use crate::semantic::FormSemantics;
 
 use super::fields::is_empty_value;
 use super::model::{FormResponseFieldError, FormResponseValidationMode};
@@ -210,6 +211,7 @@ pub(super) fn flatten_repeater_answer(flat: &mut IndexMap<String, Val>, code: &s
 
 pub(super) fn evaluate_rules(
     form_root: &JsonMap,
+    form_semantics: &FormSemantics,
     rules_schema_json: Option<&str>,
     ui_schema_json: Option<&str>,
     rule_values: &IndexMap<String, Val>,
@@ -219,12 +221,13 @@ pub(super) fn evaluate_rules(
         && !text.trim().is_empty()
     {
         let rules_root = json::parse_object(text, "rules schema")?;
-        return rules::evaluate(
+        return rules::RowSet::evaluate_checked_with_semantics(
             form_root,
+            form_semantics,
             &rules_root,
             rule_values,
             ui_schema_json,
-            &mut *rows,
+            rows,
         );
     }
 
@@ -234,12 +237,12 @@ pub(super) fn evaluate_rules(
         "{{\n  \"schemaVersion\": \"1.0.0\",\n  \"formSchemaVersion\": \"{form_version}\",\n  \"fields\": {{}}\n}}"
     );
     let rules_root = json::parse_object(&synthesized, "rules schema")?;
-    rules::evaluate_core(
+    rules::RowSet::evaluate_core_with_semantics(
         form_root,
+        form_semantics,
         &rules_root,
         rule_values,
         ui_schema_json,
-        &mut *rows,
-        None,
+        rows,
     )
 }

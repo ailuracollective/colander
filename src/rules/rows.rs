@@ -9,6 +9,7 @@
 
 use indexmap::IndexMap;
 
+use crate::error::Result;
 use crate::json::{self, Json, JsonMap};
 use crate::semantic::{FormSemantics, repeater_topology};
 
@@ -51,6 +52,13 @@ impl RowSet {
     pub fn from_answers(form_root: &JsonMap, answers: &JsonMap) -> RowSet {
         let topology = repeater_topology(form_root);
         Self::from_answers_with_codes(&topology.repeater_codes, answers)
+    }
+
+    pub(crate) fn from_answers_with_semantics(
+        semantics: &FormSemantics,
+        answers: &JsonMap,
+    ) -> RowSet {
+        Self::from_answers_with_codes(&semantics.repeater_codes, answers)
     }
 
     fn from_answers_with_codes(repeater_codes: &[String], answers: &JsonMap) -> RowSet {
@@ -97,6 +105,59 @@ impl RowSet {
         values: &IndexMap<String, Val>,
     ) -> RowSet {
         Self::from_values_with_codes(&semantics.repeater_codes, values)
+    }
+
+    /// Evaluate a checked rules document with the response's already-built
+    /// form semantics and rows.
+    pub(crate) fn evaluate_checked_with_semantics(
+        form_root: &JsonMap,
+        semantics: &FormSemantics,
+        rules_root: &JsonMap,
+        values: &IndexMap<String, Val>,
+        ui_schema_json: Option<&str>,
+        rows: &mut RowSet,
+    ) -> Result<super::model::FormRuleEvaluationResult> {
+        let metadata =
+            super::analyze::analyze_checked_with_semantics(form_root, semantics, rules_root)?;
+        super::evaluate::evaluate_with_semantics(
+            rules_root,
+            values,
+            ui_schema_json,
+            rows,
+            semantics,
+            Some(metadata),
+        )
+    }
+
+    /// Evaluate the synthesized empty rules document with the response's
+    /// prepared form semantics. The empty-form branch retains the WU1 core
+    /// entry point because there is no derived metadata to reuse there.
+    pub(crate) fn evaluate_core_with_semantics(
+        form_root: &JsonMap,
+        semantics: &FormSemantics,
+        rules_root: &JsonMap,
+        values: &IndexMap<String, Val>,
+        ui_schema_json: Option<&str>,
+        rows: &mut RowSet,
+    ) -> Result<super::model::FormRuleEvaluationResult> {
+        if semantics.fields_by_id.is_empty() {
+            return crate::rules::evaluate_core(
+                form_root,
+                rules_root,
+                values,
+                ui_schema_json,
+                rows,
+                None,
+            );
+        }
+        super::evaluate::evaluate_with_semantics(
+            rules_root,
+            values,
+            ui_schema_json,
+            rows,
+            semantics,
+            None,
+        )
     }
 
     fn from_values_with_codes(repeater_codes: &[String], values: &IndexMap<String, Val>) -> RowSet {
