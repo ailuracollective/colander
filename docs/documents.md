@@ -84,9 +84,9 @@ them empty. A `null` is treated as absent, and a wrong type is an error:
 | `component-ref` | —                                                                                                                                         | expanded to a `group` by `compile`        |
 
 Anything else yields `UNSUPPORTED_FIELD_TYPE`. The names are matched exactly and
-case-sensitively: **`colander` accepts no aliases**. If you want `email`,
-`bool`, `dropdown` or `section` to work, the sibling crate `slate-ai` is what
-maps them onto these twelve.
+case-sensitively: **`colander` accepts no aliases**. Callers that need `email`,
+`bool`, `dropdown` or `section` must convert those names to one of the twelve
+supported types before submitting the document.
 
 ### Dates
 

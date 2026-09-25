@@ -7,14 +7,9 @@ of them is a breaking change, not a refactor.
 ## Read this before running anything
 
 **`cargo build` and `cargo test` run from a clean clone with nothing but
-crates.io.** This crate declares no path dependency and needs no sibling
-checkout. It once did — a dev-dependency on `../slate-ai` broke _every_ cargo
-command, not just `cargo test`, because cargo resolves one graph covering
-dev-dependencies. Do not reintroduce one.
-
-**The dependency edge points one way.** The separate `slate-ai` repository
-depends on this crate; the reverse is a defect, not a convenience. Adding any
-edge from here onto `slate-ai` is what caused the outage above.
+crates.io.** This crate declares no path dependency and no dev-dependency. Keep
+it that way: Cargo resolves one graph covering dev-dependencies, so any path
+dependency would break every cargo command, not just `cargo test`.
 
 **The repository has an `origin` remote and commits.** `v0.1.0` is tagged and
 0.1.0 is published on crates.io. Do not create commits, branches or remotes
@@ -37,9 +32,9 @@ unless explicitly asked.
 | Create a release                 | `cog bump --auto` (see [Releases](#releases))                                  |
 
 **`.github/workflows/ci.yml` runs `cargo make ci`.** The
-crate is self-contained, so the workflow checks out one repository and needs no
-sibling `slate-ai` checkout. It uses only GitHub's own actions and the
-toolchain preinstalled on the runner, plus the `hk` and `dprint` binaries
+crate is self-contained, so the workflow checks out only this repository. It uses
+only GitHub's own actions and the toolchain preinstalled on the runner, plus the
+`hk` and `dprint` binaries
 fetched from their GitHub releases for the `conventional-commits` and `ci` jobs
 (no third-party actions).
 `Makefile.toml` is the single source of truth for command lines; `hk.pkl` wires
@@ -71,8 +66,8 @@ hand-editing the header.
   nothing else. No automatic guard covers the vectors, so the affected cases are
   enumerated by hand before the change lands.
 - Seven groups: `canonical`, `hash`, `semver`, `rules`, `validate`, `compile`,
-  `errors`. The shared harness is `tests/common/mod.rs`. The eighth group, `ai`,
-  lives in the separate `slate-ai` repository with its own harness subset.
+  `errors`. The shared harness is `tests/common/mod.rs`; all seven groups are
+  part of this repository.
 - `tests/common/mod.rs::exclusions` has entries for `rules` and `semver` only.
   Any other group hits `panic!("no exclusions table for group '…'")`.
 - **`include/colander.h` is generated but committed.** Never hand-edit it;

@@ -13,8 +13,8 @@ cargo test --test golden_rules -- --nocapture
 
 ## What is asserted
 
-Both libraries speak JSON in and JSON out, so a case is replayed by calling the
-entry point named in the vector and comparing what comes back:
+A case is replayed by calling the entry point named in the vector and comparing
+what comes back:
 
 - **Payloads are compared byte-for-byte.** The comparison happens on the raw
   text, so key order, number literals and string escaping are all part of the
@@ -59,8 +59,7 @@ covers these files, so the affected cases are enumerated by hand first.
 Five entries are not replayed. Each one is listed with its reason in
 `tests/common/mod.rs::exclusions`; three are errors raised by a test helper the
 engine never sees, and two are version cases that threw before echoing their
-input. The sanitiser entry now lives with the `ai` group in the `slate-ai`
-repository, alongside that group's own harness.
+input.
 
 ## Next
 
