@@ -1,0 +1,142 @@
+# The wire contract (ABI)
+
+This page defines what crosses the library boundary: the envelope every call
+returns, who owns memory, how allocation works, what happens on a panic, and how
+strings are escaped. Read it when you are writing a binding or debugging a
+boundary problem.
+
+## The envelope
+
+Every `char *`-returning function produces exactly one of these two shapes,
+serialized with the core's JSON writer (document key order, no whitespace):
+
+```json
+{"ok":true,"result":{…}}
+```
+
+```json
+{"ok":false,"error":{"kind":"…","message":"…"}}
+```
+
+`error.kind` has exactly three values:
+
+| `kind`            | Produced when                                                                           | Meaning              |
+| ----------------- | --------------------------------------------------------------------------------------- | -------------------- |
+| `invalid_request` | The request was NULL, not valid UTF-8, not valid JSON, or valid JSON but not an object. | You called it wrong. |
+| `validation`      | The core rejected the request's content.                                                | The payload is bad.  |
+| `panic`           | A Rust panic at the boundary, caught and returned as a failure envelope.                | A bug in colander.   |
+
+Rules that always hold:
+
+- **No `char *`-returning entry point returns NULL.** Failure is always the
+  failure envelope, so NULL is never a valid "is this an error?" test — check
+  `ok`.
+- **The returned string is yours.** Release it with `colander_free_string()`.
+  Freeing it twice, or passing a pointer this library did not produce, is
+  undefined behaviour. `colander_free_string(NULL)` is a no-op.
+- **You can build the input yourself.** If you cannot allocate inside the
+  library's heap, ask `colander_alloc` for a buffer, write the text and a NUL, and
+  release it with `colander_free_buffer`. See
+  [the allocator pair](#the-allocator-pair).
+- **Input must be NUL-terminated UTF-8.** Bytes after an embedded NUL are
+  silently ignored. Non-UTF-8 input yields `"request is not valid UTF-8"`.
+- **Input is capped at 64 MiB.** A larger request is refused with
+  `{"kind":"invalid_request","message":"REQUEST_TOO_LARGE: …"}` before it is
+  parsed, so an untrusted caller cannot make the boundary allocate without
+  bound. The cap is a floor for safety, not a product limit.
+- **Panics never unwind into your code.** Both the request parsing and the core
+  body run inside a panic boundary, and a caught panic is reported as
+  `{"kind":"panic","message":"colander panicked: …"}`. The one gap: the final
+  serialization of the envelope runs outside that boundary.
+- **Non-ASCII is escaped on the wire.** The writer escapes every code point
+  below U+0020 or at/above U+007F as `\uXXXX`, so a message in Spanish arrives
+  as escapes. `'` also becomes `\u0027` and `"` becomes `\u0022`. Decode before
+  showing it to a human.
+
+## Memory ownership
+
+The returned string is yours. Release it with `colander_free_string()`. Freeing it
+twice, or passing a pointer this library did not produce, is undefined
+behaviour. `colander_free_string(NULL)` is a no-op.
+
+No `char *`-returning entry point returns NULL, so NULL is never a valid
+"is this an error?" test: check `ok`. The full set of functions and their
+signatures is in [entry-points.md](entry-points.md).
+
+## The allocator pair
+
+`colander_alloc(length)` and `colander_free_buffer(pointer, length)` exist because
+ownership of the _output_ is not enough: a caller that cannot allocate inside the
+library's heap also has to _produce_ the input. Any embedder without a shared
+allocator is that shape.
+
+```c
+char *buffer = colander_alloc(request_length + 1);
+memcpy(buffer, request, request_length);
+buffer[request_length] = '\0';
+char *response = colander_compile(buffer);
+colander_free_buffer(buffer, request_length + 1);
+/* … use response, then */
+colander_free_string(response);
+```
+
+The pair is the whole contract: there is no way to recover the size from the
+pointer, so the length you asked for is the length you pass back. `colander_alloc`
+returns NULL for a zero length or an unrepresentable layout, so a non-NULL result
+is always safe to write to; freeing NULL or a zero length is a no-op.
+
+A native caller can ignore both and pass a buffer it allocated itself.
+
+## Panics
+
+A Rust panic at the boundary is caught and returned as a normal failure
+envelope: `{"kind":"panic","message":"colander panicked: …"}`. It never unwinds
+into the caller and it never aborts the process.
+
+A panic is a bug in colander. Report it together with the request that triggered it.
+
+## The ABI version
+
+`colander_abi_version()` returns the ABI version as a plain `uint32_t` (currently
+`1`), with no JSON and no allocation. Check it at startup and refuse to run on a
+mismatch:
+
+```c
+if (colander_abi_version() != 1) { /* refuse to bind */ }
+```
+
+## Non-ASCII is escaped on the wire
+
+The writer escapes every code point below U+0020 or at/above U+007F as
+`\uXXXX`, so a message in Spanish arrives as escapes. `'` also becomes `\u0027`
+and `"` becomes `\u0022`. Decode before showing the text to a human.
+
+## The generated header does not declare every export
+
+`include/colander.h` is generated by cbindgen from `cbindgen.toml`. The
+`[export] include` list in `cbindgen.toml` names only nine functions:
+
+```
+colander_compile              colander_evaluate_rules      colander_validate_response
+colander_validate_schema      colander_content_hash        colander_next_version
+colander_version_info         colander_abi_version         colander_free_string
+```
+
+The library exports eleven. `colander_alloc` and `colander_free_buffer` are built and
+exported by the shared library, but they are not in that list, so **the generated
+header does not declare them**. The header does define `ABI_VERSION 1`.
+
+A C caller that uses either must declare it before use, matching the ABI:
+
+```c
+uint8_t *colander_alloc(size_t length);
+void colander_free_buffer(uint8_t *pointer, size_t length);
+```
+
+The remaining nine are declared in `include/colander.h`.
+
+## Next
+
+- The ten-minute path: [getting-started.md](getting-started.md)
+- Every symbol, request and response: [entry-points.md](entry-points.md)
+- Behaviour that surprises people: [gotchas.md](gotchas.md)

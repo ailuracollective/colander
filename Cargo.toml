@@ -1,0 +1,33 @@
+[workspace]
+
+[package]
+name = "colander"
+description = "Domain-neutral form core: compile triples, evaluate rules, validate responses (C ABI)"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+repository = "https://github.com/ailuracollective/colander"
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+fancy-regex = "0.19.2"
+indexmap = "2"
+sha2 = "0.11.0"
+
+[[bench]]
+name = "codecs"
+harness = false
+
+[[bench]]
+name = "engine"
+harness = false
+
+[[bench]]
+name = "schema"
+harness = false
+
+[profile.release]
+lto = true
+strip = true

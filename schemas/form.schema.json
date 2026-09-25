@@ -1,0 +1,151 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "colander form schema",
+  "description": "Base template for the form document colander compiles (docs/documents.md#form-schema). Uses only keywords from the subset colander itself implements (docs/json-schema.md, SPEC S-1..S-7), with local #/$defs references only, so this file also works when passed to colander_validate_schema.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "description": "The form's own version. The rules document references it as formSchemaVersion; both present and different is RULE_SCHEMA_VERSION_MISMATCH."
+    },
+    "$schema": {
+      "type": "string",
+      "description": "Copied to the compiled output only; otherwise inert."
+    },
+    "fields": {
+      "type": "array",
+      "description": "The field tree. Required by colander_compile, where a missing fields is an error; other entry points read an absent fields as empty.",
+      "items": { "$ref": "#/$defs/field" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "field": {
+      "type": "object",
+      "description": "One form field. Unknown keys are preserved verbatim by compile (SPEC P-7), so this stays open: only the read keys are listed.",
+      "required": ["id", "code", "type"],
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Stable identifier; keys the rule maps and the UI fields map. Must be a present string (null counts as absent and is an error); may be empty for compile alone."
+        },
+        "code": {
+          "type": "string",
+          "description": "Answer key; keys values and calculatedValues. Duplicates are rejected only by the dependency check. Must be a present string; may be empty for compile alone."
+        },
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "enum": [
+            "text",
+            "textarea",
+            "number",
+            "integer",
+            "boolean",
+            "date",
+            "datetime",
+            "time",
+            "choice",
+            "group",
+            "repeater",
+            "component-ref"
+          ],
+          "description": "Exactly these twelve names, matched case-sensitively with no aliases (SPEC D-2). Anything else fails response validation with UNSUPPORTED_FIELD_TYPE."
+        },
+        "required": {
+          "type": "boolean",
+          "default": false,
+          "description": "Seeds required in the evaluation."
+        },
+        "readOnly": {
+          "type": "boolean",
+          "default": false,
+          "description": "Seeds enabled:false in the evaluation. A field carrying calculate must set this (RULE_CALCULATE_NOT_READONLY)."
+        },
+        "items": {
+          "type": "array",
+          "description": "Children of a group, repeater or component-ref.",
+          "items": { "$ref": "#/$defs/field" }
+        },
+        "options": {
+          "type": "array",
+          "description": "Read for choice fields: missing or empty options fail response validation with INVALID_SCHEMA. Other entry points tolerate them.",
+          "items": {
+            "type": "object",
+            "required": ["value"],
+            "properties": {
+              "value": {
+                "type": "string",
+                "description": "One accepted answer. Non-string values are silently skipped."
+              }
+            },
+            "description": "Each option carries a value; other keys, including label, are ignored."
+          }
+        },
+        "allowMultiple": {
+          "type": "boolean",
+          "description": "True makes a choice accept an array answer."
+        },
+        "minLength": {
+          "type": "integer",
+          "description": "String constraint, counted in UTF-16 code units."
+        },
+        "maxLength": {
+          "type": "integer",
+          "description": "String constraint, counted in UTF-16 code units."
+        },
+        "pattern": {
+          "type": "string",
+          "description": "Unanchored ECMA-262 pattern; an empty string is ignored, an uncompilable one is an error (SPEC S-6)."
+        },
+        "minimum": {
+          "type": "number",
+          "description": "Inclusive numeric bound."
+        },
+        "maximum": {
+          "type": "number",
+          "description": "Inclusive numeric bound."
+        },
+        "multipleOf": {
+          "type": "number",
+          "description": "Numeric step; also derives decimal places for calculations."
+        },
+        "decimalPlaces": {
+          "type": "integer",
+          "description": "Calculation rounding, clamped to 0-10, default 2."
+        },
+        "minItems": {
+          "type": "integer",
+          "description": "Repeater row count minimum, enforced in Complete mode only."
+        },
+        "maxItems": {
+          "type": "integer",
+          "description": "Repeater row count maximum, enforced in Complete mode only."
+        },
+        "description": {
+          "type": "string",
+          "description": "Copied through by compile; otherwise inert."
+        },
+        "title": {
+          "type": "string",
+          "description": "Copied through by compile; has no meaning on a form field."
+        },
+        "componentCode": {
+          "type": "string",
+          "description": "Required for component-ref: the published component to expand, resolved by exact (code, version) against the caller's batch."
+        },
+        "componentVersion": {
+          "type": "string",
+          "pattern": "^(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)\\.(0|[1-9][0-9]*)$",
+          "description": "Required for component-ref. Exactly three non-negative integers, no leading zeros, no pre-release or build metadata (SPEC P-5); absent or blank is COMPONENT_VERSION_REQUIRED."
+        }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "const": "component-ref" } } },
+          "then": { "required": ["componentCode", "componentVersion"] }
+        }
+      ]
+    }
+  }
+}

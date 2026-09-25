@@ -1,0 +1,96 @@
+# Release workflow: runs ONLY when a maintainer asks for it, from the Actions
+# UI or with `gh workflow run release.yml -f tag=vX.Y.Z`. It checks out the
+# requested tag, verifies the tree with the full CI task set, builds the cdylib
+# and creates the GitHub Release with changelog notes and the built artifact.
+#
+# Pushing a `v*` tag alone NEVER creates a Release: `cog bump`'s post-bump
+# hooks push the tag, and CI verifies it (see ci.yml), but the Release is a
+# separate, deliberate, human-triggered action.
+#
+# Publishing to crates.io is intentionally NOT part of this workflow (see
+# docs/releases.md): it stays a manual, human decision run locally from a clean
+# checkout.
+
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Version tag to release (for example v0.1.1)'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+env:
+  CARGO_MAKE_VERSION: "0.37.24"
+
+# Pinned for the same reason as ci.yml: `ubuntu-latest` migrates to Ubuntu
+# 26.04 (actions/runner-images#14748) and `actions/checkout@v4` targets the
+# deprecated node20 runtime.
+
+jobs:
+  release:
+    name: Verify and release
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.tag }}
+
+      - name: Check the tag exists
+        run: |
+          if ! git tag -l "${{ inputs.tag }}" | grep -qx "${{ inputs.tag }}"; then
+            echo "error: tag '${{ inputs.tag }}' not found" >&2
+            exit 1
+          fi
+          echo "Releasing ${{ inputs.tag }}"
+
+      - name: Install the Rust toolchain
+        run: |
+          rustup toolchain install stable --profile minimal \
+            --component rustfmt --component clippy
+          rustup default stable
+          rustc --version
+          cargo --version
+
+      - name: Install cargo-make
+        run: |
+          archive="cargo-make-v${CARGO_MAKE_VERSION}-x86_64-unknown-linux-gnu"
+          curl -sSL -o cargo-make.zip \
+            "https://github.com/sagiegurari/cargo-make/releases/download/${CARGO_MAKE_VERSION}/${archive}.zip"
+          unzip -q cargo-make.zip
+          install -m 755 "${archive}/cargo-make" "${HOME}/.cargo/bin/cargo-make"
+          install -m 755 "${archive}/makers" "${HOME}/.cargo/bin/makers"
+          rm -rf cargo-make.zip "${archive}"
+          cargo make --version
+
+      - name: Install dprint
+        run: |
+          curl -fsSL -o dprint.zip \
+            https://github.com/dprint/dprint/releases/download/0.57.4/dprint-x86_64-unknown-linux-gnu.zip
+          unzip -q dprint.zip
+          install -m 755 dprint "${HOME}/.cargo/bin/dprint"
+          rm dprint.zip dprint
+          dprint --version
+
+      - name: Run the CI task set
+        run: cargo make ci
+
+      - name: Build the native library
+        run: cargo build --release
+
+      - name: Create the GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOTES_FILE: /tmp/release-notes
+        run: |
+          VERSION="${{ inputs.tag }}"
+          sh scripts/release-notes.sh "$VERSION" > "$NOTES_FILE"
+          gh release create "$VERSION" \
+            --title "colander $VERSION" \
+            --notes-file "$NOTES_FILE" \
+            target/release/libcolander.so

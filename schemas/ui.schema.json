@@ -1,0 +1,89 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "colander UI schema",
+  "description": "Base template for the UI document colander compiles (docs/documents.md#ui-schema). Uses only keywords from the subset colander itself implements (docs/json-schema.md, SPEC S-1..S-7), with local #/$defs references only, so this file also works when passed to colander_validate_schema.",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "string",
+      "description": "The UI document's own version; copied through by compile."
+    },
+    "formSchemaVersion": {
+      "type": "string",
+      "description": "The form version this UI was written against; copied through by compile."
+    },
+    "$schema": {
+      "type": "string",
+      "description": "Copied through when present."
+    },
+    "fields": {
+      "type": "object",
+      "description": "Keyed by field id. Entries are opaque to the core: only hidden is read, and non-object entries are tolerated and ignored.",
+      "additionalProperties": {
+        "anyOf": [
+          { "$ref": "#/$defs/uiField" },
+          { "description": "Any non-object value is tolerated and ignored." }
+        ]
+      }
+    },
+    "layout": {
+      "type": "array",
+      "description": "Presentation tree, rewritten by compile.",
+      "items": { "$ref": "#/$defs/layoutNode" }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "uiField": {
+      "type": "object",
+      "description": "Presentation of one field. Only hidden seeds evaluation (visibility[id] = false); label, widget and width are declared vocabulary but never read. Non-object entries are tolerated and ignored.",
+      "properties": {
+        "hidden": {
+          "type": "boolean",
+          "description": "True seeds visibility[id] = false. A wrong-typed value is ignored."
+        },
+        "label": {
+          "type": "string",
+          "description": "Declared vocabulary, never read by the core."
+        },
+        "widget": {
+          "type": "string",
+          "description": "Declared vocabulary, never validated or interpreted, so any string passes through. Recognised names: text-input, textarea, number-input, integer-input, toggle, date-picker, datetime-picker, time-picker, select, group, repeater."
+        },
+        "width": {
+          "description": "Declared vocabulary, never read by the core."
+        }
+      }
+    },
+    "layoutNode": {
+      "type": "object",
+      "description": "One presentation node. Unknown keys are dropped by compile, so only the kept keys are listed.",
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Required and non-empty; there is no enumeration of allowed node types."
+        },
+        "id": { "type": "string" },
+        "title": { "type": "string" },
+        "description": { "type": "string" },
+        "fieldId": {
+          "type": "string",
+          "description": "For type field: the field id. A node naming an expanded component reference becomes a group node with the component layout as children."
+        },
+        "addButtonLabel": { "type": "string" },
+        "removeButtonLabel": { "type": "string" },
+        "children": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/layoutNode" }
+        },
+        "itemTemplate": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/layoutNode" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

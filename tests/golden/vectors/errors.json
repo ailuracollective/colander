@@ -1,0 +1,281 @@
+[
+  {
+    "name": "parse-object-array",
+    "call": "json.parseObject(raw, \"form schema\")",
+    "input": {
+      "name": "form",
+      "form": "[1,2]",
+      "label": "form schema"
+    },
+    "error": "InvalidOperationException: The node must be of type 'JsonObject'."
+  },
+  {
+    "name": "parse-object-string",
+    "call": "json.parseObject(raw, \"form schema\")",
+    "input": {
+      "name": "form",
+      "form": "\"x\"",
+      "label": "form schema"
+    },
+    "error": "InvalidOperationException: The node must be of type 'JsonObject'."
+  },
+  {
+    "name": "parse-object-number",
+    "call": "json.parseObject(raw, \"label\")",
+    "input": {
+      "name": "form",
+      "form": "5",
+      "label": "label"
+    },
+    "error": "InvalidOperationException: The node must be of type 'JsonObject'."
+  },
+  {
+    "name": "parse-object-null-literal",
+    "call": "json.parseObject(raw, \"form schema\")",
+    "input": {
+      "name": "form",
+      "form": "null",
+      "label": "form schema"
+    },
+    "error": "ValidationException: Invalid form schema: expected a JSON object."
+  },
+  {
+    "name": "parse-object-malformed",
+    "call": "json.parseObject(raw, \"form schema\")",
+    "input": {
+      "name": "form",
+      "form": "{",
+      "label": "form schema"
+    },
+    "error": "ValidationException: Invalid form schema: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 1."
+  },
+  {
+    "name": "parse-object-empty-string",
+    "call": "json.parseObject(raw, \"form schema\")",
+    "input": {
+      "name": "form",
+      "form": "",
+      "label": "form schema"
+    },
+    "error": "ValidationException: Invalid form schema: The input does not contain any JSON tokens. Expected the input to start with a valid JSON token, when isFinalBlock is true. LineNumber: 0 | BytePositionInLine: 0."
+  },
+  {
+    "name": "parse-object-valid",
+    "call": "json.parseObject(raw, \"label\")",
+    "input": {
+      "name": "form",
+      "form": "{}",
+      "label": "label"
+    },
+    "error": null
+  },
+  {
+    "name": "form-index-missing-id",
+    "call": "index.buildById(form)",
+    "input": {
+      "name": "form",
+      "form": "{\"fields\":[{\"code\":\"a\",\"type\":\"text\"}]}"
+    },
+    "error": "ValidationException: Expected field id at /fields/0/id."
+  },
+  {
+    "name": "form-index-missing-code",
+    "call": "index.buildById(form)",
+    "input": {
+      "name": "form",
+      "form": "{\"fields\":[{\"id\":\"a\",\"type\":\"text\"}]}"
+    },
+    "error": "ValidationException: Expected field code at /fields/0/code."
+  },
+  {
+    "name": "form-index-missing-type",
+    "call": "index.buildById(form)",
+    "input": {
+      "name": "form",
+      "form": "{\"fields\":[{\"id\":\"a\",\"code\":\"a\"}]}"
+    },
+    "error": "ValidationException: Expected field type at /fields/0/type."
+  },
+  {
+    "name": "form-index-field-not-object",
+    "call": "index.buildById(form)",
+    "input": {
+      "name": "form",
+      "form": "{\"fields\":[1]}"
+    },
+    "error": "InvalidOperationException: The node must be of type 'JsonObject'."
+  },
+  {
+    "name": "form-index-id-not-string",
+    "call": "index.buildById(form)",
+    "input": {
+      "name": "form",
+      "form": "{\"fields\":[{\"id\":5,\"code\":\"a\",\"type\":\"text\"}]}"
+    },
+    "error": "InvalidOperationException: An element of type 'Number' cannot be converted to a 'System.String'."
+  },
+  {
+    "name": "form-index-required-not-bool",
+    "call": "index.buildById(form)",
+    "input": {
+      "name": "form",
+      "form": "{\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"text\",\"required\":\"yes\"}]}"
+    },
+    "error": "InvalidOperationException: An element of type 'String' cannot be converted to a 'System.Boolean'."
+  },
+  {
+    "name": "form-index-multipleof-not-number",
+    "call": "index.buildById(form)",
+    "input": {
+      "name": "form",
+      "form": "{\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\",\"multipleOf\":\"x\"}]}"
+    },
+    "error": "InvalidOperationException: An element of type 'String' cannot be converted to a 'System.Double'."
+  },
+  {
+    "name": "form-index-nested-items-missing-type",
+    "call": "index.buildById(form)",
+    "input": {
+      "name": "form",
+      "form": "{\"fields\":[{\"id\":\"g\",\"code\":\"g\",\"type\":\"group\",\"items\":[{\"id\":\"c\",\"code\":\"c\"}]}]}"
+    },
+    "error": "ValidationException: Expected field type at /fields/0/items/0/type."
+  },
+  {
+    "name": "form-index-fields-not-array",
+    "call": "index.buildById(form)",
+    "input": {
+      "name": "form",
+      "form": "{\"fields\":{}}"
+    },
+    "error": null
+  },
+  {
+    "name": "form-index-duplicate-codes",
+    "call": "index.buildByCode(form)",
+    "input": {
+      "name": "form",
+      "form": "{\"fields\":[{\"id\":\"a1\",\"code\":\"dup\",\"type\":\"text\"},{\"id\":\"a2\",\"code\":\"dup\",\"type\":\"text\"}]}"
+    },
+    "error": "ArgumentException: An item with the same key has already been added. Key: dup"
+  },
+  {
+    "name": "form-index-duplicate-ids",
+    "call": "index.buildById(form)",
+    "input": {
+      "name": "form",
+      "form": "{\"fields\":[{\"id\":\"dup\",\"code\":\"a\",\"type\":\"text\"},{\"id\":\"dup\",\"code\":\"b\",\"type\":\"text\"}]}"
+    },
+    "error": null
+  },
+  {
+    "name": "validate-dependencies-unknown-field-id",
+    "call": "rules.validateDependencies(form, rules)",
+    "input": {
+      "name": "form+rules",
+      "form": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"}]}",
+      "rules": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"ghost\":{\"visibleWhen\":{\"lit\":true}}}}"
+    },
+    "error": "ValidationException: RULE_UNKNOWN_FIELD: rules reference unknown form field id 'ghost' at /fields/ghost."
+  },
+  {
+    "name": "validate-dependencies-unknown-field-code-ref",
+    "call": "rules.validateDependencies(form, rules)",
+    "input": {
+      "name": "form+rules",
+      "form": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"c1\",\"code\":\"c1\",\"type\":\"number\",\"readOnly\":true}]}",
+      "rules": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"calculate\":{\"ref\":\"nope\"}}}}"
+    },
+    "error": "ValidationException: RULE_UNKNOWN_FIELD_REF: expression at /fields/c1/calculate references unknown field code 'nope'."
+  },
+  {
+    "name": "validate-dependencies-calculate-on-writable-field",
+    "call": "rules.validateDependencies(form, rules)",
+    "input": {
+      "name": "form+rules",
+      "form": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"},{\"id\":\"c1\",\"code\":\"c1\",\"type\":\"number\"}]}",
+      "rules": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"calculate\":{\"ref\":\"a\"}}}}"
+    },
+    "error": "ValidationException: RULE_CALCULATE_NOT_READONLY: calculated field 'c1' at /fields/c1/calculate must be readOnly in the form schema."
+  },
+  {
+    "name": "validate-dependencies-self-reference",
+    "call": "rules.validateDependencies(form, rules)",
+    "input": {
+      "name": "form+rules",
+      "form": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"c1\",\"code\":\"c1\",\"type\":\"number\",\"readOnly\":true}]}",
+      "rules": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"calculate\":{\"ref\":\"c1\"}}}}"
+    },
+    "error": "ValidationException: RULE_SELF_REFERENCE: calculated field 'c1' at /fields/c1/calculate must not reference its own code 'c1'."
+  },
+  {
+    "name": "validate-dependencies-duplicate-validation-code",
+    "call": "rules.validateDependencies(form, rules)",
+    "input": {
+      "name": "form+rules",
+      "form": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"}]}",
+      "rules": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"validations\":[{\"code\":\"DUP\",\"message\":\"1\",\"assert\":{\"ref\":\"a\"}},{\"code\":\"DUP\",\"message\":\"2\",\"assert\":{\"ref\":\"a\"}}]}"
+    },
+    "error": "ValidationException: RULE_DUPLICATE_VALIDATION_CODE: validation code 'DUP' at /validations/1/code is duplicated."
+  },
+  {
+    "name": "validate-dependencies-form-version-mismatch",
+    "call": "rules.validateDependencies(form, rules)",
+    "input": {
+      "name": "form+rules",
+      "form": "{\"schemaVersion\":\"2.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"}]}",
+      "rules": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{}}"
+    },
+    "error": "ValidationException: RULE_SCHEMA_VERSION_MISMATCH: rules formSchemaVersion '1.0.0' does not match form schemaVersion '2.0.0'."
+  },
+  {
+    "name": "validate-dependencies-validation-missing-code",
+    "call": "rules.validateDependencies(form, rules)",
+    "input": {
+      "name": "form+rules",
+      "form": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"}]}",
+      "rules": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{},\"validations\":[{\"message\":\"m\",\"assert\":{\"ref\":\"a\"}}]}"
+    },
+    "error": "ValidationException: Expected validation code at /validations/0/code."
+  },
+  {
+    "name": "validate-dependencies-cyclic",
+    "call": "rules.validateDependencies(form, rules)",
+    "input": {
+      "name": "form+rules",
+      "form": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"c1\",\"code\":\"c1\",\"type\":\"number\",\"readOnly\":true},{\"id\":\"c2\",\"code\":\"c2\",\"type\":\"number\",\"readOnly\":true}]}",
+      "rules": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"calculate\":{\"ref\":\"c2\"}},\"c2\":{\"calculate\":{\"ref\":\"c1\"}}}}"
+    },
+    "error": "ValidationException: RULE_CYCLIC_DEPENDENCY: calculated fields contain a cyclic dependency."
+  },
+  {
+    "name": "validate-dependencies-invalid-form-json",
+    "call": "rules.validateDependencies(form, rules)",
+    "input": {
+      "name": "form+rules",
+      "form": "{",
+      "rules": "{}"
+    },
+    "error": "ValidationException: Invalid form schema: Expected depth to be zero at the end of the JSON payload. There is an open JSON object or array that should be closed. LineNumber: 0 | BytePositionInLine: 1."
+  },
+  {
+    "name": "validate-dependencies-valid",
+    "call": "rules.validateDependencies(form, rules)",
+    "input": {
+      "name": "form+rules",
+      "form": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\"},{\"id\":\"c1\",\"code\":\"c1\",\"type\":\"number\",\"readOnly\":true}]}",
+      "rules": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"c1\":{\"calculate\":{\"ref\":\"a\"}}}}"
+    },
+    "error": null
+  },
+  {
+    "name": "analyze-field-rule-node-not-object",
+    "call": "rules.analyze(form, rules)",
+    "input": {
+      "name": "form+rules",
+      "form": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"a\",\"code\":\"a\",\"type\":\"number\",\"readOnly\":true}]}",
+      "rules": "{\"schemaVersion\":\"1.0.0\",\"formSchemaVersion\":\"1.0.0\",\"fields\":{\"a\":[1,2]}}"
+    },
+    "error": null
+  }
+]

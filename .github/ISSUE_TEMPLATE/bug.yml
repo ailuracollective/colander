@@ -1,0 +1,91 @@
+name: Bug
+description: Something behaves differently from what is expected.
+title: 'fix: '
+labels: [fix]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        A report is only actionable with the request that was sent and the
+        envelope that came back. That envelope is the contract.
+
+  - type: dropdown
+    id: surface
+    attributes:
+      label: Surface
+      description: The layer where the failure appears.
+      options:
+        - Rust API (the `colander` crate)
+        - C ABI (`include/colander.h`, `libcolander.so`)
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Version
+      description: The `colander` version.
+      placeholder: 'colander 0.1.0'
+    validations:
+      required: true
+
+  - type: textarea
+    id: request-and-envelope
+    attributes:
+      label: Request and envelope
+      description: Paste the exact JSON request string and the envelope returned for it, verbatim.
+      render: json
+    validations:
+      required: true
+
+  - type: dropdown
+    id: error-kind
+    attributes:
+      label: Error kind
+      description: If the envelope was `ok:false`, which `kind` did it carry?
+      options:
+        - invalid_request
+        - validation
+        - panic
+        - The call returned `ok:true`
+    validations:
+      required: true
+
+  - type: textarea
+    id: panic
+    attributes:
+      label: Panic message
+      description: Fill this in only when the kind was `panic`, which means a bug in colander.
+    validations:
+      required: false
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: How to reproduce
+      description: The smallest sequence of commands that triggers it.
+      placeholder: |
+        1. cargo build --release
+        2. cargo test
+        3. ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behaviour
+      description: What should have happened instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance criteria
+      description: One testable statement per line, each starting with a dash.
+      placeholder: |
+        - The same request returns an `ok:true` envelope.
+        - `cargo test` passes with no golden vector touched.
+    validations:
+      required: true

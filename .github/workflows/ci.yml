@@ -1,0 +1,97 @@
+name: CI
+
+on:
+  push:
+    branches: [master, main]
+    # A v* tag push is verified but never released (see release.yml, which
+    # only runs on demand).
+    tags: ['v*']
+  pull_request:
+    # `edited` re-checks the title, mirroring the reference project.
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  CARGO_MAKE_VERSION: "0.37.24"
+
+# `ubuntu-latest` migrates to Ubuntu 26.04 (actions/runner-images#14748), and
+# `actions/checkout@v4` targets the deprecated node20 runtime, which the runner
+# force-rewrites to node24. The runner label and the action major are pinned so
+# the build environment is the one this repository is verified against.
+
+jobs:
+  conventional-commits:
+    name: Branch name and PR title
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v5
+
+      - name: Install hk
+        run: |
+          curl -fsSL -o hk.tar.gz \
+            https://github.com/jdx/hk/releases/download/v2.0.1/hk-x86_64-unknown-linux-gnu.tar.gz
+          tar -xzf hk.tar.gz hk
+          install -m 755 hk "${HOME}/.cargo/bin/hk"
+          rm hk.tar.gz hk
+          hk --version
+
+      - name: Check the branch name
+        env:
+          BRANCH: ${{ github.head_ref }}
+          AUTHOR: ${{ github.event.pull_request.user.login }}
+        run: sh scripts/check-branch-name.sh "$BRANCH" "$AUTHOR"
+
+      - name: Check the title
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
+        run: |
+          printf '%s\n' "$TITLE" > /tmp/pr-title
+          sh scripts/check-conventional-commit.sh /tmp/pr-title
+
+  ci:
+    name: fmt-check, lint, check, test, build
+    # A title edit re-runs only the conventional-commits job; skip the heavy build.
+    if: github.event.action != 'edited'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v5
+
+      - name: Install the Rust toolchain
+        run: |
+          rustup toolchain install stable --profile minimal \
+            --component rustfmt --component clippy
+          rustup default stable
+          rustc --version
+          cargo --version
+
+      - name: Install cargo-make
+        run: |
+          archive="cargo-make-v${CARGO_MAKE_VERSION}-x86_64-unknown-linux-gnu"
+          curl -sSL -o cargo-make.zip \
+            "https://github.com/sagiegurari/cargo-make/releases/download/${CARGO_MAKE_VERSION}/${archive}.zip"
+          unzip -q cargo-make.zip
+          install -m 755 "${archive}/cargo-make" "${HOME}/.cargo/bin/cargo-make"
+          install -m 755 "${archive}/makers" "${HOME}/.cargo/bin/makers"
+          rm -rf cargo-make.zip "${archive}"
+          cargo make --version
+
+      - name: Install dprint
+        run: |
+          curl -fsSL -o dprint.zip \
+            https://github.com/dprint/dprint/releases/download/0.57.4/dprint-x86_64-unknown-linux-gnu.zip
+          unzip -q dprint.zip
+          install -m 755 dprint "${HOME}/.cargo/bin/dprint"
+          rm dprint.zip dprint
+          dprint --version
+
+      - name: Run the CI task set
+        run: cargo make ci

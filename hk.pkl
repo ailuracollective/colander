@@ -1,0 +1,55 @@
+amends "package://github.com/jdx/hk/releases/download/v2.0.1/hk@2.0.1#/Config.pkl"
+
+local checks = new Mapping {
+  ["rust-fmt-check"] = new Step {
+    glob = "**/*.rs"
+    check = new CommandSpec {
+      command = "cargo make rust-fmt-check"
+      effect = "read"
+    }
+  }
+  ["lint"] = new Step {
+    glob = "**/*.rs"
+    check = new CommandSpec {
+      command = "cargo make lint"
+      effect = "read"
+    }
+  }
+  ["md-check"] = new Step {
+    glob = "**/*.md"
+    check = new CommandSpec {
+      command = "cargo make md-check"
+      effect = "read"
+    }
+  }
+}
+
+hooks {
+  ["check"] {
+    steps = checks
+  }
+  ["commit-msg"] {
+    steps {
+      ["conventional-commit"] = new Step {
+        check = new CommandSpec {
+          command = "sh scripts/check-conventional-commit.sh {{commit_msg_file}}"
+          effect = "read"
+        }
+      }
+    }
+  }
+  ["pre-commit"] {
+    steps = checks
+  }
+  ["pre-push"] {
+    steps {
+      ["test"] = new Step {
+        glob = "**/*.rs"
+        check = new CommandSpec {
+          command = "cargo make test"
+          effect = "read"
+        }
+      }
+    }
+  }
+}
