@@ -25,7 +25,7 @@ no `decided` requirement remains unresolved.
 | Group | Subject                         | `live` | `decided` | `proposed` |
 | ----- | ------------------------------- | ------ | --------- | ---------- |
 | C     | Wire contract and the ABI       | 11     | 0         | 0          |
-| E     | The six operations              | 9      | 0         | 0          |
+| E     | The seven operations            | 10     | 0         | 0          |
 | D     | Documents, fields, id and code  | 4      | 0         | 0          |
 | R     | Rules and the dependency check  | 17     | 0         | 0          |
 | V     | Response validation             | 10     | 1         | 0          |
@@ -36,7 +36,7 @@ no `decided` requirement remains unresolved.
 | F     | The frozen vectors              | 1      | 0         | 0          |
 
 The counts are derived from the markers below, so move a marker and its count
-together. The ten groups hold 85 requirements: 83 `live`, 2 `decided`, 0 `proposed`.
+together. The ten groups hold 86 requirements: 84 `live`, 2 `decided`, 0 `proposed`.
 
 ## C — Wire contract and the ABI
 
@@ -76,7 +76,7 @@ together. The ten groups hold 85 requirements: 83 `live`, 2 `decided`, 0 `propos
   `FIELD_*`, `UI_*`, `COMPONENT_*`, `REPEATER_*` and validation-code families.
   Message wording is never part of the contract.
 
-## E — The six operations
+## E — The seven operations
 
 Request and response keys are in `docs/entry-points.md`; this section fixes
 behaviour, not shape.
@@ -106,6 +106,19 @@ behaviour, not shape.
 - **E-9** `live`. One unusable answer produces one error, not a failed call:
   the flattening step records a missing rule value and the per-field loop
   reports the type error, so errors collected earlier survive.
+- **E-10** `live`. `colander_describe_form` returns the field index of the
+  compiled triple: for every field, its `id`, its `code`, its `path` as a JSON
+  pointer into the form schema, the `parentPath` of its container, its `type`,
+  and its schema `required` and `readOnly`, together with the `contentHash` of
+  the compiled triple. The `code` is the code the document declares and is
+  present for every valid field; whether that code is an answer key follows from
+  the `type`. The entries are flat and ordered as the fields appear, and
+  `parentPath` is `null` at the top level. The description is of the compiled
+  documents, so a `component-ref` is reported by its expansion. The result is the
+  schema baseline and not a rule evaluation: the evaluated state is
+  `colander_evaluate_rules`'s to report. Presentation keys are not described: a
+  field's `title` and `description` are inert by `documents.md` and stay the
+  caller's.
 
 ## D — Documents, fields, `id` and `code`
 

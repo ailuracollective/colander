@@ -16,6 +16,7 @@
 
 use std::ffi::{CStr, c_char};
 
+use colander::ffi::describe::colander_describe_form;
 use colander::ffi::envelope::{colander_abi_version, colander_free_string};
 use colander::ffi::response::colander_validate_response;
 use colander::ffi::rules::colander_evaluate_rules;
@@ -252,6 +253,21 @@ fn cross_runtime_corpus_is_byte_identical() {
                 )
             ),
             r#"{"ok":true,"result":{"visibility":{"n":true,"a":false,"b":true},"enabled":{"n":true,"a":true,"b":true},"required":{"n":false,"a":false,"b":false},"calculatedValues":{},"validationErrors":[]}}"#,
+        ),
+        (
+            // E-10: the description of a compiled triple. The key order of every
+            // entry is part of the wire contract, and so is the group's `code`:
+            // a group is not an answer key, but it does declare a code, and a
+            // wrapper that nulls it would lose the document's own value.
+            "describe",
+            colander_describe_form,
+            format!(
+                r#"{{"formSchemaJson":{}}}"#,
+                quoted(
+                    r#"{"schemaVersion":"1.0.0","fields":[{"id":"a","code":"a","type":"number"},{"id":"g","code":"g","type":"group","items":[{"id":"b","code":"b","type":"number","required":true,"readOnly":true}]}]}"#
+                )
+            ),
+            r#"{"ok":true,"result":{"fields":[{"id":"a","code":"a","path":"/fields/0","parentPath":null,"type":"number","required":false,"readOnly":false},{"id":"g","code":"g","path":"/fields/1","parentPath":null,"type":"group","required":false,"readOnly":false},{"id":"b","code":"b","path":"/fields/1/items/0","parentPath":"/fields/1","type":"number","required":true,"readOnly":true}],"contentHash":"bc21b7543668a74353694356ae0041ebfae5c263c5e9f9d7cca823a30061c658"}}"#,
         ),
     ];
 

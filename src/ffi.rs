@@ -20,6 +20,7 @@
 //! One submodule per core domain, plus the envelope that wraps them all.
 
 pub mod compile;
+pub mod describe;
 pub mod envelope;
 pub mod memory;
 pub mod response;

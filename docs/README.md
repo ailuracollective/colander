@@ -14,7 +14,7 @@ by task, so you can read only what you need before your first call.
 | [concepts.md](concepts.md)               | The mental model: request/response, the three documents, `id` versus `code`, and caller-side field conversion.                      | You are designing a form and want the model before the syntax.      |
 | [glossary.md](glossary.md)               | Plain-language definitions of the terms used across these pages.                                                                    | You met a term you do not recognise.                                |
 | [abi.md](abi.md)                         | The wire contract: envelope, memory ownership, the allocator pair, panics, escaping, and the generated header's gaps.               | You are writing a language binding or debugging the boundary.       |
-| [entry-points.md](entry-points.md)       | Full reference for all eleven exported symbols.                                                                                     | You need the request and response keys for one call.                |
+| [entry-points.md](entry-points.md)       | Full reference for all twelve exported symbols.                                                                                     | You need the request and response keys for one call.                |
 | [documents.md](documents.md)             | The form, UI and rules schemas, field types and expressions.                                                                        | You are authoring a form, UI or rules document.                     |
 | [ide-schemas.md](ide-schemas.md)         | The `schemas/` JSON Schema templates for IDE autocomplete.                                                                          | You are authoring JSON and want completion and validation.          |
 | [rules.md](rules.md)                     | Rule operators, their semantics and the analysis errors.                                                                            | You are writing `visibleWhen`, `calculate` or `assert` expressions. |
@@ -46,7 +46,7 @@ envelope and memory problems.
 
 - [README.md](../README.md) — what the crate is, how to build it and how to test it.
 - [SPEC.md](../SPEC.md) — the contract of record: normative requirements and their status.
-- [include/colander.h](../include/colander.h) — the generated C header; it declares nine of the eleven exports (see [abi.md](abi.md#the-generated-header-does-not-declare-every-export)).
+- [include/colander.h](../include/colander.h) — the generated C header; it declares ten of the twelve exports (see [abi.md](abi.md#the-generated-header-does-not-declare-every-export)).
 - [src/](../src/) — the Rust sources, one file per concern.
 - [tests/](../tests/) — the unit tests and the golden-vector suite.
 - [schemas/](../schemas/) — base JSON Schema templates for the documents

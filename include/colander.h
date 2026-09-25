@@ -67,6 +67,15 @@
  *     {"kind":"instance","schemaJson":"<json schema>","instanceJson":"<json>",
  *      "label":"instance"}  -> {"valid":true}
  *
+ *   colander_describe_form
+ *     The same documents as colander_compile.
+ *     {"formSchemaJson":"<json>","uiSchemaJson":"<json>|null",
+ *      "rulesSchemaJson":"<json>|null",
+ *      "components":[...]}
+ *     -> {"fields":[{"id","code","path","parentPath","type",
+ *                    "required","readOnly"}],
+ *         "contentHash":"<hex>"}
+ *
  *   colander_content_hash
  *     {"formSchemaJson":"<json>","uiSchemaJson":"<json>|null",
  *      "rulesSchemaJson":"<json>|null"}
@@ -119,6 +128,14 @@
  * `request` must be a valid NUL-terminated UTF-8 C string (or null).
  */
 char *colander_compile(const char *request);
+
+/**
+ * `colander_describe_form`.
+ *
+ * # Safety
+ * `request` must be a valid NUL-terminated UTF-8 C string (or null).
+ */
+char *colander_describe_form(const char *request);
 
 /**
  * `colander_free_string`.

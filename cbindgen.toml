@@ -66,6 +66,15 @@ after_includes = """
  *     {"kind":"instance","schemaJson":"<json schema>","instanceJson":"<json>",
  *      "label":"instance"}  -> {"valid":true}
  *
+ *   colander_describe_form
+ *     The same documents as colander_compile.
+ *     {"formSchemaJson":"<json>","uiSchemaJson":"<json>|null",
+ *      "rulesSchemaJson":"<json>|null",
+ *      "components":[...]}
+ *     -> {"fields":[{"id","code","path","parentPath","type",
+ *                    "required","readOnly"}],
+ *         "contentHash":"<hex>"}
+ *
  *   colander_content_hash
  *     {"formSchemaJson":"<json>","uiSchemaJson":"<json>|null",
  *      "rulesSchemaJson":"<json>|null"}
@@ -79,7 +88,8 @@ after_includes = """
 """
 
 [export]
-include = ["colander_compile", "colander_evaluate_rules", "colander_validate_response",
+include = ["colander_compile", "colander_describe_form", "colander_evaluate_rules",
+           "colander_validate_response",
            "colander_validate_schema", "colander_content_hash", "colander_next_version",
            "colander_version_info", "colander_abi_version", "colander_free_string"]
 exclude = ["colander_alloc", "colander_free_buffer"]

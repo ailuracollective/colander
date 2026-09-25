@@ -1,0 +1,282 @@
+[
+  {
+    "name": "nested-groups-and-repeater",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "intake",
+          "code": "intake",
+          "type": "group",
+          "items": [
+            {
+              "id": "status",
+              "code": "status",
+              "type": "choice",
+              "options": [
+                {
+                  "value": "a",
+                  "label": "A"
+                }
+              ]
+            },
+            {
+              "id": "context",
+              "code": "context",
+              "type": "group",
+              "items": [
+                {
+                  "id": "score",
+                  "code": "context.score",
+                  "type": "integer",
+                  "required": true,
+                  "readOnly": true
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "rows",
+          "code": "rows",
+          "type": "repeater",
+          "items": [
+            {
+              "id": "line",
+              "code": "rows.line",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"intake\",\"code\":\"intake\",\"type\":\"group\",\"items\":[{\"id\":\"status\",\"code\":\"status\",\"type\":\"choice\",\"options\":[{\"value\":\"a\",\"label\":\"A\"}]},{\"id\":\"context\",\"code\":\"context\",\"type\":\"group\",\"items\":[{\"id\":\"score\",\"code\":\"context.score\",\"type\":\"integer\",\"required\":true,\"readOnly\":true}]}]},{\"id\":\"rows\",\"code\":\"rows\",\"type\":\"repeater\",\"items\":[{\"id\":\"line\",\"code\":\"rows.line\",\"type\":\"text\"}]}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": {
+      "fields": [
+        {
+          "id": "intake",
+          "code": "intake",
+          "path": "/fields/0",
+          "parentPath": null,
+          "type": "group",
+          "required": false,
+          "readOnly": false
+        },
+        {
+          "id": "status",
+          "code": "status",
+          "path": "/fields/0/items/0",
+          "parentPath": "/fields/0",
+          "type": "choice",
+          "required": false,
+          "readOnly": false
+        },
+        {
+          "id": "context",
+          "code": "context",
+          "path": "/fields/0/items/1",
+          "parentPath": "/fields/0",
+          "type": "group",
+          "required": false,
+          "readOnly": false
+        },
+        {
+          "id": "score",
+          "code": "context.score",
+          "path": "/fields/0/items/1/items/0",
+          "parentPath": "/fields/0/items/1",
+          "type": "integer",
+          "required": true,
+          "readOnly": true
+        },
+        {
+          "id": "rows",
+          "code": "rows",
+          "path": "/fields/1",
+          "parentPath": null,
+          "type": "repeater",
+          "required": false,
+          "readOnly": false
+        },
+        {
+          "id": "line",
+          "code": "rows.line",
+          "path": "/fields/1/items/0",
+          "parentPath": "/fields/1",
+          "type": "text",
+          "required": false,
+          "readOnly": false
+        }
+      ],
+      "contentHash": "4e5fc303b7d0b42d3436f974886d7970f1c6c4dce5c6fdd2cfa3682282fb60f3"
+    }
+  },
+  {
+    "name": "group-code-is-present",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "wrap",
+          "code": "wrap",
+          "type": "group",
+          "items": [
+            {
+              "id": "leaf",
+              "code": "wrap.leaf",
+              "type": "text"
+            }
+          ]
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"wrap\",\"code\":\"wrap\",\"type\":\"group\",\"items\":[{\"id\":\"leaf\",\"code\":\"wrap.leaf\",\"type\":\"text\"}]}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": {
+      "fields": [
+        {
+          "id": "wrap",
+          "code": "wrap",
+          "path": "/fields/0",
+          "parentPath": null,
+          "type": "group",
+          "required": false,
+          "readOnly": false
+        },
+        {
+          "id": "leaf",
+          "code": "wrap.leaf",
+          "path": "/fields/0/items/0",
+          "parentPath": "/fields/0",
+          "type": "text",
+          "required": false,
+          "readOnly": false
+        }
+      ],
+      "contentHash": "57f42f9e9833d43164a8a3417a908700e8810c69368ddeecf2dd24bba26ed6c9"
+    }
+  },
+  {
+    "name": "component-ref-reported-by-expansion",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "ref",
+          "code": "host",
+          "type": "component-ref",
+          "componentCode": "card",
+          "componentVersion": "1.0.0"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"ref\",\"code\":\"host\",\"type\":\"component-ref\",\"componentCode\":\"card\",\"componentVersion\":\"1.0.0\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [
+      {
+        "code": "card",
+        "version": "1.0.0",
+        "formSchemaJson": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"cc\",\"code\":\"card.code\",\"type\":\"text\"}]}"
+      }
+    ],
+    "expected": {
+      "fields": [
+        {
+          "id": "ref",
+          "code": "host",
+          "path": "/fields/0",
+          "parentPath": null,
+          "type": "group",
+          "required": false,
+          "readOnly": false
+        },
+        {
+          "id": "cc",
+          "code": "card.code",
+          "path": "/fields/0/items/0",
+          "parentPath": "/fields/0",
+          "type": "text",
+          "required": false,
+          "readOnly": false
+        }
+      ],
+      "contentHash": "5ff56f33453bd08ac9da7793404ae0ae203c5c02132c32bfb5835ecc2e0c9adb"
+    }
+  },
+  {
+    "name": "presentation-keys-are-not-described",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "t",
+          "code": "t",
+          "type": "text",
+          "title": "A title",
+          "description": "A description"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"t\",\"code\":\"t\",\"type\":\"text\",\"title\":\"A title\",\"description\":\"A description\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "expected": {
+      "fields": [
+        {
+          "id": "t",
+          "code": "t",
+          "path": "/fields/0",
+          "parentPath": null,
+          "type": "text",
+          "required": false,
+          "readOnly": false
+        }
+      ],
+      "contentHash": "3cbd2a73444a952fe780659bd1bef4784f4caa4d1ba41e131569c90a5d868295"
+    }
+  },
+  {
+    "name": "malformed-document-fails",
+    "form": {
+      "schemaVersion": "1.0.0",
+      "fields": [
+        {
+          "id": "x",
+          "code": "x"
+        }
+      ]
+    },
+    "ui": null,
+    "rules": null,
+    "raw": {
+      "formRaw": "{\"schemaVersion\":\"1.0.0\",\"fields\":[{\"id\":\"x\",\"code\":\"x\"}]}",
+      "uiRaw": null,
+      "rulesRaw": null
+    },
+    "components": [],
+    "error": "DescribeException: COMPILE_EXPECTED_STRING: expected a non-empty string at /fields/0/type."
+  }
+]

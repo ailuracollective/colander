@@ -23,9 +23,9 @@ The release profile uses `lto = true` and `strip = true`, and
 
 ```
 colander_compile              colander_validate_schema     colander_content_hash
-colander_evaluate_rules       colander_next_version        colander_version_info
-colander_validate_response    colander_abi_version         colander_free_string
-colander_alloc                colander_free_buffer
+colander_describe_form         colander_next_version        colander_version_info
+colander_evaluate_rules       colander_abi_version         colander_free_string
+colander_validate_response    colander_alloc               colander_free_buffer
 ```
 
 `colander_alloc` and `colander_free_buffer` exist for callers that cannot allocate
@@ -168,7 +168,7 @@ src/
   ffi.rs         the C ABI                 ffi/{envelope,compile,rules,response,schema,session,version,memory}.rs
   semver.rs  hash.rs  index.rs  keys.rs  error.rs  lib.rs
 tests/           one file per domain, plus the golden-vector suite
-include/         the generated header — it declares 9 of the 11 exports;
+include/         the generated header — it declares 10 of the 12 exports;
                  colander_alloc and colander_free_buffer are exported by the
                  library but are not declared in it
 docs/
@@ -177,7 +177,7 @@ docs/
   concepts.md             the mental model
   glossary.md             plain-language terms
   abi.md                  the wire contract
-  entry-points.md         all eleven exported symbols
+  entry-points.md         all twelve exported symbols
   documents.md            form, UI and rules schemas
   rules.md                operators, evaluation order, analysis errors
   validation.md           response validation and error codes
