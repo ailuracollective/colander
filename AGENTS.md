@@ -28,8 +28,8 @@ unless explicitly asked.
 | List every task                  | `cargo make --list-all-steps`                                                  |
 | One vector group                 | `cargo test --test golden_rules -- --nocapture`                                |
 | Regenerate the header            | `cbindgen --config cbindgen.toml --crate colander --output include/colander.h` |
-| Preview the next release version | `cog bump --dry-run --auto`                                                    |
-| Create a release                 | `cog bump --auto` (see [Releases](#releases))                                  |
+| Preview the next release version | `cargo make bump-dry-run`                                                      |
+| Create a release                 | `cargo make bump` (see [Releases](#releases))                                  |
 
 **`.github/workflows/ci.yml` runs `cargo make ci`.** The
 crate is self-contained, so the workflow checks out only this repository. It uses
@@ -127,20 +127,25 @@ hand-editing the header.
 
 ## Releases
 
-Releases are created locally on `master` with a clean tree: preview with
-`cog bump --dry-run --auto`, then `cog bump --auto`. The pre-bump hooks
-guard the generated header (`scripts/check-header.sh`) and bump the single
-version source (`scripts/bump-version.sh`, Cargo.toml -> CARGO_PKG_VERSION);
-the post-bump hooks push `master` and the `v*` tag. The tag push runs the
-full CI verification only (`ci.yml`); it NEVER creates a GitHub Release. To
-create the Release, run the `Release` workflow yourself (Actions UI or
-`gh workflow run release.yml -f tag=vX.Y.Z`) — it verifies again, builds
-the cdylib, and creates the GitHub Release with changelog notes and the
+Only the **tag** is automated. Every push to `master` runs the `Bump`
+workflow (`.github/workflows/bump.yml`), which bumps without asking: the
+pre-bump hooks guard the generated header (`scripts/check-header.sh`) and
+bump the single version source (`scripts/bump-version.sh`, Cargo.toml ->
+CARGO_PKG_VERSION), then cocogitto writes the changelog, commits
+`chore(version): X.Y.Z` and pushes both `master` and the new `v*` tag.
+`cargo make bump` is the identical local path, and `cargo make bump-dry-run`
+previews it. A range whose commits are only `chore`/`docs`/`refactor`/
+`test`/`ci`/`build`/`perf` produces no tag and a green run: cocogitto is the
+only source of truth for what deserves a bump. The tag push runs the full CI
+verification only (`ci.yml`); it NEVER creates a GitHub Release. To create
+the Release, run the `Release` workflow yourself (Actions UI or
+`gh workflow run release.yml -f tag=vX.Y.Z`) — it verifies again, builds the
+cdylib, and creates the GitHub Release with changelog notes and the
 artifact. Publishing to crates.io is a manual step for now (see
-[docs/releases.md](docs/releases.md)). Version
-policy: `fix` -> patch, `feat` -> minor, breaking -> major;
-`cog bump --auto` never auto-bumps 0.y.z to 1.0.0. See
-[docs/releases.md](docs/releases.md) for the full flow.
+[docs/releases.md](docs/releases.md)). Version policy: `fix` -> patch,
+`feat` -> minor, breaking -> major (a `perf:` commit does NOT bump); the
+bump never auto-bumps 0.y.z to 1.0.0. See [docs/releases.md](docs/releases.md)
+for the full flow.
 
 ## Where things are
 

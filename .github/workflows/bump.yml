@@ -1,0 +1,151 @@
+# Bump workflow: the semantic-release step. A push to `master` runs
+# `cog bump --auto`, which derives the next version from the Conventional
+# Commits since the last tag, updates Cargo.toml, writes CHANGELOG.md, commits
+# `chore(version): X.Y.Z` and pushes both `master` and the new `v*` tag.
+#
+# Only the TAG is automated. A `v*` tag push is verified by ci.yml and never
+# creates a GitHub Release: `release.yml` stays `workflow_dispatch`, and
+# publishing to crates.io stays manual (see docs/releases.md).
+#
+# A range whose commits are only `chore`/`docs`/`refactor`/`test`/`ci`/
+# `build`/`perf` produces no tag and a green run: cocogitto prints "No
+# conventional commits for your repository that required a bump" and exits 0
+# without touching anything. No guard step predicts bump-worthiness here —
+# cocogitto is the only source of truth for it.
+
+name: Bump
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Preview the next version without creating anything'
+        required: false
+        type: boolean
+        default: false
+      version:
+        description: 'Force a version (for example 0.1.0); empty means automatic'
+        required: false
+        type: string
+        default: ''
+
+# The bump pushes a commit and a tag, and must be able to read every tag to
+# compute the range. Two pushes must never bump at once.
+permissions:
+  contents: write
+
+concurrency:
+  group: bump-master
+  cancel-in-progress: false
+
+env:
+  CARGO_MAKE_VERSION: "0.37.24"
+
+jobs:
+  bump:
+    name: Version, changelog and tag
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@v4
+        with:
+          # cocogitto computes from the last tag, so the whole history AND
+          # every tag must be present; the default shallow fetch hides both.
+          fetch-depth: 0
+
+      - name: Install the Rust toolchain
+        run: |
+          rustup toolchain install stable --profile minimal \
+            --component rustfmt --component clippy
+          rustup default stable
+          rustc --version
+          cargo --version
+
+      - name: Install cargo-make
+        run: |
+          archive="cargo-make-v${CARGO_MAKE_VERSION}-x86_64-unknown-linux-gnu"
+          curl -sSL -o cargo-make.zip \
+            "https://github.com/sagiegurari/cargo-make/releases/download/${CARGO_MAKE_VERSION}/${archive}.zip"
+          unzip -q cargo-make.zip
+          install -m 755 "${archive}/cargo-make" "${HOME}/.cargo/bin/cargo-make"
+          install -m 755 "${archive}/makers" "${HOME}/.cargo/bin/makers"
+          rm -rf cargo-make.zip "${archive}"
+          cargo make --version
+
+      - name: Install dprint
+        run: |
+          curl -fsSL -o dprint.zip \
+            https://github.com/dprint/dprint/releases/download/0.57.4/dprint-x86_64-unknown-linux-gnu.zip
+          unzip -q dprint.zip
+          install -m 755 dprint "${HOME}/.cargo/bin/dprint"
+          rm dprint.zip dprint
+          dprint --version
+
+      - name: Install cocogitto
+        run: |
+          archive="cocogitto-7.0.0-x86_64-unknown-linux-musl.tar.gz"
+          curl -fsSL -o cog.tar.gz \
+            "https://github.com/cocogitto/cocogitto/releases/download/7.0.0/${archive}"
+          tar -xzf cog.tar.gz --strip-components=1 \
+            x86_64-unknown-linux-musl/cog
+          install -m 755 cog "${HOME}/.cargo/bin/cog"
+          rm -f cog.tar.gz cog
+          cog --version
+
+      - name: Install cbindgen
+        # scripts/check-header.sh is a pre-bump hook and runs cbindgen. The
+        # prebuilt binary is used because `cargo install cbindgen` would add
+        # minutes to every run. cbindgen ships one bare binary per platform
+        # (no archive), built for Ubuntu 22.04, which runs on ubuntu-latest.
+        run: |
+          curl -fsSL -o cbindgen \
+            https://github.com/mozilla/cbindgen/releases/download/0.29.4/cbindgen-ubuntu22.04
+          install -m 755 cbindgen "${HOME}/.cargo/bin/cbindgen"
+          rm -f cbindgen
+          cbindgen --version
+
+      - name: Configure the bot identity
+        # The bump creates the `chore(version)` commit, which needs an author.
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync master and the tags
+        # A bump must always build on the tip of master, not on whichever
+        # SHA happened to trigger the run: a previous run's tag and version
+        # commit may have landed in between.
+        run: |
+          git fetch origin master --tags --quiet
+          git reset --hard origin/master
+
+      - name: Bump
+        env:
+          DRY_RUN: ${{ inputs.dry_run }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          if [ "${DRY_RUN:-false}" = "true" ]; then
+            cargo make bump-dry-run
+          elif [ -n "${VERSION:-}" ]; then
+            # The one command line not delegated to `cargo make`, because
+            # `cog bump --version` takes a value and the task is argument-free.
+            cog bump --version "${VERSION}"
+          else
+            cargo make bump
+          fi
+
+      - name: Report the outcome
+        # Never fails the run: it only states what exists after the bump.
+        run: |
+          tag=$(git tag --sort=-creatordate | head -1)
+          if [ -z "$tag" ]; then
+            echo "No tag exists: the commits since the last one did not require a bump."
+            exit 0
+          fi
+          echo "Newest local tag: $tag"
+          if git ls-remote --tags origin "refs/tags/$tag" | grep -q .; then
+            echo "$tag is on origin."
+          else
+            echo "$tag is local only: the post-bump push did not complete."
+          fi
