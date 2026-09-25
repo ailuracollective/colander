@@ -20,14 +20,19 @@ concurrency:
 env:
   CARGO_MAKE_VERSION: "0.37.24"
 
+# `ubuntu-latest` migrates to Ubuntu 26.04 (actions/runner-images#14748), and
+# `actions/checkout@v4` targets the deprecated node20 runtime, which the runner
+# force-rewrites to node24. The runner label and the action major are pinned so
+# the build environment is the one this repository is verified against.
+
 jobs:
   conventional-commits:
     name: Branch name and PR title
     if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install hk
         run: |
@@ -55,10 +60,10 @@ jobs:
     name: fmt-check, lint, check, test, build
     # A title edit re-runs only the conventional-commits job; skip the heavy build.
     if: github.event.action != 'edited'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Check out the repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Install the Rust toolchain
         run: |
