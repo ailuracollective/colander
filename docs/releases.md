@@ -4,16 +4,15 @@ Releasing colander is a deterministic pipeline with deliberate human
 decision points. The **version bump** is automated: every push to
 `master` runs `.github/workflows/bump.yml`, where cocogitto computes the
 next version from Conventional Commits, guards the generated header, bumps
-`Cargo.toml`, writes `CHANGELOG.md` and commits `chore(version): vX.Y.Z` —
-as a **pull request**, because `master` is protected and CI cannot push to
-it. The **tag** is automated too, one push later: the push to `master` that
-carries the version commit is the release commit, and the workflow's `tag`
-job creates `vX.Y.Z` on it. The steps that stay human decisions are
-the **merge of the version pull request** and, explicitly, the **GitHub
-Release** (created only on demand, never from the tag push alone) and, for
-now, the **crates.io publish**. `cargo make bump` is the same pipeline run
-locally, and `cargo make bump-dry-run` previews it without touching
-anything.
+`Cargo.toml`, writes `CHANGELOG.md`, commits `chore(version): vX.Y.Z` and
+pushes it to `master` with a **Personal Access Token** stored as the
+repository secret `BUMP_TOKEN`. The **tag** is automated too, one push
+later: the push to `master` that carries the version commit is the release
+commit, and the workflow's `tag` job creates `vX.Y.Z` on it. The steps
+that stay human decisions are, explicitly, the **GitHub Release** (created
+only on demand, never from the tag push alone) and, for now, the
+**crates.io publish**. `cargo make bump` is the same pipeline run locally,
+and `cargo make bump-dry-run` previews it without touching anything.
 
 ## Purpose
 
@@ -35,8 +34,8 @@ unattended; the local command is the manual equivalent.
 | -------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Pre-bump hooks | `scripts/check-header.sh` guards the generated header, `scripts/bump-version.sh <version>` rewrites the sole `[package]` version in Cargo.toml, then `cargo check` compiles the result |
 | Changelog      | Cocogitto appends the new section to CHANGELOG.md                                                                                                                                      |
-| Version commit | A `chore(version): vX.Y.Z` commit, committed on a `chore/version-X.Y.Z` branch                                                                                                         |
-| Version PR     | The branch is pushed and a pull request is opened against `master`. Merging it is a human decision                                                                                     |
+| Version commit | A `chore(version): vX.Y.Z` commit, written by `cog bump --hook-profile ci`                                                                                                             |
+| Push           | Pushed straight to `master` with the `BUMP_TOKEN` secret                                                                                                                               |
 | Tag            | On the push that carries the version commit, the `tag` job creates `vX.Y.Z` on it and pushes it                                                                                        |
 | CI             | The `v*` tag push runs the full CI set (`ci.yml`) as verification only — it never creates a Release                                                                                    |
 | GitHub Release | Created only when you run the `Release` workflow on demand (see below)                                                                                                                 |
@@ -44,37 +43,32 @@ unattended; the local command is the manual equivalent.
 Cocogitto aborts the bump when the tree is dirty or a pre-bump hook fails,
 so a failed run leaves no half-released state behind (see Recovery).
 
-### Why the bump is a pull request, and why the tag waits
+### Why the bump pushes to master, and why the tag waits
 
 `master` requires a pull request, one approving review and two status
-checks. The `GITHUB_TOKEN` is not an admin, so `git push origin master` is
-rejected by the protected-branch hook — a bump that pushes to `master` can
-never succeed. (`enforce_admins` is `false`, so a human pushing from a
-clone with admin rights can; that is why the local `cargo make bump` still
-works and why its post-bump hooks are unchanged.)
+checks. The `GITHUB_TOKEN` is not an admin, so `git push origin master` with
+it is rejected by the protected-branch hook. `enforce_admins` is `false`,
+though, which means a token owned by an admin is not subject to that rule —
+that is what `BUMP_TOKEN` exploits, and it is why the bump job checks out
+with `persist-credentials: false` and points the remote at the PAT for the
+one push. Without the secret the run fails with a message naming it.
 
-The tag is created **after** the merge, not by `cog bump`. Cocogitto tags
-the version commit, but this repository squash-merges, so the commit that
-lands on `master` has a different SHA: a tag made at bump time would point
-at a commit that is not on `master`, and `release.yml` would then build a
-release from a commit CI never verified. The `tag` job therefore runs on the
-push to `master` and tags the tip, and only when that tip is itself a
-`chore(version):` commit.
+An earlier version of this workflow tried to land the bump as a pull
+request instead. It was abandoned because the repository's own required check
+defeats it: `scripts/check-branch-name.sh` demands
+`<username>/<type>/<short-description>` with the username segment matching
+the pull request author, and a workflow's author is `github-actions[bot]`.
+Git does not allow `[` in a ref name, so **no branch the bot creates can
+satisfy the check**, and the pull request can never be merged. Events caused
+by `GITHUB_TOKEN` do not start workflow runs either, which is why the `tag`
+job was moved off `pull_request: closed` in the first place.
 
-The tag job deliberately does **not** listen for the version pull request
-being merged. Events caused by `GITHUB_TOKEN` do not start new workflow runs,
-with two exceptions — `workflow_dispatch`, `repository_dispatch`, and
-`pull_request` with the `opened`, `synchronize` or `reopened` activity types.
-A `closed` event is not one of them, so a `tag` job gated on
-`pull_request: closed` would never fire for a pull request the workflow
-itself opened.
-
-That suppression has a second consequence: a pull request created with
-`GITHUB_TOKEN` does not run the required checks automatically. Its
-`opened`/`synchronize` runs are created in an approval-required state, so
-merging the version pull request takes one manual approval on the pull
-request page. The alternative would be a Personal Access Token stored as a
-repository secret, which starts the runs without the prompt.
+The tag is created by a separate job, not by `cog bump`. Cocogitto tags the
+version commit; the `tag` job runs on the push to `master` and tags the tip,
+but only when that tip is itself a `chore(version):` commit. A tag made at
+bump time would point at a commit that never reached `master` through the
+usual path, and `release.yml` would then build a release from a commit CI
+never verified.
 
 The CI run uses the `ci` profile in `cog.toml`, which keeps the pre-bump
 hooks and has **no** post-bump hooks. The main profile still pushes, because
@@ -93,13 +87,11 @@ releases; cocogitto's own branch whitelist enforces it.
   required a bump" and exits 0 without touching anything. There is no
   guard step predicting bump-worthiness, because cocogitto is the only
   source of truth for it.
-- The merge of a version pull request pushes to `master`, which re-triggers
-  this workflow, and a `guard against a redundant bump` step stops it: a
-  version pull request that is already open, or a `master` tip that is
-  itself a `chore(version):` commit whose tag has not landed yet, means
-  there is nothing to bump. Without that guard the merge push would
-  propose the same version a second time, because the tag is created
-  concurrently with it.
+- The bump's own push to `master` re-triggers this workflow, and a `guard
+  against a redundant bump` step stops it: a `master` tip that is itself a
+  `chore(version):` commit, whose tag has not landed yet, means there is
+  nothing to bump. Without that guard the bump would propose the same version
+  a second time, because the tag is created concurrently with it.
 - The workflow installs the Rust toolchain, cargo-make, dprint, cocogitto
   7.0.0 and cbindgen 0.29.4 (the pre-bump header guard runs it), then
   builds on the tip of `master` rather than on whichever commit happened to

@@ -134,20 +134,21 @@ Every push to `master` runs the `Bump` workflow
 hooks guard the generated header (`scripts/check-header.sh`) and bump the
 single version source (`scripts/bump-version.sh`, Cargo.toml ->
 CARGO_PKG_VERSION), then cocogitto writes the changelog and commits
-`chore(version): vX.Y.Z`. **`master` is protected** (pull request, one
+`chore(version): vX.Y.Z` and pushes it to `master` with the
+**`BUMP_TOKEN`** repository secret. `master` is protected (pull request, one
 approving review, two required checks) and the `GITHUB_TOKEN` is not an
-admin, so the workflow cannot push to it: the version commit goes to a
-`chore/version-*` branch and lands as a **pull request**. The push to
-`master` that carries that version commit is the release commit, and the
-workflow's `tag` job then creates `vX.Y.Z` on the tip and pushes it. It
-deliberately does not listen for the pull request being merged: events
-caused by `GITHUB_TOKEN` do not start workflow runs, and `pull_request` with
-the `closed` activity is not one of the exceptions. The price is that the
-required checks on the version pull request need one manual approval,
-because a token-created pull request starts its runs approval-required.
-`cargo make bump` is the identical local path (its post-bump hooks push
-`master` directly, so it needs an account that can bypass the protection),
-and `cargo make bump-dry-run` previews it. A range whose commits are only
+admin, so it cannot push; `enforce_admins` is `false`, so a token owned by
+an admin can. That push is the release commit, and the workflow's `tag` job
+then creates `vX.Y.Z` on the tip. The tag job does not listen for a
+pull request being merged, because events caused by `GITHUB_TOKEN` do not
+start workflow runs and `pull_request` with the `closed` activity is not one
+of the exceptions. An earlier version landed the bump as a pull request; it
+was abandoned because `scripts/check-branch-name.sh` requires the branch's
+username segment to match the pull request author, and no branch a workflow
+creates can satisfy that. `cargo make bump` is the identical local path (its
+post-bump hooks push `master` directly, so it needs an account that can
+bypass the protection), and `cargo make bump-dry-run` previews it. A range
+whose commits are only
 `chore`/`docs`/`refactor`/`test`/`ci`/`build`/`perf` produces no pull
 request and a green run: cocogitto is the only source of truth for what
 deserves a bump. The tag push runs the full CI verification only
