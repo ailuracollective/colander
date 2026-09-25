@@ -79,6 +79,18 @@ description = "Runs the fast checks the pre-commit hook delegates to."
 category = "Hooks"
 dependencies = ["fmt-check", "lint"]
 
+[tasks.bump-dry-run]
+description = "Prints the next release version and mutates nothing."
+category = "Release"
+command = "cog"
+args = ["bump", "--dry-run", "--auto"]
+
+[tasks.bump]
+description = "Computes the next version, writes the changelog, commits, tags and pushes."
+category = "Release"
+command = "cog"
+args = ["bump", "--auto"]
+
 [tasks.prepush]
 description = "Runs the checks the pre-push hook delegates to."
 category = "Hooks"
