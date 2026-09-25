@@ -71,7 +71,7 @@ jobs:
           unzip -q cargo-make.zip
           install -m 755 "${archive}/cargo-make" "${HOME}/.cargo/bin/cargo-make"
           install -m 755 "${archive}/makers" "${HOME}/.cargo/bin/makers"
-          rm cargo-make.zip "${archive}"
+          rm -rf cargo-make.zip "${archive}"
           cargo make --version
 
       - name: Install dprint
