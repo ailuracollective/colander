@@ -67,17 +67,19 @@ hand-editing the header.
   `SCREAMING_SNAKE` code only, so a decided change usually moves one code and
   nothing else. No automatic guard covers the vectors, so the affected cases are
   enumerated by hand before the change lands.
-- Seven groups: `canonical`, `hash`, `semver`, `rules`, `validate`, `compile`,
-  `errors`. The shared harness is `tests/common/mod.rs`; all seven groups are
-  part of this repository.
+- Eight groups: `canonical`, `hash`, `semver`, `rules`, `validate`, `compile`,
+  `errors`, `describe`. The shared harness is `tests/common/mod.rs`; all eight
+  groups are part of this repository. Seven were recorded from an external
+  implementation; `describe` covers an operation with no external counterpart, so
+  it was recorded from colander and is frozen the same way.
 - `tests/common/mod.rs::exclusions` has entries for `rules` and `semver` only.
   Any other group hits `panic!("no exclusions table for group '…'")`.
 - **`include/colander.h` is generated but committed.** Never hand-edit it;
   regenerate it only when the ABI surface actually changes.
-- The generated header declares only **nine** functions while the library exports
-  **eleven**: `colander_alloc` and `colander_free_buffer` are deliberately absent,
+- The generated header declares only **ten** functions while the library exports
+  **twelve**: `colander_alloc` and `colander_free_buffer` are deliberately absent,
   listed in `cbindgen.toml`'s `[export] exclude`, and a C caller declares them
-  itself. `[export] include` only names the nine to force; it does not restrict
+  itself. `[export] include` only names the ten to force; it does not restrict
   the export set, which is why the `exclude` list is what keeps the pair out. Do
   not "fix" that by hand.
 

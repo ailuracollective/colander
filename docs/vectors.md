@@ -1,15 +1,19 @@
 # The golden vectors
 
-`tests/golden/vectors/` holds 249 recorded cases in seven files —
-`canonical`, `hash`, `semver`, `rules`, `validate`, `compile`, `errors`.
-One file is one group and is replayed by one test binary:
+`tests/golden/vectors/` holds 254 recorded cases in eight files —
+`canonical`, `hash`, `semver`, `rules`, `validate`, `compile`, `errors`,
+`describe`. One file is one group and is replayed by one test binary:
 
 ```bash
 cargo test                            # everything, vectors included
 cargo test --test golden_rules -- --nocapture
 ```
 
-`--nocapture` prints the per-group tally; the seven groups make 1648 assertions.
+`--nocapture` prints the per-group tally, and the eight groups make 1524 checks:
+19 canonical, 25 hash, 36 semver, 1105 rules, 189 validate, 108 compile, 29
+errors, 13 describe. (The total was 1511 across the seven groups before
+`describe` was added; the page previously said 1648, which nothing had checked
+and which no run reproduced.)
 
 ## What is asserted
 

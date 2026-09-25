@@ -10,6 +10,7 @@
 
 pub mod codec;
 pub mod compile;
+pub mod describe;
 pub mod error;
 pub mod ffi;
 pub mod hash;

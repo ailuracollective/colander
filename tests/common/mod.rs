@@ -2,9 +2,12 @@
 
 //! Golden-vector fixtures for colander's public API.
 //!
-//! The files under `tests/golden/vectors/` are frozen golden fixtures recorded
-//! from an external implementation. They cannot be regenerated, so treat them
-//! as read-only inputs.
+//! The files under `tests/golden/vectors/` are frozen golden fixtures. The
+//! `canonical`, `hash`, `semver`, `rules`, `validate`, `compile` and `errors`
+//! groups were recorded from an external implementation and cannot be
+//! regenerated, so treat them as read-only inputs. `describe` is the exception:
+//! it covers an operation this crate has no external counterpart for, so it was
+//! recorded from colander itself and is frozen the same way.
 //!
 //! A fixture that recorded a payload is compared byte-for-byte. A fixture that
 //! recorded an error only has to fail the same way: the `SCREAMING_SNAKE`
@@ -299,6 +302,7 @@ pub fn exclusions(group: &str) -> &'static [(&'static str, &'static str)] {
         "validate" => &[],
         "compile" => &[],
         "errors" => &[],
+        "describe" => &[],
         other => panic!("no exclusions table for group '{other}'"),
     }
 }

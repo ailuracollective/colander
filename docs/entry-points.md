@@ -1,7 +1,7 @@
 # Entry points
 
 This page is the reference for the entire exported surface of colander: the
-eleven symbols the shared library exposes, the request keys each one accepts,
+twelve symbols the shared library exposes, the request keys each one accepts,
 the response it returns and the errors it can produce. Read it when you need the
 exact request or response shape for one call.
 
@@ -15,6 +15,7 @@ reading `result`; no `char *`-returning entry point returns NULL.
 | Symbol                       | Purpose                                                                             | Required request keys               |
 | ---------------------------- | ----------------------------------------------------------------------------------- | ----------------------------------- |
 | `colander_compile`           | Expand `component-ref` fields and produce canonical documents plus a content hash   | `formSchemaJson`                    |
+| `colander_describe_form`     | Report the field index of a compiled triple                                         | `formSchemaJson`                    |
 | `colander_evaluate_rules`    | Evaluate visibility, enablement, required, calculations and cross-field validations | `formSchemaJson`, `rulesSchemaJson` |
 | `colander_validate_response` | Validate and normalize submitted answers                                            | `formSchemaJson`, `answersJson`     |
 | `colander_validate_schema`   | Validate a document against a JSON Schema you supply                                | `kind`-dependent                    |
@@ -185,6 +186,61 @@ covers exact bytes, so `1.50` and `1.5` hash differently.
 | `FIELD_MISSING_KEY: field id at /fields/0/id is required.`                                                               | A field lacks a string `id` or `code`                                            |
 | `FIELD_INVALID_TYPE: /fields/0/id is Number, expected String.`                                                           | A field key has the wrong JSON type                                              |
 | `REQUEST_TOO_LARGE: request is N bytes, over the 67108864-byte limit.`                                                   | A request over the FFI byte cap (C-10)                                           |
+
+## colander_describe_form
+
+Reports the field index of a compiled triple: for every field, the identifiers
+and flags a caller needs to render a form and to map an `errors[].path` back to
+a field. It compiles first, so a `component-ref` is reported by its expansion and
+the returned `contentHash` describes exactly what was described.
+
+Use it instead of reparsing the compiled `formSchemaJson`: the pointers and the
+flags come from the index the core built when it validated the document, so they
+cannot drift from the pointers `colander_validate_response` reports.
+
+### Request
+
+The same keys as `colander_compile`, with the same requirements.
+
+### Response
+
+```json
+{"fields":[{"id":"…","code":"…","path":"/fields/0","parentPath":null,
+            "type":"text","required":false,"readOnly":false}],
+ "contentHash":"<hex>"}
+```
+
+| Key           | Notes                                                                  |
+| ------------- | ---------------------------------------------------------------------- |
+| `fields`      | Every field, in document order, including groups and repeater children |
+| `contentHash` | The hash of the compiled triple that was described                     |
+
+Each entry of `fields` carries:
+
+| Key          | Notes                                                                     |
+| ------------ | ------------------------------------------------------------------------- |
+| `id`         | How the rules and the UI reference the field                              |
+| `code`       | The code the document declares; present for every valid field             |
+| `path`       | JSON pointer to the field, the same string an `errors[].path` points at   |
+| `parentPath` | The container's pointer, `null` for a top-level field                     |
+| `type`       | One of the twelve field type names                                        |
+| `required`   | The schema baseline, not a rule evaluation                                |
+| `readOnly`   | The schema baseline that `colander_evaluate_rules` derives `enabled` from |
+
+A group's `code` is reported like any other, and whether it is an answer key
+follows from its `type`: a group is a container, not a value. Presentation is not
+described — a field's `title` and `description` are inert by
+[documents.md](documents.md), and a layout node's title travels in the compiled
+`uiSchemaJson`.
+
+The schema baseline is not a rule evaluation. `visibility`, `enabled`, `required`
+after rules, and calculated values come from `colander_evaluate_rules`, so a
+caller never has two sources for one fact.
+
+### Errors
+
+Every error `colander_compile` can produce, unchanged. A document the core
+refuses yields a failure envelope, never a partial index.
 
 ## colander_evaluate_rules
 
@@ -502,7 +558,7 @@ A native caller can ignore both and pass a buffer it allocated itself.
 ### Exports the generated header does not declare
 
 `include/colander.h` is generated by cbindgen from `cbindgen.toml`, whose
-`[export] include` list names only nine functions. The library exports eleven:
+`[export] include` list names only ten functions. The library exports twelve:
 `colander_alloc` and `colander_free_buffer` are built and exported by the shared
 library but are **not declared in the generated header**. A C caller that uses
 either must declare it before use, matching the ABI:
@@ -512,7 +568,7 @@ uint8_t *colander_alloc(size_t length);
 void colander_free_buffer(uint8_t *pointer, size_t length);
 ```
 
-The other nine are declared in `include/colander.h`. The full reasoning is in
+The other ten are declared in `include/colander.h`. The full reasoning is in
 [abi.md](abi.md#the-generated-header-does-not-declare-every-export).
 
 ## Next

@@ -10,9 +10,9 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 /// The fixed number of `no_mangle` exports in the shared library.
-const EXPORT_COUNT: usize = 11;
+const EXPORT_COUNT: usize = 12;
 /// The number of those exports the generated header declares.
-const DECLARED_COUNT: usize = 9;
+const DECLARED_COUNT: usize = 10;
 
 fn root() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR"))
