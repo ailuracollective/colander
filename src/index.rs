@@ -224,7 +224,9 @@ fn index_answer_fields(
         let field_type = require_string(field, schema_json_keys::TYPE, &field_path)?;
 
         let mut children = Vec::new();
-        if let Some(items) = json::get_array(field, schema_json_keys::ITEMS) {
+        if field_type == field_type_names::REPEATER
+            && let Some(items) = json::get_array(field, schema_json_keys::ITEMS)
+        {
             index_child_fields(items, &format!("{field_path}/items"), &mut children)?;
         }
 

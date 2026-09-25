@@ -237,6 +237,73 @@ fn groups_cannot_nest_under_a_repeater() {
     );
 }
 
+/// The D-4 nesting rule is scoped to repeaters. A group nested in a group was
+/// rejected with the same code and the same message, which named a repeater the
+/// document did not contain: the answer index called the row-children builder
+/// for every field carrying `items`, and that builder refused any child with
+/// `items`. It also made `index_answer_fields`' own nested-group recursion
+/// unreachable, so a group child that was itself a group could not be indexed at
+/// all.
+#[test]
+fn groups_may_nest_under_a_group() {
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"outer","code":"outer","type":"group","items":[
+            {"id":"inner","code":"inner","type":"group","items":[
+                {"id":"x","code":"x","type":"text"}]}]}]}"#;
+    let result = validate(
+        form,
+        None,
+        None,
+        r#"{"x":"value"}"#,
+        FormResponseValidationMode::Draft,
+    )
+    .expect("a group inside a group is a legal document");
+    assert!(result.is_valid(), "{:?}", result.errors);
+
+    // The nested child's code must be answerable, which is the part the
+    // unreachable recursion existed for.
+    assert!(
+        result.normalized_answers_json.contains("\"x\""),
+        "the nested child's code is not answerable: {}",
+        result.normalized_answers_json
+    );
+}
+
+/// A group's children are not row children: a group that carries `items` keeps
+/// its children out of the repeater-only `children` list, while a repeater keeps
+/// exactly its flat row scalars.
+#[test]
+fn only_a_repeater_reports_row_children() {
+    use colander::index::build_answer_index;
+
+    let form = r#"{"schemaVersion":"1.0.0","fields":[
+        {"id":"outer","code":"outer","type":"group","items":[
+            {"id":"inner","code":"inner","type":"group","items":[
+                {"id":"a","code":"a","type":"text"}]}]},
+        {"id":"rows","code":"rows","type":"repeater","items":[
+            {"id":"b","code":"b","type":"text"}]}]}"#;
+    let root = json::parse_object(form, "form").unwrap();
+    let by_code = build_answer_index(&root).expect("index");
+
+    // A group carries no answer of its own, so neither group is a key. Their
+    // leaves are, and `a` sits two levels down: reaching it is what the
+    // nested-group recursion exists for.
+    assert!(!by_code.contains_key("outer"), "a group is not an answer");
+    assert!(
+        !by_code.contains_key("inner"),
+        "a nested group is not an answer"
+    );
+    assert!(by_code.contains_key("a"), "the nested leaf is answerable");
+
+    let rows = by_code.get("rows").expect("the repeater is indexed");
+    let codes: Vec<&str> = rows
+        .children
+        .iter()
+        .map(|child| child.code.as_str())
+        .collect();
+    assert_eq!(codes, vec!["b"], "a repeater reports its row children");
+}
+
 // ---------------------------------------------------------------------------
 // M4: the schema `type` vocabulary is closed.
 // ---------------------------------------------------------------------------
