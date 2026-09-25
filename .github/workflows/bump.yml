@@ -162,6 +162,13 @@ jobs:
           # it one push away from origin.
           git tag -d "v${VERSION}" || true
           git branch "${branch}"
+          # A bump branch is a throwaway artifact, and a run that failed after
+          # pushing but before opening the pull request leaves one on origin.
+          # The guard above already proved no version pull request is open, so
+          # nothing here is under review and the stale branch can be replaced.
+          # Without this the push is rejected as non-fast-forward, because the
+          # stale tip was built on an older master.
+          git push origin --delete "${branch}" 2>/dev/null || true
           git push origin "${branch}"
           # The body goes through a file: a multi-line --body argument is a YAML
           # quoting problem, and a quoted heredoc keeps the shell out of it.
