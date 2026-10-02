@@ -176,28 +176,29 @@ The bump NEVER auto-bumps a 0.y.z crate to 1.0.0; going 1.0.0 is a
 deliberate act (the `version` input of the workflow, or a forced
 `cog bump --major`).
 
-## First-release notes
+## First release
 
-An earlier `v0.1.0` was cut prematurely, never finished, and its
-publication has been deleted; its tag pointed 37 commits behind `master`
-and has been removed from both the local clone and origin. crates.io
-therefore has **no** `colander` version at all, and the GitHub Release
-`v0.1.0` is gone with it.
+`0.1.0` is the first published version: the tag `v0.1.0` points at the
+`chore(version): v0.1.0` commit on `master`, and `cargo publish --locked`
+uploaded that exact tree. It is the only `colander` version on crates.io.
 
-The next bump is the real first release. With no tag in the repository,
-cocogitto treats the whole history as unreleased and produces the initial
-version `0.1.0`, so the changelog covers every commit since the initial
-commit — verified, not assumed. If `0.1.0` is not the version you want to
-publish first, force it: run the workflow by hand with the `version` input,
-or `cog bump --version X.Y.Z` locally. The tag is then created on that
-pull request's merge commit like any other.
+Two earlier tags never produced a publication and are gone:
 
-`from_latest_tag = true` makes every version after that derive from the
-commits accumulated since the last tag, which is what the automation relies
-on. Creating a GitHub Release (on demand) and publishing each new version
-to crates.io remain separate manual decisions; crates.io discourages
-deleting a published version and permits it only in narrow cases, so treat
-every publish as lasting.
+- `v0.1.0` (first cut) pointed 37 commits behind `master` and was
+  published then deleted; its tag was removed from the local clone and from
+  origin, and the GitHub Release went with it. crates.io releases the name
+  again when a version is deleted, so the name was free for the real one.
+- `v1.0.0` was cut after the first `0.1.0` was abandoned and was never
+  published either. Its tag pointed two commits behind `master`, missing
+  `colander_describe_form` (issue #26), so it was deleted in favour of
+  publishing the current `master` under the version `0.1.0`.
+
+`from_latest_tag = true` now derives the next bump from `v0.1.0`, so every
+commit after the tag belongs to the next version, and cocogitto will propose
+`0.2.0` while the crate is still `0.y.z`. Creating a GitHub Release (on
+demand) and publishing each new version to crates.io remain separate manual
+decisions; crates.io discourages deleting a published version and permits it
+only in narrow cases, so treat every publish as lasting.
 
 ## Recovery
 

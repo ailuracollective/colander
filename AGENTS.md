@@ -11,11 +11,11 @@ crates.io.** This crate declares no path dependency and no dev-dependency. Keep
 it that way: Cargo resolves one graph covering dev-dependencies, so any path
 dependency would break every cargo command, not just `cargo test`.
 
-**The repository has an `origin` remote and commits.** It currently has
-**no tags at all**, and **no `colander` version is published on crates.io** —
-an earlier `v0.1.0` was cut prematurely and its publication was deleted, so
-`docs/releases.md` is the authority on release state, not this file. Do not
-create commits, branches or remotes unless explicitly asked.
+**The repository has an `origin` remote and commits.** The current tag is
+`v0.1.0`, and `0.1.0` **is** published on crates.io. Earlier tags (`v0.1.0`,
+`v1.0.0`) were never published and were deleted, so `docs/releases.md` is the
+authority on release state, not this file. Do not create commits, branches or
+remotes unless explicitly asked.
 
 ## Commands
 
