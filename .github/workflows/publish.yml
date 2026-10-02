@@ -1,0 +1,151 @@
+name: Publish
+
+# Runs once per PUBLISHED GitHub Release. release-please creates the Release when the release pull
+# request merges, so a human has already decided this version ships before this workflow starts.
+#
+# It replaces the old `workflow_dispatch` release workflow, which did the same three things
+# (verify, build the cdylib, attach it) but had to be triggered by hand and could not publish.
+# Publication to crates.io is no longer a separate manual step: it happens here through Trusted
+# Publishing, and the cdylib is attached here because release-please creates the Release without
+# an artifact.
+#
+# Every step is ordered guard-first, irreversible-action-last. The two guards and the version
+# cross-check all run BEFORE anything touches the network, and the crates.io upload happens only
+# after the build it describes exists, so the expensive irreversible step is the last one that can
+# fail for a reason a human could have been told about earlier.
+
+on:
+  release:
+    types: [published]
+
+# One run per published tag, and NOT cancellable. A second run of the same tag is either a
+# duplicate or a retry of a failed run; cancelling the first would interrupt an upload partway and
+# leave crates.io holding a half-published version, which nothing but a yank can repair. Letting
+# both finish is the smaller risk.
+concurrency:
+  group: publish-${{ github.event.release.tag_name }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build, attach and publish
+    # A prerelease is a preview. Publishing it to crates.io is irreversible in practice (a
+    # published version can be yanked but not deleted), so a preview must never reach the registry.
+    if: ${{ !github.event.release.prerelease }}
+    # `id-token: write` is what mints the OIDC token that both the crates.io exchange and the
+    # Sigstore provenance attestation need; `contents: write` is for attaching the cdylib.
+    permissions:
+      contents: write
+      id-token: write
+    runs-on: ubuntu-24.04
+    steps:
+      # The published version must be built from the exact commit the tag points at, not from the
+      # branch tip: the tag is the artifact of record, and the branch may already have moved on.
+      - name: Check out the tagged commit
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      # Same block and same pinned runner label as ci.yml, for the same reasons: `ubuntu-latest`
+      # migrates to Ubuntu 26.04 (actions/runner-images#14748) and the runner must be the one this
+      # crate is verified against.
+      - name: Install the Rust toolchain
+        run: |
+          rustup toolchain install stable --profile minimal \
+            --component rustfmt --component clippy
+          rustup default stable
+          rustc --version
+          cargo --version
+
+      # release-please writes the tag and the `Cargo.toml` version in the SAME commit, so a
+      # mismatch means the tag was moved, or was cut from a different commit than the version it
+      # claims. Publishing it would push a version the source tree does not claim, and that is
+      # permanent. Fail before anything is built or uploaded.
+      - name: Verify the tag matches the crate version
+        id: verify
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          version="${TAG#v}"
+          crate_version="$(awk -F'"' '
+            /^\[/ { section = $0 }
+            section == "[package]" && /^version = "/ { print $2; exit }
+          ' Cargo.toml)"
+          if [ -z "$crate_version" ]; then
+            echo "::error title=No crate version::could not read [package] version from Cargo.toml"
+            exit 1
+          fi
+          if [ "$version" != "$crate_version" ]; then
+            echo "::error title=Tag/version mismatch::tag ${TAG} resolves to ${version}, Cargo.toml declares ${crate_version}"
+            exit 1
+          fi
+          echo "tag ${TAG} matches [package] version ${crate_version}"
+          echo "version=${crate_version}" >> "$GITHUB_OUTPUT"
+
+      - name: Build the native library
+        run: cargo build --release
+
+      # A silent build failure that leaves a stale artifact, or a `crate-type` change that stops
+      # producing a cdylib at all, would otherwise upload a file that is not this version's build.
+      - name: Verify the cdylib was produced
+        run: |
+          set -euo pipefail
+          artifact=target/release/libcolander.so
+          if [ ! -s "$artifact" ]; then
+            echo "::error title=Missing cdylib::${artifact} is missing or empty after the release build"
+            exit 1
+          fi
+          ls -l "$artifact"
+
+      # Minted immediately before it is used, and only after every guard has passed, so a run that
+      # fails earlier never asks crates.io for a credential.
+      - name: Authenticate with crates.io
+        id: auth
+        uses: rust-lang/crates-io-auth-action@v1
+
+      # `--locked` uploads the exact tagged tree, refusing to resolve a different dependency graph
+      # than the one this tag was verified with. `--provenance` attaches a Sigstore attestation
+      # to the upload, which is why `id-token: write` is required here: crates.io verifies the
+      # attestation against the same OIDC identity the token came from.
+      - name: Publish to crates.io
+        env:
+          CARGO_REGISTRY_TOKEN: ${{ steps.auth.outputs.token }}
+        run: cargo publish --locked --provenance
+
+      # release-please creates the GitHub Release from the changelog with no artifact attached, so
+      # the native library is added here. Guarded first: re-running this workflow after a failed
+      # publish must not fail on "asset already exists", so an asset that is already there is left
+      # alone.
+      - name: Attach the cdylib to the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.event.release.tag_name }}
+        run: |
+          set -euo pipefail
+          artifact=target/release/libcolander.so
+          # The asset list is read into a variable BEFORE it is matched, on purpose. Piping
+          # `gh` straight into `grep -q` lets the matcher exit on the first hit while `gh` may
+          # still be writing, and `set -o pipefail` then turns that SIGPIPE into a non-zero
+          # pipeline — which would read as "asset absent" and send a re-run into an upload that
+          # fails on "already exists". The guard has to be wrong in the safe direction only.
+          attached="$(gh release view "$TAG" --json assets --jq '.assets[].name')"
+          if printf '%s\n' "$attached" | grep -Fx "$(basename "$artifact")" > /dev/null; then
+            echo "$(basename "$artifact") is already attached to ${TAG}; skipping the upload"
+            exit 0
+          fi
+          gh release upload "$TAG" "$artifact"
+
+      - name: Summarise the release
+        env:
+          TAG: ${{ github.event.release.tag_name }}
+          VERSION: ${{ steps.verify.outputs.version }}
+        run: |
+          {
+            echo "## colander ${TAG}"
+            echo ""
+            echo "- Crate version: \`${VERSION}\`"
+            echo "- Tag: \`${TAG}\`"
+            echo "- crates.io: published with Trusted Publishing and \`--provenance\` (Sigstore attested)"
+            echo "- Artifact: \`target/release/libcolander.so\` attached to the GitHub Release"
+          } >> "$GITHUB_STEP_SUMMARY"
