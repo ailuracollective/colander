@@ -3,8 +3,9 @@ name: CI
 on:
   push:
     branches: [master, main]
-    # A v* tag push is verified but never released (see release.yml, which
-    # only runs on demand).
+    # A v* tag push is verified only. release-please creates the tag when the release pull
+    # request merges, and `publish.yml` reacts to the GitHub Release that comes with it; this
+    # leg proves the tagged tree still builds, it never publishes anything.
     tags: ['v*']
   pull_request:
     # `edited` re-checks the title, mirroring the reference project.
@@ -43,7 +44,19 @@ jobs:
           rm hk.tar.gz hk
           hk --version
 
+      # release-please's own pull request branches from a head ref that starts with
+      # `release-please--` (its exact name encodes the branch, the manifest path and the component).
+      # Such a ref has no `<username>/<type>/<short-description>` shape and therefore cannot pass the
+      # branch gate by construction — no branch it can create ever could. Exempting it is safe
+      # because a human still reviews and merges the release pull request: nothing a person wrote
+      # is exempted, only the bot's own naming.
+      #
+      # The TITLE check deliberately still runs: `chore(master): release 0.2.0` is an allowed type,
+      # a lower-case scope and a short header, so it satisfies
+      # scripts/check-conventional-commit.sh. If a future `pull-request-title-pattern` ever
+      # produced a title this repository's own policy rejects, this check is what says so.
       - name: Check the branch name
+        if: ${{ !startsWith(github.head_ref, 'release-please--') }}
         env:
           BRANCH: ${{ github.head_ref }}
           AUTHOR: ${{ github.event.pull_request.user.login }}
@@ -57,9 +70,20 @@ jobs:
           sh scripts/check-conventional-commit.sh /tmp/pr-title
 
   ci:
-    name: fmt-check, lint, check, test, build
+    name: fmt-check, header-check, lint, check, test, build
     # A title edit re-runs only the conventional-commits job; skip the heavy build.
-    if: github.event.action != 'edited'
+    #
+    # The second clause skips the `push` leg of a release-please merge. Such a merge changes only
+    # `Cargo.toml`, `Cargo.lock` and `CHANGELOG.md`, and the `pull_request` leg already verified
+    # exactly that content one merge earlier, so running the full build again proves nothing. The
+    # match is on the commit SHAPE (a `chore` subject containing `: release`) rather than one
+    # literal string, because the subject is whatever `pull-request-title-pattern` in
+    # release-please-config.json says and that is configuration, not a constant.
+    #
+    # Note the last clause of each comparison: when `head_commit` is absent (a tag push, a branch
+    # creation) the comparisons are false, their negation is true, and the job runs. Not knowing
+    # what triggered a run is not a reason to skip a gate.
+    if: "github.event.action != 'edited' && !(github.event_name == 'push' && startsWith(github.event.head_commit.message, 'chore') && contains(github.event.head_commit.message, ': release'))"
     runs-on: ubuntu-24.04
     steps:
       - name: Check out the repository
@@ -92,6 +116,19 @@ jobs:
           install -m 755 dprint "${HOME}/.cargo/bin/dprint"
           rm dprint.zip dprint
           dprint --version
+
+      # `include/colander.h` is generated but committed and the C ABI is frozen, so the guard
+      # (`cargo make header-check`, run as part of `cargo make ci` below) has to have cbindgen on
+      # PATH. The prebuilt binary is pinned to 0.29.4, the version the header was generated with;
+      # a different cbindgen can emit a different header and the guard would fail on a toolchain
+      # change rather than on real drift. Building it from source on every run would cost minutes
+      # for a guard that must run on every change.
+      - name: Install cbindgen
+        run: |
+          curl -fsSL -o "${HOME}/.cargo/bin/cbindgen" \
+            https://github.com/mozilla/cbindgen/releases/download/0.29.4/cbindgen-ubuntu22.04
+          chmod +x "${HOME}/.cargo/bin/cbindgen"
+          cbindgen --version
 
       - name: Run the CI task set
         run: cargo make ci

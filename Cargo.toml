@@ -15,9 +15,10 @@ repository = "https://github.com/ailuracollective/colander"
 exclude = [
   ".github/",
   "hk.pkl",
-  "cog.toml",
   "Makefile.toml",
   "dprint.json",
+  "release-please-config.json",
+  ".release-please-manifest.json",
   "scripts/",
 ]
 

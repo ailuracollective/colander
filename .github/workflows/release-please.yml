@@ -1,0 +1,71 @@
+name: release-please
+
+# Plans the next release and opens ONE pull request for it. When that pull request is merged,
+# release-please creates the `vX.Y.Z` tag and the GitHub Release in the same transaction.
+#
+# This workflow does NOT publish anything itself. It does not push to `master`, it does not
+# build the cdylib, and it does not touch crates.io. The tag and the Release exist only because
+# a human merged the release pull request, and publication is handed to `.github/workflows/
+# publish.yml` through the `release: published` event this workflow's Release fires.
+#
+# It is a SINGLE CRATE. The configuration is `release-type: rust` with no `packages` map, no
+# `separate-pull-requests` and no `include-component-in-tag`, so none of the monorepo options
+# apply: the tag shape stays the default `vX.Y.Z`, which is the shape the existing `v0.1.0` tag
+# already has, and `.release-please-manifest.json` seeds `"."` at `0.1.0` to match it.
+#
+# `bump-minor-pre-major: true` is what keeps a 0.y.z crate from ever being auto-bumped to 1.0.0;
+# going 1.0.0 stays a deliberate act. `pull-request-title-pattern` keeps the release commit inside
+# this repository's own Conventional Commit rules (see scripts/check-conventional-commit.sh):
+# an allowed type, a lower-case scope and a header of at most 72 characters.
+
+on:
+  push:
+    branches: [master]
+
+# release-please opens pull requests, writes tags and creates releases, and uses the issues API for
+# its labels; upstream documents exactly these three as the required set for the action to run.
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+# One transaction per push: a second push while a run is open would re-plan the same changes, so the
+# newer run wins and the older one is dropped.
+concurrency:
+  group: release-please-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  release-please:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+      issues: write
+      pull-requests: write
+    steps:
+      # A personal access token stored as `RELEASE_PLEASE_TOKEN`, not `secrets.GITHUB_TOKEN`.
+      #
+      # This is not about permissions. Both grants are sufficient to open a release pull request,
+      # write a tag and create a release. It is about authorship: release-please creates the commit
+      # through the GitHub API, and GitHub attributes both the author and the committer to
+      # whichever token made the call. release-please exposes no author configuration and reads no
+      # `GIT_COMMITTER_NAME`/`GIT_AUTHOR_*` variable — its only `author`/`committer` options live in
+      # the unrelated `code-suggester` module — so the token IS the author setting. With
+      # `GITHUB_TOKEN` every release commit is attributed to `github-actions[bot]`; with this
+      # secret it is attributed to the account that owns the token, and the email follows the
+      # token, so the commit links to that account without anything having to configure an address.
+      #
+      # This token also gates publication, because `publish.yml` triggers on the GitHub Release
+      # this action creates. That coupling is real and is recorded as a known trade: revoking this
+      # token stops releases at the tag rather than merely mis-attributing them. It is accepted
+      # because the token exists to produce correct authorship, and a release nobody can attribute
+      # is not worth having.
+      #
+      # THE SECRET DOES NOT EXIST YET. Until a maintainer adds `RELEASE_PLEASE_TOKEN` to the
+      # repository settings, this workflow fails and no release pull request is ever opened.
+      - id: release
+        uses: googleapis/release-please-action@v5
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json
+          token: ${{ secrets.RELEASE_PLEASE_TOKEN }}
