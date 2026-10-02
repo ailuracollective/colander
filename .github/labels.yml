@@ -1,0 +1,121 @@
+# Label manifest for colander.
+#
+# This file is a MANIFEST, not a workflow input and not a CI configuration. Nothing in
+# this repository reads it automatically: `.github/workflows/policy.yml` does not parse
+# it, `hk.pkl` cannot, and it is not a schema GitHub itself understands. It is the
+# reviewed, version-controlled record of the label set the contribution gates need, plus
+# the exact command sequence that applies it.
+#
+# `policy.yml` MIRRORS the contents below rather than parsing them: it restates the type
+# list twice, once as `branch-types` and once as `type-labels`, and `hk.pkl` restates the
+# same nine types as `--allowed-types`. Three copies exist because a workflow cannot read
+# a file and a git hook configuration cannot either. Change one, mirror the others, and
+# the gate you thought you relaxed is still closed.
+#
+# The label set has two families:
+#   - 10 PR type labels: the nine Conventional Commit types this repository accepts, with
+#     NO `type:` prefix, plus `breaking-change`. Exactly one must be on a pull request.
+#   - 2 status labels: `status:needs-review` (auto-applied to new issues) and
+#     `status:approved` (applied by a maintainer once the issue is triaged).
+#
+# The type list is closed at nine. It is `feat`, `fix`, `docs`, `chore`, `refactor`,
+# `test`, `ci`, `build` and `perf`. There is deliberately NO `style` and NO `revert`:
+# every action default is wider than that, which is why `policy.yml` and `hk.pkl` both
+# spell the list out instead of accepting a default. A reformat is a `chore` and an undo
+# is a `fix` here, and a label the gates reject is worse than a label that does not exist.
+#
+# Colors are hex WITHOUT the leading `#`, because that is what `gh label create --color`
+# expects. The ten type labels are spread across distinguishable hues; the two `status:`
+# labels use low-saturation and dark colors so they read as a separate family.
+#
+# These labels are NOT all new. The repository already carries `bug`, `documentation`,
+# `enhancement`, `type:feature`, `type:refactor`, `type:ci` and others, and NOTHING in
+# this change renames or deletes any of them: the manifest ADDS the vocabulary the gates
+# need and leaves the older set exactly as it is. Leaving them is deliberate. Renaming
+# `type:feature` to `feat` would silently strip that label from every open issue and pull
+# request that carries it, and deleting an unused label loses the history a maintainer may
+# still be filtering on. The two sets coexist until the old one is emptied on purpose.
+
+labels:
+  # --- PR type labels (10) -----------------------------------------------------
+  - name: feat
+    color: 0e8a16
+    description: Mark a pull request that adds new user-facing capability.
+
+  - name: fix
+    color: d73a4a
+    description: Mark a pull request that corrects a defect in existing behavior.
+
+  - name: docs
+    color: 0075ca
+    description: Mark a pull request that changes documentation only.
+
+  - name: chore
+    color: 6f42c1
+    description: Mark a pull request for maintenance and housekeeping work.
+
+  - name: refactor
+    color: 5319e7
+    description: Mark a pull request that restructures code without changing behavior.
+
+  - name: test
+    color: fbca04
+    description: Mark a pull request that adds or updates tests only.
+
+  - name: ci
+    color: fe7d37
+    description: Mark a pull request that changes pipelines, workflows or automation.
+
+  - name: build
+    color: e99695
+    description: Mark a pull request that changes the build system or toolchain.
+
+  - name: perf
+    color: 0052cc
+    description: Mark a pull request that improves a measured characteristic.
+
+  - name: breaking-change
+    color: b60205
+    description: Mark a pull request whose C ABI consumers must change their code.
+
+  # --- Status labels (2) --------------------------------------------------------
+  - name: "status:needs-review"
+    color: bfc5cc
+    description: Wait for a maintainer to triage this issue.
+
+  - name: "status:approved"
+    color: 0d2f5b
+    description: Allow a pull request to link this issue for closure on merge.
+
+# ---------------------------------------------------------------------------
+# Applying this manifest
+# ---------------------------------------------------------------------------
+#
+# The manifest is not consumed by any automation. Apply it from the repository root with
+# the sequence below, with the `gh` CLI authenticated against `ailuracollective/colander`:
+#
+#   gh label create "feat" --color "0e8a16" --description "Mark a pull request that adds new user-facing capability."
+#   gh label create "fix" --color "d73a4a" --description "Mark a pull request that corrects a defect in existing behavior."
+#   gh label create "docs" --color "0075ca" --description "Mark a pull request that changes documentation only."
+#   gh label create "chore" --color "6f42c1" --description "Mark a pull request for maintenance and housekeeping work."
+#   gh label create "refactor" --color "5319e7" --description "Mark a pull request that restructures code without changing behavior."
+#   gh label create "test" --color "fbca04" --description "Mark a pull request that adds or updates tests only."
+#   gh label create "ci" --color "fe7d37" --description "Mark a pull request that changes pipelines, workflows or automation."
+#   gh label create "build" --color "e99695" --description "Mark a pull request that changes the build system or toolchain."
+#   gh label create "perf" --color "0052cc" --description "Mark a pull request that improves a measured characteristic."
+#   gh label create "breaking-change" --color "b60205" --description "Mark a pull request whose C ABI consumers must change their code."
+#   gh label create "status:needs-review" --color "bfc5cc" --description "Wait for a maintainer to triage this issue."
+#   gh label create "status:approved" --color "0d2f5b" --description "Allow a pull request to link this issue for closure on merge."
+#
+# Notes:
+#   * `gh label create` fails with "label already exists" when the label is already
+#     present, which today includes `status:approved` and every legacy label named in the
+#     header. Add `--force` to every command above to re-apply: `--force` updates the
+#     color and description in place and leaves the label attached to its issues.
+#   * Run `gh label list` to audit what is on the remote and diff it against the 12 entries
+#     above before forcing anything. The legacy `bug`, `documentation`, `enhancement` and
+#     `type:*` labels are not in the manifest and are not touched by it.
+#   * `status:needs-review` is applied automatically to new issues by the `triage` job in
+#     `.github/workflows/policy.yml`; it only has to exist remotely for that job to
+#     succeed. `status:approved` is applied by hand by a maintainer and is the label
+#     `pull-request-policy` requires on a linked issue.

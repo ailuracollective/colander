@@ -15,8 +15,12 @@ name: release-please
 #
 # `bump-minor-pre-major: true` is what keeps a 0.y.z crate from ever being auto-bumped to 1.0.0;
 # going 1.0.0 stays a deliberate act. `pull-request-title-pattern` keeps the release commit inside
-# this repository's own Conventional Commit rules (see scripts/check-conventional-commit.sh):
-# an allowed type, a lower-case scope and a header of at most 72 characters.
+# this repository's own Conventional Commit rules, which are enforced by the `pull-request-policy`
+# job in `.github/workflows/policy.yml`: the type must be one of the allowed labels, the title must
+# match `<type>(<scope>)!: <description>`, and `title-max` caps the header at 72 characters.
+# The action lowercases before matching, so the scope grammar does NOT enforce a lower-case scope;
+# `chore(master): ...` satisfies it, but so would `chore(Master): ...`. Nothing here should be
+# described as enforcing a lower-case scope.
 
 on:
   push:
