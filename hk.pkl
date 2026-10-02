@@ -22,6 +22,20 @@ local checks = new Mapping {
       effect = "read"
     }
   }
+  ["header-check-sources"] = new Step {
+    glob = "**/*.rs"
+    check = new CommandSpec {
+      command = "cargo make header-check"
+      effect = "read"
+    }
+  }
+  ["header-check-header"] = new Step {
+    glob = "include/colander.h"
+    check = new CommandSpec {
+      command = "cargo make header-check"
+      effect = "read"
+    }
+  }
 }
 
 hooks {

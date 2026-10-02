@@ -62,6 +62,12 @@ clear = true
 command = "cargo"
 args = ["build", "--release"]
 
+[tasks.header-check]
+description = "Checks the generated header against the Rust sources; needs cbindgen on PATH."
+category = "Build"
+command = "sh"
+args = ["scripts/check-header.sh"]
+
 [tasks.clean]
 description = "Removes the target directory."
 category = "Build"
@@ -70,26 +76,14 @@ command = "cargo"
 args = ["clean"]
 
 [tasks.ci]
-description = "Runs the full local CI set: fmt-check, lint, check, test, build."
+description = "Runs the full local CI set: fmt-check, lint, check, test, build, header-check."
 category = "CI"
-dependencies = ["fmt-check", "lint", "check", "test", "build"]
+dependencies = ["fmt-check", "lint", "check", "test", "build", "header-check"]
 
 [tasks.precommit]
 description = "Runs the fast checks the pre-commit hook delegates to."
 category = "Hooks"
-dependencies = ["fmt-check", "lint"]
-
-[tasks.bump-dry-run]
-description = "Prints the next release version and mutates nothing."
-category = "Release"
-command = "cog"
-args = ["bump", "--dry-run", "--auto"]
-
-[tasks.bump]
-description = "Computes the next version, writes the changelog, commits, tags and pushes."
-category = "Release"
-command = "cog"
-args = ["bump", "--auto"]
+dependencies = ["fmt-check", "lint", "header-check"]
 
 [tasks.prepush]
 description = "Runs the checks the pre-push hook delegates to."
