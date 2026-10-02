@@ -34,7 +34,6 @@ jobs:
   # This workflow is now build verification only.
 
   ci:
-    name: fmt-check, header-check, lint, check, test, build
     # A title edit re-runs only the policy gates in `policy.yml`; skip the heavy build.
     #
     # The second clause skips the `push` leg of a release-please merge. Such a merge changes only
