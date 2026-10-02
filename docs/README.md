@@ -25,7 +25,7 @@ by task, so you can read only what you need before your first call.
 | [gotchas.md](gotchas.md)                 | Behaviour worth knowing, most of it inherited rather than chosen.                                                                   | Something surprised you.                                            |
 | [dependencies.md](dependencies.md)       | What stays hand-written, and why.                                                                                                   | You wonder why the crate has so few dependencies.                   |
 | [vectors.md](vectors.md)                 | What the frozen golden vectors assert.                                                                                              | You are running or extending the test suite.                        |
-| [releases.md](releases.md)               | The release pipeline: the automated bump and tag, the header guard, the on-demand GitHub Release, and the manual crates.io publish. | You are cutting a release or publishing to crates.io.               |
+| [releases.md](releases.md)               | The release pipeline: the release-please pull request that carries the bump, the header guard, and the automated crates.io publish. | You are cutting a release or publishing to crates.io.               |
 | [conformance.md](conformance.md)         | Cross-language parity: the value domain, error codes and hashes a wrapper must preserve.                                            | You are writing or checking a WASM, TypeScript or .NET wrapper.     |
 
 ## Reading paths

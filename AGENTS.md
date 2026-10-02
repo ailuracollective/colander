@@ -19,29 +19,29 @@ remotes unless explicitly asked.
 
 ## Commands
 
-| Purpose                          | Command                                                                        |
-| -------------------------------- | ------------------------------------------------------------------------------ |
-| Build native                     | `cargo build --release` → `target/release/libcolander.so`                      |
-| Test                             | `cargo test`                                                                   |
-| Lint                             | `cargo clippy --all-targets -- -D warnings` (or `cargo make lint`)             |
-| Format Rust                      | `cargo make rust-fmt` (rustfmt)                                                |
-| Format Markdown                  | `cargo make md-fmt` (dprint)                                                   |
-| Full local CI set                | `cargo make ci` — `fmt-check`, `lint`, `check`, `test`, `build`                |
-| List every task                  | `cargo make --list-all-steps`                                                  |
-| One vector group                 | `cargo test --test golden_rules -- --nocapture`                                |
-| Regenerate the header            | `cbindgen --config cbindgen.toml --crate colander --output include/colander.h` |
-| Preview the next release version | `cargo make bump-dry-run`                                                      |
-| Create a release                 | `cargo make bump` (see [Releases](#releases))                                  |
+| Purpose                    | Command                                                                         |
+| -------------------------- | ------------------------------------------------------------------------------- |
+| Build native               | `cargo build --release` → `target/release/libcolander.so`                       |
+| Test                       | `cargo test`                                                                    |
+| Lint                       | `cargo clippy --all-targets -- -D warnings` (or `cargo make lint`)              |
+| Format Rust                | `cargo make rust-fmt` (rustfmt)                                                 |
+| Format Markdown            | `cargo make md-fmt` (dprint)                                                    |
+| Full local CI set          | `cargo make ci` — `fmt-check`, `lint`, `check`, `test`, `build`, `header-check` |
+| List every task            | `cargo make --list-all-steps`                                                   |
+| One vector group           | `cargo test --test golden_rules -- --nocapture`                                 |
+| Regenerate the header      | `cbindgen --config cbindgen.toml --crate colander --output include/colander.h`  |
+| Guard the generated header | `cargo make header-check` (needs cbindgen on PATH)                              |
 
 **`.github/workflows/ci.yml` runs `cargo make ci`.** The
 crate is self-contained, so the workflow checks out only this repository. It uses
 only GitHub's own actions and the toolchain preinstalled on the runner, plus the
-`hk` and `dprint` binaries
-fetched from their GitHub releases for the `conventional-commits` and `ci` jobs
-(no third-party actions).
+`hk`, `dprint` and `cbindgen` binaries
+fetched from their GitHub releases for the `conventional-commits` and `ci` jobs.
 `Makefile.toml` is the single source of truth for command lines; `hk.pkl` wires
 those same tasks into the git hooks. Prefer `cargo make <task>` over restating a
-cargo command, and never duplicate a command line into a file. Formatting is
+cargo command, and never duplicate a command line into a file. `cargo make ci`
+is `fmt-check`, `lint`, `check`, `test`, `build` and `header-check`, and
+`cargo make precommit` is `fmt-check`, `lint` and `header-check`. Formatting is
 `rustfmt` for Rust and `dprint` for Markdown: `cargo make fmt` and
 `cargo make fmt-check` cover both, while the granular `rust-fmt`/`md-fmt` and
 `rust-fmt-check`/`md-check` tasks stay available. There is no `rustfmt.toml` and
@@ -131,38 +131,41 @@ hand-editing the header.
 
 ## Releases
 
-Every push to `master` runs the `Bump` workflow
-(`.github/workflows/bump.yml`), which bumps without asking: the pre-bump
-hooks guard the generated header (`scripts/check-header.sh`) and bump the
-single version source (`scripts/bump-version.sh`, Cargo.toml ->
-CARGO_PKG_VERSION), then cocogitto writes the changelog and commits
-`chore(version): vX.Y.Z` and pushes it to `master` with the
-**`BUMP_TOKEN`** repository secret. `master` is protected (pull request, one
-approving review, two required checks) and the `GITHUB_TOKEN` is not an
-admin, so it cannot push; `enforce_admins` is `false`, so a token owned by
-an admin can. That push is the release commit, and the workflow's `tag` job
-then creates `vX.Y.Z` on the tip. The tag job does not listen for a
-pull request being merged, because events caused by `GITHUB_TOKEN` do not
-start workflow runs and `pull_request` with the `closed` activity is not one
-of the exceptions. An earlier version landed the bump as a pull request; it
-was abandoned because `scripts/check-branch-name.sh` requires the branch's
-username segment to match the pull request author, and no branch a workflow
-creates can satisfy that. `cargo make bump` is the identical local path (its
-post-bump hooks push `master` directly, so it needs an account that can
-bypass the protection), and `cargo make bump-dry-run` previews it. A range
-whose commits are only
-`chore`/`docs`/`refactor`/`test`/`ci`/`build`/`perf` produces no pull
-request and a green run: cocogitto is the only source of truth for what
-deserves a bump. The tag push runs the full CI verification only
-(`ci.yml`); it NEVER creates a GitHub Release. To create the Release, run
-the `Release` workflow yourself (Actions UI or
-`gh workflow run release.yml -f tag=vX.Y.Z`) — it verifies again, builds the
-cdylib, and creates the GitHub Release with changelog notes and the
-artifact. Publishing to crates.io is a manual step for now (see
-[docs/releases.md](docs/releases.md)). Version policy: `fix` -> patch,
-`feat` -> minor, breaking -> major (a `perf:` commit does NOT bump); the
-bump never auto-bumps 0.y.z to 1.0.0. See [docs/releases.md](docs/releases.md)
-for the full flow.
+Releasing is driven by `googleapis/release-please`, configured in
+`release-please-config.json` (`release-type: rust`,
+`bump-minor-pre-major: true`) with the last released version seeded in
+`.release-please-manifest.json` at `0.1.0`. Every push to `master` runs
+`.github/workflows/release-please.yml`, which computes the next version from
+the Conventional Commits and opens a **release pull request** that bumps
+`Cargo.toml` and `Cargo.lock` and adds the `CHANGELOG.md` section. **Merging
+that pull request is the release gate**: release-please then creates the
+`vX.Y.Z` tag and the GitHub Release together. Creating the tag creates the
+Release, so the two cannot be separated; see
+[docs/releases.md](docs/releases.md) for what that trade costs.
+
+`.github/workflows/publish.yml` triggers on `release: published` and builds
+`target/release/libcolander.so` from the tagged commit, attaches it to the
+Release and publishes to crates.io through **Trusted Publishing** with
+`--provenance`. That needs a one-time per-crate registration in the crates.io
+settings (owner `ailuracollective`, repository `colander`, workflow
+`publish.yml`); without it the publish step fails.
+
+The `RELEASE_PLEASE_TOKEN` repository secret is required for release-please to
+run, and it exists for **authorship**, not permissions: release-please creates
+the commit through the GitHub API and attributes it to the calling token, so
+with `GITHUB_TOKEN` every release commit is `github-actions[bot]`. There is no
+admin credential anywhere in the pipeline — release-please opens a pull request,
+so `master` stays protected and `scripts/check-branch-name.sh` is satisfiable,
+because a human's branch is what gets merged. That check is exempt for
+release-please's own pull requests, whose head ref has no
+`<username>/<type>/<short-description>` shape; the title check still runs.
+
+A release merge skips the heavy `ci` job on the `push` leg only, matched on
+the commit shape rather than a literal subject. Version policy: `fix` -> patch,
+`feat` -> minor, breaking -> major (a `perf:` commit does NOT bump, and neither
+does `chore`/`docs`/`refactor`/`test`/`ci`/`build`); the bump never auto-bumps
+0.y.z to 1.0.0. A published crates.io version cannot be deleted, only yanked.
+See [docs/releases.md](docs/releases.md) for the full flow and for recovery.
 
 ## Where things are
 
