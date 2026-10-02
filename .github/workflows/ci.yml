@@ -22,56 +22,20 @@ env:
   CARGO_MAKE_VERSION: "0.37.24"
 
 # `ubuntu-latest` migrates to Ubuntu 26.04 (actions/runner-images#14748), and
-# `actions/checkout@v4` targets the deprecated node20 runtime, which the runner
+# `actions/checkout@v5` targets the deprecated node20 runtime, which the runner
 # force-rewrites to node24. The runner label and the action major are pinned so
 # the build environment is the one this repository is verified against.
 
 jobs:
-  conventional-commits:
-    name: Branch name and PR title
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-24.04
-    steps:
-      - name: Check out the repository
-        uses: actions/checkout@v5
-
-      - name: Install hk
-        run: |
-          curl -fsSL -o hk.tar.gz \
-            https://github.com/jdx/hk/releases/download/v2.0.1/hk-x86_64-unknown-linux-gnu.tar.gz
-          tar -xzf hk.tar.gz hk
-          install -m 755 hk "${HOME}/.cargo/bin/hk"
-          rm hk.tar.gz hk
-          hk --version
-
-      # release-please's own pull request branches from a head ref that starts with
-      # `release-please--` (its exact name encodes the branch, the manifest path and the component).
-      # Such a ref has no `<username>/<type>/<short-description>` shape and therefore cannot pass the
-      # branch gate by construction — no branch it can create ever could. Exempting it is safe
-      # because a human still reviews and merges the release pull request: nothing a person wrote
-      # is exempted, only the bot's own naming.
-      #
-      # The TITLE check deliberately still runs: `chore(master): release 0.2.0` is an allowed type,
-      # a lower-case scope and a short header, so it satisfies
-      # scripts/check-conventional-commit.sh. If a future `pull-request-title-pattern` ever
-      # produced a title this repository's own policy rejects, this check is what says so.
-      - name: Check the branch name
-        if: ${{ !startsWith(github.head_ref, 'release-please--') }}
-        env:
-          BRANCH: ${{ github.head_ref }}
-          AUTHOR: ${{ github.event.pull_request.user.login }}
-        run: sh scripts/check-branch-name.sh "$BRANCH" "$AUTHOR"
-
-      - name: Check the title
-        env:
-          TITLE: ${{ github.event.pull_request.title }}
-        run: |
-          printf '%s\n' "$TITLE" > /tmp/pr-title
-          sh scripts/check-conventional-commit.sh /tmp/pr-title
+  # The branch-name and title gates that used to live here are now `branch-validation` and
+  # `pull-request-policy` in `.github/workflows/policy.yml`, as `ailuracollective/actions`
+  # instead of `scripts/*.sh`. A gate that exists in two workflows drifts: one copy is
+  # updated, the other keeps the old rule, and the weaker one is the one that still runs.
+  # This workflow is now build verification only.
 
   ci:
     name: fmt-check, header-check, lint, check, test, build
-    # A title edit re-runs only the conventional-commits job; skip the heavy build.
+    # A title edit re-runs only the policy gates in `policy.yml`; skip the heavy build.
     #
     # The second clause skips the `push` leg of a release-please merge. Such a merge changes only
     # `Cargo.toml`, `Cargo.lock` and `CHANGELOG.md`, and the `pull_request` leg already verified

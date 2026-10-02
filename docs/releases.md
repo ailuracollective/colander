@@ -25,7 +25,7 @@ merge produces.
 | ------------- | ------------------------------------------------------------------------------------------------------------------ |
 | Planning      | `release-please.yml` on every push to `master`; `release-type: rust` derives the version from commits              |
 | Release PR    | Bumps `Cargo.toml` and `Cargo.lock`, writes the `CHANGELOG.md` section, title `chore(master): release 0.2.0`       |
-| **Merge**     | **The human gate.** Branch protection, the approving review and the policy checks all apply                        |
+| **Merge**     | **The human gate.** Branch protection, the approving review, and the `policy.yml` gates all apply                  |
 | Tag + Release | release-please writes `vX.Y.Z` and creates the GitHub Release from the merged commit                               |
 | `publish.yml` | Verifies the tag against `Cargo.toml`, builds the cdylib, publishes to crates.io, attaches the artifact            |
 | `ci.yml`      | A release merge skips the heavy `ci` job on the `push` leg only; the `pull_request` leg already gated that content |
@@ -50,14 +50,19 @@ maintainer action either way; it just moved from "run the Release workflow" to
 later**. Everything else survives.
 
 The second change is why the move was worth it. cocogitto had to push
-**straight to `master`** with the `BUMP_TOKEN` admin secret, because
-`scripts/check-branch-name.sh` requires
-`<username>/<type>/<short-description>` whose first segment matches the pull
-request author, and Git forbids `[` in a ref — so **no branch a workflow
-creates can satisfy it**. release-please opens a pull request a human opens,
-reviews and merges, so the gate is satisfiable, branch protection stays on, and
-no admin credential exists anywhere in the pipeline. The reasoning is recorded
-in full in the header of `.github/workflows/release-please.yml`.
+**straight to `master`** with the `BUMP_TOKEN` admin secret, because the branch
+gate requires `<username>/<type>/<short-description>` whose first segment matches
+the pull request author, and Git forbids `[` in a ref — so **no branch a workflow
+creates can satisfy it**. That gate is the `branch-validation` job in
+`.github/workflows/policy.yml` today. release-please opens a pull request a human
+opens, reviews and merges, so the gate is satisfiable, branch protection stays
+on, and no admin credential exists anywhere in the pipeline. The gate exempts
+the account `RELEASE_PLEASE_TOKEN` belongs to — `AiluraKitty` — for exactly the
+reason above: its pull requests have a head ref of
+`release-please--branches--master--components--colander`, which has no type
+segment and cannot pass by construction. The exemption is about the bot's naming,
+not about trust, and nothing a person wrote is exempted by it. The reasoning is
+recorded in full in the header of `.github/workflows/release-please.yml`.
 
 ## Configuration
 
@@ -112,12 +117,17 @@ The bump **never** auto-bumps a 0.y.z crate to 1.0.0. That is what
 `0.2.0`. Going 1.0.0 remains a deliberate act.
 
 The release pull request title is `chore(master): release <version>`, which
-satisfies `scripts/check-conventional-commit.sh` on all three gates. That
-**title check therefore still runs** on release-please pull requests; only the
-branch-name check is exempt, because
-`release-please--branches--master--*` has no
-`<username>/<type>/<short-description>` shape and cannot pass it by
-construction. A human still reviews and merges that pull request.
+satisfies `pull-request-policy`'s `enable-title-conventional` check: `chore` is
+one of the nine allowed types, `master` is a lower-case scope and the header is
+well under `title-max: 72`. That check therefore still runs in substance on
+release-please pull requests — but it is not what exempts them. The
+`AiluraKitty` entry in `skip-actors` exempts the whole `pull-request-policy`
+job for that account, because the action has no per-check escape hatch and a
+release pull request cannot satisfy the other checks either: it links no issue,
+its only label is release-please's own `autorelease: pending`, and its body is a
+generated changelog rather than any type's template. The action reports an
+exempt pull request as skipped, not passed. A human still reviews and merges
+it.
 
 ## Trusted Publishing setup (one-time, maintainer action)
 
