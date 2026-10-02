@@ -44,9 +44,21 @@ hooks {
   }
   ["commit-msg"] {
     steps {
+      # `scripts/check-conventional-commit.sh` is gone: its only real gate was hk's own
+      # validator plus a file-based vocabulary, and hk ships that validator. The step keeps the
+      # name `conventional-commit` so the hook output still reads the way it did.
+      #
+      # The type list is spelled out because `hk.pkl` cannot read a file. It mirrors
+      # `.github/labels.yml`, which is a manifest that nothing reads automatically, and it is
+      # the third record of the same nine types: the manifest, `policy.yml`'s `branch-types`
+      # and `type-labels`, and this `--allowed-types`. Change one and mirror the other two.
+      #
+      # Nine, not ten: `breaking-change` is a pull request label, never a commit type. A
+      # breaking commit says `feat!:` or `fix!:` with a `BREAKING CHANGE:` footer, which is
+      # what release-please reads to compute a bump.
       ["conventional-commit"] = new Step {
         check = new CommandSpec {
-          command = "sh scripts/check-conventional-commit.sh {{commit_msg_file}}"
+          command = "hk util check-conventional-commit --allowed-types \"feat,fix,docs,chore,refactor,test,ci,build,perf\" {{commit_msg_file}}"
           effect = "read"
         }
       }
