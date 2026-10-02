@@ -31,12 +31,15 @@ remotes unless explicitly asked.
 | One vector group           | `cargo test --test golden_rules -- --nocapture`                                 |
 | Regenerate the header      | `cbindgen --config cbindgen.toml --crate colander --output include/colander.h`  |
 | Guard the generated header | `cargo make header-check` (needs cbindgen on PATH)                              |
+| Create the label set       | the `gh label create` sequence at the bottom of `.github/labels.yml`            |
 
 **`.github/workflows/ci.yml` runs `cargo make ci`.** The
 crate is self-contained, so the workflow checks out only this repository. It uses
 only GitHub's own actions and the toolchain preinstalled on the runner, plus the
-`hk`, `dprint` and `cbindgen` binaries
-fetched from their GitHub releases for the `conventional-commits` and `ci` jobs.
+`dprint` and `cbindgen` binaries
+fetched from their GitHub releases for the `ci` job. The contribution gates are not
+in `ci.yml` at all: they are the `branch-validation` and `pull-request-policy` jobs
+in `.github/workflows/policy.yml`.
 `Makefile.toml` is the single source of truth for command lines; `hk.pkl` wires
 those same tasks into the git hooks. Prefer `cargo make <task>` over restating a
 cargo command, and never duplicate a command line into a file. `cargo make ci`
@@ -119,15 +122,23 @@ hand-editing the header.
 - Commit messages follow Conventional Commits — `type(scope): description` —
   with the type restricted to the closed vocabulary `feat`, `fix`, `docs`,
   `chore`, `refactor`, `test`, `ci`, `build`, `perf` (single source of truth:
-  `scripts/conventional-types.txt`).
+  `.github/labels.yml`).
 - The header must be **at most 72 characters** and a scope, when present, must
   be **lower-case**.
 - Branches follow `<username>/<type>/<short-description>`, with the username
   matching the pull request author.
-- Enforced locally by the `commit-msg` hook (`hk.pkl` →
-  `scripts/check-conventional-commit.sh`) and, on pull requests, by the
-  `conventional-commits` CI job (branch name and PR title; the squash-merge
-  subject is the title, so one check covers both).
+- The commit message is checked by the `commit-msg` hook (`hk.pkl` →
+  `hk util check-conventional-commit --allowed-types …`), which covers the
+  Conventional Commits shape and the closed type list. The 72-character limit and
+  the lower-case scope are not in that validator; the title is what
+  `pull-request-policy` bounds with `title-max: 72`, and the squash-merge subject
+  is the title, so a merge cannot introduce a header the pull request would have
+  rejected.
+- The branch name and the pull request title are checked on every pull request by
+  `.github/workflows/policy.yml`: the `branch-validation` job for the head ref, the
+  `pull-request-policy` job for the title, the type label, the linked issue and the
+  body structure. A pull request template per type lives in
+  `.github/PULL_REQUEST_TEMPLATE/`.
 
 ## Releases
 
@@ -155,10 +166,13 @@ run, and it exists for **authorship**, not permissions: release-please creates
 the commit through the GitHub API and attributes it to the calling token, so
 with `GITHUB_TOKEN` every release commit is `github-actions[bot]`. There is no
 admin credential anywhere in the pipeline — release-please opens a pull request,
-so `master` stays protected and `scripts/check-branch-name.sh` is satisfiable,
-because a human's branch is what gets merged. That check is exempt for
-release-please's own pull requests, whose head ref has no
-`<username>/<type>/<short-description>` shape; the title check still runs.
+so `master` stays protected and the `branch-validation` job in `policy.yml` is
+satisfiable, because a human's branch is what gets merged. `AiluraKitty`, the
+account the token belongs to, is in that job's `skip-actors`, and the reason is
+naming rather than trust: every release pull request has a head ref of the form
+`release-please--branches--master--components--colander`, which has no
+`<username>/<type>/<short-description>` shape and cannot pass the gate by
+construction. A human still reviews and merges it.
 
 A release merge skips the heavy `ci` job on the `push` leg only, matched on
 the commit shape rather than a literal subject. Version policy: `fix` -> patch,
