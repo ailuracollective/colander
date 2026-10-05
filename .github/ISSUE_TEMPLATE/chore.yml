@@ -1,7 +1,7 @@
 name: Chore
 description: Maintenance, tooling, dependency or documentation work.
 title: 'chore: '
-labels: [chore]
+labels: ["type/task", "status/needs-review"]
 body:
   - type: textarea
     id: objective

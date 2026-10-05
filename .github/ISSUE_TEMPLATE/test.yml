@@ -1,7 +1,7 @@
 name: Test
 description: Coverage for a behaviour that already exists.
 title: 'test: '
-labels: [test]
+labels: ["type/task", "status/needs-review"]
 body:
   - type: markdown
     attributes:
