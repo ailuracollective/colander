@@ -42,7 +42,7 @@ jobs:
       # The published version must be built from the exact commit the tag points at, not from the
       # branch tip: the tag is the artifact of record, and the branch may already have moved on.
       - name: Check out the tagged commit
-        uses: actions/checkout@v5
+        uses: actions/checkout@v7
         with:
           ref: ${{ github.event.release.tag_name }}
 
