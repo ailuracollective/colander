@@ -156,10 +156,12 @@ Release, so the two cannot be separated; see
 
 `.github/workflows/publish.yml` triggers on `release: published` and builds
 `target/release/libcolander.so` from the tagged commit, attaches it to the
-Release and publishes to crates.io through **Trusted Publishing** with
-`--provenance`. That needs a one-time per-crate registration in the crates.io
-settings (owner `ailuracollective`, repository `colander`, workflow
-`publish.yml`); without it the publish step fails.
+Release and publishes to crates.io through **Trusted Publishing**, with no
+long-lived credential anywhere. The upload carries no Sigstore attestation:
+`cargo publish` on the toolchain the workflow installs has no provenance flag,
+so there is nothing to pass. That needs a one-time per-crate registration in
+the crates.io settings (owner `ailuracollective`, repository `colander`,
+workflow `publish.yml`); without it the publish step fails.
 
 The `RELEASE_PLEASE_TOKEN` repository secret is required for release-please to
 run, and it exists for **authorship**, not permissions: release-please creates

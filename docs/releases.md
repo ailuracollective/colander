@@ -19,7 +19,7 @@ merge produces.
 5. `.github/workflows/publish.yml` triggers on `release: published`: it checks
    out the tag, checks it against the `[package] version` in `Cargo.toml`,
    builds `target/release/libcolander.so`, publishes to crates.io through
-   Trusted Publishing with provenance, and attaches the cdylib to the Release.
+   Trusted Publishing, and attaches the cdylib to the Release.
 
 | Step          | What happens                                                                                                       |
 | ------------- | ------------------------------------------------------------------------------------------------------------------ |
@@ -157,6 +157,13 @@ exists the publish step fails:
 The filename must match exactly. `colander` 0.1.0 is already published, so
 the "publish once manually first" prerequisite is satisfied.
 
+The upload carries **no Sigstore attestation**. `cargo publish` on the
+toolchain `publish.yml` installs has no provenance flag at all — `--provenance`
+is rejected as an unknown argument, and there is no `-Z` gate to unlock it — so
+the pipeline publishes on the OIDC exchange alone. An earlier revision of the
+workflow passed `--provenance` regardless and the v0.4.0 run died on argument
+parsing, having uploaded nothing.
+
 Also required: the `RELEASE_PLEASE_TOKEN` repository secret, or
 `release-please.yml` fails and no release pull request is ever opened. It is
 about **authorship**, not permissions — release-please creates the commit
@@ -192,6 +199,12 @@ and commit the result in the same change that changed the ABI.
   move: nothing local is involved, and no version was consumed unless the
   failure happened after `cargo publish` already succeeded. If it did reach
   crates.io, the version is taken and the only repair is a new patch release.
+  One limit on that first move: a re-run replays the workflow file **from the
+  run's own commit**, so it only helps when the failure was environmental. A fix
+  to `publish.yml` itself cannot reach the re-run — delete the Release and
+  recreate it from the fixed `master` to fire `release: published` again. The
+  cdylib upload step is idempotent, so that second run re-attaches nothing it
+  already has.
 - **The Release has no artifact.** Re-run `publish.yml`. The upload step is
   guarded: it lists the release's existing assets and skips `libcolander.so`
   if it is already attached, so a re-run after a successful upload is a no-op
