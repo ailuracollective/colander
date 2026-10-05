@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/ailuracollective/colander/compare/v0.4.0...v0.4.1) (2026-10-05)
+
+
+### Bug Fixes
+
+* **ci:** drop the nonexistent --provenance flag from the publish step ([#44](https://github.com/ailuracollective/colander/issues/44)) ([34969ef](https://github.com/ailuracollective/colander/commit/34969efc007e9292b740282e5217653edd12fa33))
+
 ## [0.4.0](https://github.com/ailuracollective/colander/compare/v0.3.0...v0.4.0) (2026-10-05)
 
 
