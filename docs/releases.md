@@ -19,7 +19,10 @@ merge produces.
 5. `.github/workflows/publish.yml` triggers on `release: published`: it checks
    out the tag, checks it against the `[package] version` in `Cargo.toml`,
    builds `target/release/libcolander.so`, publishes to crates.io through
-   Trusted Publishing, and attaches the cdylib to the Release.
+   Trusted Publishing, and attaches the cdylib to the Release. **The workflow
+   file that runs is the one inside the tag**, not the one on `master`: a
+   `release` event resolves `github.ref` to the tag, so `publish.yml` is read
+   from the tagged tree while the build checks out that same tree.
 
 | Step          | What happens                                                                                                       |
 | ------------- | ------------------------------------------------------------------------------------------------------------------ |
@@ -199,12 +202,17 @@ and commit the result in the same change that changed the ABI.
   move: nothing local is involved, and no version was consumed unless the
   failure happened after `cargo publish` already succeeded. If it did reach
   crates.io, the version is taken and the only repair is a new patch release.
-  One limit on that first move: a re-run replays the workflow file **from the
-  run's own commit**, so it only helps when the failure was environmental. A fix
-  to `publish.yml` itself cannot reach the re-run — delete the Release and
-  recreate it from the fixed `master` to fire `release: published` again. The
-  cdylib upload step is idempotent, so that second run re-attaches nothing it
-  already has.
+  Two limits on that first move, and both come from the same fact: a re-run
+  replays the workflow file **from the run's own commit**, and a `release`
+  event runs `publish.yml` **from the tag's tree**. So a fix to `publish.yml`
+  reaches no existing tag by either route. Deleting the Release and recreating
+  it fires `release: published` again against the *same tag*, which still
+  carries the broken file — that is exactly what was tried for `v0.4.0`, and
+  the job failed identically. A workflow fix only ships on the next tag,
+  through the next release pull request; the price is that the broken version
+  is never published and the next one carries its number. The cdylib upload
+  step is idempotent, so a re-run after a successful upload re-attaches
+  nothing it already has.
 - **The Release has no artifact.** Re-run `publish.yml`. The upload step is
   guarded: it lists the release's existing assets and skips `libcolander.so`
   if it is already attached, so a re-run after a successful upload is a no-op
@@ -226,6 +234,13 @@ a publication and are gone — a first `v0.1.0` that pointed 37 commits behind
 `master` and was published then deleted, and a `v1.0.0` cut after that one was
 abandoned, which pointed two commits behind and was missing
 `colander_describe_form` (issue #26).
+
+`0.4.0` is the other gap, and the newer one: tag `v0.4.0` at `b28f0bb` with a
+Release beside it, and nothing on crates.io. The publish step aborted during
+argument parsing, because that tag's own `publish.yml` passed `--provenance`, a
+flag the toolchain it installs does not accept (issue #43). Deleting and
+recreating the Release could not repair it — the workflow comes from the tag —
+so `0.4.0` will never be published and `0.4.1` is the next version that can be.
 
 The first release pull request after the migration re-derives the changelog
 from the commits since `v0.1.0`. The history was rebuilt, so older sections
