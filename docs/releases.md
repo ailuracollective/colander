@@ -206,7 +206,7 @@ and commit the result in the same change that changed the ABI.
   replays the workflow file **from the run's own commit**, and a `release`
   event runs `publish.yml` **from the tag's tree**. So a fix to `publish.yml`
   reaches no existing tag by either route. Deleting the Release and recreating
-  it fires `release: published` again against the *same tag*, which still
+  it fires `release: published` again against the _same tag_, which still
   carries the broken file — that is exactly what was tried for `v0.4.0`, and
   the job failed identically. A workflow fix only ships on the next tag,
   through the next release pull request; the price is that the broken version
