@@ -1,59 +1,11 @@
 name: Contribution policy
 
-# The three published gates from `ailuracollective/actions`, adopted by path at the `v1`
-# tag. Nothing here checks out the code under review: these actions read pull request
-# metadata from the API, so the head never reaches a runner holding a token. That is also
-# why this workflow has no `if: github.event.pull_request.head.repo.fork` skip — a workflow
-# that never runs the head does not need one, and the token needs no write permission to
-# read a pull request.
-#
-# All three jobs pin `ubuntu-24.04`, the label every other workflow in this repository uses,
-# because `ubuntu-latest` migrates to Ubuntu 26.04 (actions/runner-images#14748) and a gate
-# must not change runner under a contributor's feet without a review.
-#
-# Every type list below is set EXPLICITLY. Each action's default is wider than this
-# repository's vocabulary: the default branch types include `style` and `revert`, and
-# the default type labels include both. Accepting a default would sanction types this
-# repository does not use, and `hk.pkl` would then reject the same commit as a bad type,
-# so two gates would disagree about one vocabulary.
-#
-# The vocabulary is split in two, because the label set and the type set are different
-# sets of different sizes, and one input cannot be both:
-#
-#   - `type-labels`  five `type/*` labels, mirrored from `.github/labels.yml`. This is
-#                    what a pull request must carry. Read by the label check alone.
-#   - `title-types`  ten Conventional Commit types: the nine `branch-types` below plus
-#                    `breaking-change`, which is a title type but not a branch segment.
-#                    Read by the title grammar and by template resolution. The nine are
-#                    mirrored into `branch-types` below and into `hk.pkl`'s
-#                    `--allowed-types`; `breaking-change` has no branch counterpart.
-#
-# A `ci` pull request therefore carries the label `type/task` while its title reads
-# `ci(scope): ...`, and no gate objects. The corollary is that no `type/*` label marks a
-# breaking change; the breaking signal lives in the commit, as `!` or a
-# `BREAKING CHANGE:` footer, which is what release-please reads.
 on:
   pull_request:
     types: [opened, synchronize, reopened, edited, labeled, unlabeled]
   issues:
     types: [opened]
 
-# `labeled` and `unlabeled` stay in the trigger, and they are load-bearing: the type-label
-# check and the `status/ready` check are both label-driven, so a pull request that gains
-# or loses its type label has to be re-checked, and no later event would notice it changed.
-# Dropping the label events would leave a pull request permanently green against a label
-# set it no longer satisfies.
-#
-# GitHub also sends `pull_request` label events for CLOSED pull requests, and release-please
-# rewrites its own labels after the merge — `autorelease: pending` is removed and
-# `autorelease: tagged` is applied, seconds after the merge, which fires two more runs
-# against a pull request that can no longer be gated. Nothing about a closed pull request is
-# still true: its head ref is gone and its checks are final, so a red result there means
-# nothing. Hence the `state == 'open'` guard on both pull request jobs rather than dropping
-# the label events from the trigger.
-#
-# Workflow-level `permissions: {}` is the default posture and each job below widens it
-# exactly as far as it needs: nothing, read, or `issues: write` for triage alone.
 permissions: {}
 
 concurrency:
@@ -63,97 +15,45 @@ concurrency:
 jobs:
   branch-validation:
     name: Branch name
-    # `state == 'open'`, because `labeled` on a merged pull request is still an event and
-    # the head ref it names no longer exists.
-    if: github.event_name == 'pull_request' && github.event.pull_request.state == 'open'
-    runs-on: ubuntu-24.04
+
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.state == 'open'
+    runs-on: ubuntu-latest
     permissions: {}
     steps:
-      # Reads the pull request's head ref, nothing else, so an empty permission set is
-      # correct here rather than a shortcut.
-      - uses: ailuracollective/actions/branch-validation@v1
+      - uses: ailuracollective/actions/branch-validation@v2
         with:
-          # Mirrors the nine type names in `.github/labels.yml` that are also branch
-          # segments, which nothing reads automatically, so this list is a second record of
-          # them. Nine and not ten: `breaking-change` is a title type and never a branch
-          # segment, so a `breaking-change` change still branches as
-          # `<username>/<type>/…` with its conventional `feat` or `fix`.
+          enable-status-comment: false
           branch-types: feat,fix,docs,chore,refactor,test,ci,build,perf
-          # `AiluraKitty` is the account `RELEASE_PLEASE_TOKEN` belongs to, and therefore the
-          # author of every pull request release-please opens. Those pull requests cannot pass
-          # this gate by construction: the head ref is
-          # `release-please--branches--master--components--colander`, which has no
-          # `<username>/<type>/<short-description>` shape. The exemption is safe because that
-          # account is a machine identity: it is never used to open a pull request by hand, so
-          # nothing a person wrote is exempted by it, and a human still reviews and merges
-          # the release pull request. Without this exemption no release could ever merge.
           skip-actors: 'AiluraKitty'
 
   pull-request-policy:
     name: Pull request policy
-    # Same guard as the branch-name job above, for the same reason.
-    if: github.event_name == 'pull_request' && github.event.pull_request.state == 'open'
-    runs-on: ubuntu-24.04
+
+    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.state == 'open'
+    runs-on: ubuntu-latest
     permissions:
       pull-requests: read
       contents: read
     steps:
-      - uses: ailuracollective/actions/pull-request@v1
+      - uses: ailuracollective/actions/pull-request@v2
         with:
-          # Mirrors `.github/labels.yml`. That file is a manifest and is not read by any
-          # workflow, so this list and the manifest are two records of the same set:
-          # change one, mirror the other. Five entries, all of the `type/*` family.
-          #
-          # This was previously the nine type names plus `breaking-change`, which named
-          # labels this repository does not have. The label check matches by exact name, so
-          # a correctly labelled pull request was reported as carrying no type label at
-          # all — a gate that could not be satisfied by any pull request.
+          enable-status-comment: false
           type-labels: type/feature,type/bug,type/documentation,type/improvement,type/task
-          # The title vocabulary, declared separately because it is a different set of a
-          # different size: ten, which are the nine `branch-types` above plus
-          # `breaking-change`, a legitimate title type even though it is not a branch
-          # segment.
           title-types: feat,fix,docs,chore,refactor,test,ci,build,perf,breaking-change
           title-min: '15'
           title-max: '72'
-          # The label a maintainer applies to an issue once it is triaged. A pull request
-          # may only link an issue that carries it, which is what makes `Closes #N` a
-          # decision rather than a formality.
-          #
-          # Was `status:approved`, a name no remote in this organisation carries. The
-          # status family uses slash names, and `status/ready` is the one this
-          # repository's own triage flow treats as the go signal.
+          linked-issue-sources: github
           approved-label: status/ready
-          # The templates live one file per type under `.github/PULL_REQUEST_TEMPLATE/`, and
-          # the fallback is passed explicitly because the default value is the upper-case
-          # `.github/PULL_REQUEST_TEMPLATE.md` while this repository's single default
-          # template is `.github/pull_request_template.md` — the case GitHub itself accepts
-          # and the case the file on disk actually has. Passing it explicitly is what makes
-          # the fallback resolve on a case-sensitive runner.
           default-template: .github/pull_request_template.md
-          # `AiluraKitty` opens release-please's pull requests, and they satisfy none of the
-          # checks here and cannot be made to: no issue is linked, the only label
-          # release-please applies is its own `autorelease: pending`, and the body is a
-          # generated changelog rather than any type's template. The action reports an
-          # exempt pull request as skipped rather than passed, which is the honest outcome.
-          #
-          # The exemption covers the WHOLE action, not one check: the action has no per-check
-          # and no per-label escape hatch, so there is no way to exempt the title shape while
-          # still enforcing the linked issue. The trade is accepted because nothing authored
-          # by a person runs through this account.
           skip-actors: 'AiluraKitty'
 
   triage:
     name: Issue triage
     if: github.event_name == 'issues'
-    runs-on: ubuntu-24.04
-    # The only job in this repository that writes, and the only grant of `issues: write` in
-    # it. It applies `status:needs-review` to a new issue; everything else above is read-only.
+    runs-on: ubuntu-latest
     permissions:
       issues: write
     steps:
-      - uses: ailuracollective/actions/triage@v1
+      - uses: ailuracollective/actions/triage@v2
         with:
-          # Was `status:needs-review`, the same colon form as the old `approved-label`.
-          # The status family uses slash names; this is the one the remote carries.
           auto-label-name: status/needs-review

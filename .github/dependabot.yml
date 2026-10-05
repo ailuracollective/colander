@@ -1,41 +1,6 @@
 version: 2
 
 updates:
-  # Dependabot reads each `uses:` pin, compares it against the latest tag, and opens a pull
-  # request when they differ. Composite actions inside this repository would be maintained by
-  # this entry too, but colander has no `.github/actions/`: every step is either a first-party
-  # GitHub action or a binary fetched by URL in a `run:` block.
-  #
-  # NO WORKFLOW IN THIS REPOSITORY PINS BY COMMIT SHA. Every `uses:` is a moving tag. The
-  # complete set, as of the change that introduced this file:
-  #
-  #   actions/checkout@v5                      ci.yml (the `ci` job), publish.yml
-  #   googleapis/release-please-action@v5      release-please.yml
-  #   rust-lang/crates-io-auth-action@v1       publish.yml
-  #   ailuracollective/actions/branch-validation@v1  policy.yml
-  #   ailuracollective/actions/pull-request@v1        policy.yml
-  #   ailuracollective/actions/triage@v1              policy.yml
-  #
-  # Stated plainly, because the alternative is inventing a risk that does not exist and
-  # leaving the one that does unstated: an owner of any of these actions, or of the tag they
-  # are pinned to, can change what runs in this repository without a review here. A tag is a
-  # mutable pointer, not a version. The sharpest edge is
-  # `ailuracollective/actions/triage@v1`, which is the one step in the repository holding
-  # `issues: write`; the other two policy actions are read-only, and the pipeline's real
-  # credentials (`RELEASE_PLEASE_TOKEN`, the Trusted Publishing OIDC exchange) are not
-  # reachable from a `uses:` at all.
-  #
-  # Moving to sha pins is the fix, and it is deliberately NOT done in the same change: a
-  # dependabot pull request that rewrites the pins of four workflows deserves its own review
-  # with its own diff, not to be smuggled in beside a tidy-up that has nothing to do with it.
-  # The `ci` job also pins a toolchain by version in a `run:` block (cargo-make 0.37.24,
-  # dprint 0.57.4, cbindgen 0.29.4), which dependabot cannot see or update at all.
-  #
-  # This entry covers GitHub Actions only. colander has exactly three direct Rust
-  # dependencies (`fancy-regex`, `indexmap`, `sha2`) plus their transitive set, and none of
-  # them are managed here: Cargo dependency updates need a `cargo` package-ecosystem entry,
-  # which is a separate decision because a Cargo bump is an ABI and dependency-policy
-  # question, not a workflow hygiene one.
   - package-ecosystem: github-actions
     directory: /
     schedule:
@@ -45,16 +10,10 @@ updates:
       timezone: Etc/UTC
     open-pull-requests-limit: 3
     commit-message:
-      # A bump of an action is a `ci` change, so release-please reads it as one and it never
-      # produces a version bump on its own.
       prefix: ci
     labels:
       - ci
     groups:
-      # `checkout` is grouped on its own so a bump that moves only the checkout stays a
-      # one-file pull request instead of arriving attached to every other action bump. It is
-      # the highest-churn pin in the repository and the least likely to be the reason a run
-      # broke, so it should not be reviewed alongside the ones that can.
       checkout:
         patterns:
           - actions/checkout
