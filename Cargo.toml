@@ -3,7 +3,7 @@
 [package]
 name = "colander"
 description = "Domain-neutral form core: compile triples, evaluate rules, validate responses (C ABI)"
-version = "0.2.0"
+version = "0.4.0"
 edition = "2024"
 license = "MIT"
 repository = "https://github.com/ailuracollective/colander"

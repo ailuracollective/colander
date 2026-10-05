@@ -73,11 +73,25 @@ Two JSON files at the repository root.
   Without it, the first release pull request would plan from a baseline that
   does not exist.
 - `release-please-config.json` carries `release-type: rust`,
-  `bump-minor-pre-major: true`, the title pattern, and **one** entry in
-  `packages`. There is no `separate-pull-requests`, no
-  `include-component-in-tag`, no `tag-separator` and no `sequential-calls`:
-  those are monorepo options and this is a single crate, so the tag shape
-  stays the default `vX.Y.Z`.
+  `bump-minor-pre-major: true`, the title pattern, **one** entry in
+  `packages`, and `include-component-in-tag: false`. There is no
+  `separate-pull-requests`, no `tag-separator` and no `sequential-calls`:
+  those are monorepo options and this is a single crate.
+
+Two of those keys are load-bearing and neither keeps its default:
+
+- **`include-component-in-tag: false`.** The default is **true**
+  (`base.ts`: `options.includeComponentInTag ?? true`), which would tag
+  `colander-v0.2.0`. The existing tag is `v0.1.0` and the tag shape is
+  `vX.Y.Z`; leaving the default breaks that continuity and makes the version
+  check in `publish.yml` fail, because it strips a leading `v` and compares
+  the rest against `[package] version`.
+- **The title pattern is `chore${scope}: release ${version}`, with no
+  parentheses of its own.** `${scope}` already renders as `(master)` — the
+  source builds it as `` `(${this.targetBranch})` `` — so adding parens
+  produces `chore((master)): release 0.2.0`, which the repository's own
+  `scripts/check-conventional-commit.sh` rejects. That rejection is what makes
+  the release pull request unmergeable, so it fails closed rather than open.
 
 That `packages` entry is not optional, and its absence **fails silently**:
 
