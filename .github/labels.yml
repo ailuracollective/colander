@@ -1,121 +1,247 @@
 # Label manifest for colander.
 #
-# This file is a MANIFEST, not a workflow input and not a CI configuration. Nothing in
-# this repository reads it automatically: `.github/workflows/policy.yml` does not parse
-# it, `hk.pkl` cannot, and it is not a schema GitHub itself understands. It is the
-# reviewed, version-controlled record of the label set the contribution gates need, plus
-# the exact command sequence that applies it.
+# This file is a MANIFEST, not a workflow input and not a CI configuration.
+# Nothing in this repository reads it automatically: `.github/workflows/policy.yml`
+# does not parse it, `hk.pkl` cannot, and it is not a schema GitHub itself
+# understands. It is the reviewed, version-controlled record of the label set the
+# contribution gates need, plus the command that applies it.
 #
-# `policy.yml` MIRRORS the contents below rather than parsing them: it restates the type
-# list twice, once as `branch-types` and once as `type-labels`, and `hk.pkl` restates the
-# same nine types as `--allowed-types`. Three copies exist because a workflow cannot read
-# a file and a git hook configuration cannot either. Change one, mirror the others, and
-# the gate you thought you relaxed is still closed.
+# `policy.yml` MIRRORS this file rather than parsing it, and it mirrors it into
+# THREE lists, because the label vocabulary and the title vocabulary are different
+# sets of different sizes:
 #
-# The label set has two families:
-#   - 10 PR type labels: the nine Conventional Commit types this repository accepts, with
-#     NO `type:` prefix, plus `breaking-change`. Exactly one must be on a pull request.
-#   - 2 status labels: `status:needs-review` (auto-applied to new issues) and
-#     `status:approved` (applied by a maintainer once the issue is triaged).
+#   - `type-labels`   the five `type/*` labels below, matched against the PR
+#   - `title-types`   the nine Conventional Commit types, matched against the title
+#   - `branch-types`  those same nine, matched against the branch name
+#   - `hk.pkl`        those same nine again, as `--allowed-types`
 #
-# The type list is closed at nine. It is `feat`, `fix`, `docs`, `chore`, `refactor`,
-# `test`, `ci`, `build` and `perf`. There is deliberately NO `style` and NO `revert`:
-# every action default is wider than that, which is why `policy.yml` and `hk.pkl` both
-# spell the list out instead of accepting a default. A reformat is a `chore` and an undo
-# is a `fix` here, and a label the gates reject is worse than a label that does not exist.
+# Four records of one vocabulary exist because a workflow cannot read a file and a
+# git hook configuration cannot either. Change one, mirror the others, and the
+# gate you thought you relaxed is still closed.
 #
-# Colors are hex WITHOUT the leading `#`, because that is what `gh label create --color`
-# expects. The ten type labels are spread across distinguishable hues; the two `status:`
-# labels use low-saturation and dark colors so they read as a separate family.
+# The origin of this set is `ailuracollective/standards`, which is where the
+# standard is written down. It is copied, not pulled: nothing here fetches it, so
+# drift between this file and the origin is a thing a human has to notice. The
+# recipe at the bottom can diff the two.
 #
-# These labels are NOT all new. The repository already carries `bug`, `documentation`,
-# `enhancement`, `type:feature`, `type:refactor`, `type:ci` and others, and NOTHING in
-# this change renames or deletes any of them: the manifest ADDS the vocabulary the gates
-# need and leaves the older set exactly as it is. Leaving them is deliberate. Renaming
-# `type:feature` to `feat` would silently strip that label from every open issue and pull
-# request that carries it, and deleting an unused label loses the history a maintainer may
-# still be filtering on. The two sets coexist until the old one is emptied on purpose.
+# The `type/*` family is deliberately five members, and there is no
+# `type/breaking-change`. `breaking-change` is a Conventional Commit type, not a
+# label and not an issue type, and none of the five marks one. The breaking
+# signal lives in the commit — `!` or a `BREAKING CHANGE:` footer — which is what
+# release-please reads.
+#
+# Two of the five share a colour with a label outside the family on purpose:
+# `type/feature` and `type/documentation` are both `0075CA`, because both are
+# additive and neither is a behaviour change worth a colour of its own.
+#
+# Colors are quoted six-digit hex WITHOUT a leading `#`, which is the form
+# `gh label create --color` expects and the form the API returns. The quotes are
+# load bearing, not style: unquoted, YAML reads `008672` as the number 8672 and
+# `5319E7` as 53190000000, because it takes the `E` for an exponent. Every entry
+# has exactly three keys, `name`, `color`, `description`, in that order.
+#
+# The families appear in the order the origin declares, which is neither
+# alphabetical nor the order this header lists them in. Match the origin rather
+# than re-sorting it: a re-sorted manifest turns every sync into a whole-file
+# diff.
 
 labels:
-  # --- PR type labels (10) -----------------------------------------------------
-  - name: feat
-    color: 0e8a16
-    description: Mark a pull request that adds new user-facing capability.
+# --- type/* — what kind of change a pull request is (5) -----------------
+  - name: "type/bug"
+    color: "D73A4A"
+    description: "Something is not working as expected."
 
-  - name: fix
-    color: d73a4a
-    description: Mark a pull request that corrects a defect in existing behavior.
 
-  - name: docs
-    color: 0075ca
-    description: Mark a pull request that changes documentation only.
+  - name: "type/feature"
+    color: "0075CA"
+    description: "A new capability or user-facing functionality."
 
-  - name: chore
-    color: 6f42c1
-    description: Mark a pull request for maintenance and housekeeping work.
 
-  - name: refactor
-    color: 5319e7
-    description: Mark a pull request that restructures code without changing behavior.
+  - name: "type/improvement"
+    color: "A2EEEF"
+    description: "An improvement to existing functionality."
 
-  - name: test
-    color: fbca04
-    description: Mark a pull request that adds or updates tests only.
 
-  - name: ci
-    color: fe7d37
-    description: Mark a pull request that changes pipelines, workflows or automation.
+  - name: "type/task"
+    color: "7057FF"
+    description: "A defined piece of work that does not represent a feature or bug."
 
-  - name: build
-    color: e99695
-    description: Mark a pull request that changes the build system or toolchain.
 
-  - name: perf
-    color: 0052cc
-    description: Mark a pull request that improves a measured characteristic.
+  - name: "type/documentation"
+    color: "0075CA"
+    description: "Changes or additions to documentation."
 
-  - name: breaking-change
-    color: b60205
-    description: Mark a pull request whose C ABI consumers must change their code.
 
-  # --- Status labels (2) --------------------------------------------------------
-  - name: "status:needs-review"
-    color: bfc5cc
-    description: Wait for a maintainer to triage this issue.
+# --- priority/* — how urgent it is (4) ----------------------------------
+  - name: "priority/critical"
+    color: "B60205"
+    description: "Requires immediate attention because it critically impacts the project."
 
-  - name: "status:approved"
-    color: 0d2f5b
-    description: Allow a pull request to link this issue for closure on merge.
+
+  - name: "priority/high"
+    color: "D93F0B"
+    description: "Should be addressed with high priority."
+
+
+  - name: "priority/medium"
+    color: "FBCA04"
+    description: "Normal priority work that should be addressed as planned."
+
+
+  - name: "priority/low"
+    color: "0E8A16"
+    description: "Useful work that can be deferred when higher priorities exist."
+
+
+# --- status/* — where it is in the workflow (5) -------------------------
+  - name: "status/blocked"
+    color: "E4E669"
+    description: "Work cannot proceed because an external dependency or decision is blocking it."
+
+
+  - name: "status/needs-review"
+    color: "5319E7"
+    description: "The issue or proposed solution requires review before proceeding."
+
+
+  - name: "status/ready"
+    color: "0E8A16"
+    description: "The issue is sufficiently defined and ready to be worked on."
+
+
+  - name: "status/in-progress"
+    color: "1D76DB"
+    description: "Work on this issue is currently in progress."
+
+
+  - name: "status/waiting"
+    color: "CFD3D7"
+    description: "Work is waiting for information, feedback, approval, or another action."
+
+
+# --- scope/* — which part of the surface it touches (8) -----------------
+  - name: "scope/frontend"
+    color: "BFDADC"
+    description: "Primarily affects the frontend or client-side application."
+
+
+  - name: "scope/backend"
+    color: "D4C5F9"
+    description: "Primarily affects backend application logic or services."
+
+
+  - name: "scope/api"
+    color: "C5DEF5"
+    description: "Primarily affects an API or integration contract."
+
+
+  - name: "scope/database"
+    color: "FEF2C0"
+    description: "Primarily affects database structure, queries, migrations, or data."
+
+
+  - name: "scope/devops"
+    color: "1D76DB"
+    description: "Primarily affects deployment, infrastructure, CI, or development tooling."
+
+
+  - name: "scope/testing"
+    color: "FBCA04"
+    description: "Primarily affects automated or manual testing."
+
+
+  - name: "scope/security"
+    color: "B60205"
+    description: "Primarily affects application or infrastructure security."
+
+
+  - name: "scope/documentation"
+    color: "0075CA"
+    description: "Primarily affects documentation or project guidance."
+
+
+# --- meta/* — housekeeping signals (5) ----------------------------------
+  - name: "meta/dependency"
+    color: "0366D6"
+    description: "Related to a dependency update, dependency issue, or external package."
+
+
+  - name: "meta/duplicate"
+    color: "CFD3D7"
+    description: "This issue duplicates another issue."
+
+
+  - name: "meta/good-first-issue"
+    color: "7057FF"
+    description: "A suitable issue for someone contributing to the project for the first time."
+
+
+  - name: "meta/help-wanted"
+    color: "008672"
+    description: "Additional community or contributor assistance is welcome."
+
+
+  - name: "meta/wontfix"
+    color: "FFFFFF"
+    description: "The issue will not be addressed as part of the project."
+
+
+# --- github_actions — opened by GitHub Actions (1) ----------------------
+  - name: "github_actions"
+    color: "000000"
+    description: "Pull requests that update GitHub Actions code."
+
+
+# --- release/* — release-please bookkeeping (2) -------------------------
+  - name: "release/pending"
+    color: "675300"
+    description: "Release PR pending merge."
+
+
+  - name: "release/tagged"
+    color: "73e6ae"
+    description: "Already included in a tagged release."
 
 # ---------------------------------------------------------------------------
 # Applying this manifest
 # ---------------------------------------------------------------------------
 #
-# The manifest is not consumed by any automation. Apply it from the repository root with
-# the sequence below, with the `gh` CLI authenticated against `ailuracollective/colander`:
+# The manifest is not consumed by any automation, so applying it is a command a
+# human runs. `--force` is on it throughout: it updates the colour and description
+# in place and leaves the label attached to its issues, which is what makes a
+# second run a no-op.
 #
-#   gh label create "feat" --color "0e8a16" --description "Mark a pull request that adds new user-facing capability."
-#   gh label create "fix" --color "d73a4a" --description "Mark a pull request that corrects a defect in existing behavior."
-#   gh label create "docs" --color "0075ca" --description "Mark a pull request that changes documentation only."
-#   gh label create "chore" --color "6f42c1" --description "Mark a pull request for maintenance and housekeeping work."
-#   gh label create "refactor" --color "5319e7" --description "Mark a pull request that restructures code without changing behavior."
-#   gh label create "test" --color "fbca04" --description "Mark a pull request that adds or updates tests only."
-#   gh label create "ci" --color "fe7d37" --description "Mark a pull request that changes pipelines, workflows or automation."
-#   gh label create "build" --color "e99695" --description "Mark a pull request that changes the build system or toolchain."
-#   gh label create "perf" --color "0052cc" --description "Mark a pull request that improves a measured characteristic."
-#   gh label create "breaking-change" --color "b60205" --description "Mark a pull request whose C ABI consumers must change their code."
-#   gh label create "status:needs-review" --color "bfc5cc" --description "Wait for a maintainer to triage this issue."
-#   gh label create "status:approved" --color "0d2f5b" --description "Allow a pull request to link this issue for closure on merge."
+#   yq -r '.labels[] | "gh label create \"\(.name)\" --color \"\(.color)\" --description \"\(.description)\" --force"' \
+#     .github/labels.yml | sh
 #
-# Notes:
-#   * `gh label create` fails with "label already exists" when the label is already
-#     present, which today includes `status:approved` and every legacy label named in the
-#     header. Add `--force` to every command above to re-apply: `--force` updates the
-#     color and description in place and leaves the label attached to its issues.
-#   * Run `gh label list` to audit what is on the remote and diff it against the 12 entries
-#     above before forcing anything. The legacy `bug`, `documentation`, `enhancement` and
-#     `type:*` labels are not in the manifest and are not touched by it.
-#   * `status:needs-review` is applied automatically to new issues by the `triage` job in
-#     `.github/workflows/policy.yml`; it only has to exist remotely for that job to
-#     succeed. `status:approved` is applied by hand by a maintainer and is the label
-#     `pull-request-policy` requires on a linked issue.
+# Drop the `| sh` to print it first. That is the safer order: this file is the
+# reviewed record, and running it should be the last step rather than the first.
+#
+# To audit instead of apply — the check worth running before either — diff this
+# file against the remote, and against the origin:
+#
+#   # this manifest vs the remote
+#   diff <(yq -r '.labels[] | "\(.name) \(.color)"' .github/labels.yml \
+#           | tr 'A-Z' 'a-z' | sort) \
+#        <(gh label list --limit 100 --json name,color \
+#           --jq '.[] | "\(.name) \(.color)"' | tr 'A-Z' 'a-z' | sort)
+#
+#   # this manifest vs the origin
+#   diff <(yq -r '.labels[] | "\(.name) \(.color) \(.description)"' \
+#           .github/labels.yml | sort) \
+#        <(curl -sSfL https://raw.githubusercontent.com/ailuracollective/standards/main/.github/labels.yml \
+#           | yq -r '.[] | "\(.name) \(.color) \(.description)"' | sort)
+#
+# An empty diff means the two agree. Anything else is drift, and it is drift in one
+# of two directions: a label in one file that the other lacks, or a label on the
+# remote that neither file declares. The second kind is not removed by the recipe
+# above — `--force` only creates and updates. Pruning is a separate, deliberate
+# act, because a label nobody declared may still be on an open issue somebody is
+# filtering on:
+#
+#   gh label delete "old-name" --yes
+#
+# `status/needs-review` is applied automatically to new issues by the `triage` job
+# in `.github/workflows/policy.yml`; it only has to exist on the remote for that
+# job to succeed. `status/ready` is applied by hand by a maintainer, and it is the
+# label `pull-request-policy` requires on a linked issue.

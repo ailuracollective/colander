@@ -1,7 +1,7 @@
 name: Feature
 description: A change that adds capability to the crate.
 title: 'feat: '
-labels: [feat]
+labels: ["type/feature", "status/needs-review"]
 body:
   - type: textarea
     id: objective

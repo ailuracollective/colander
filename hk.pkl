@@ -48,14 +48,19 @@ hooks {
       # validator plus a file-based vocabulary, and hk ships that validator. The step keeps the
       # name `conventional-commit` so the hook output still reads the way it did.
       #
-      # The type list is spelled out because `hk.pkl` cannot read a file. It mirrors
-      # `.github/labels.yml`, which is a manifest that nothing reads automatically, and it is
-      # the third record of the same nine types: the manifest, `policy.yml`'s `branch-types`
-      # and `type-labels`, and this `--allowed-types`. Change one and mirror the other two.
+      # The type list is spelled out because `hk.pkl` cannot read a file. It is the
+      # third record of the same nine types: `policy.yml`'s `branch-types`, the
+      # nine `title-types` that are also commit types, and this
+      # `--allowed-types`. Change one and mirror the other two.
       #
-      # Nine, not ten: `breaking-change` is a pull request label, never a commit type. A
-      # breaking commit says `feat!:` or `fix!:` with a `BREAKING CHANGE:` footer, which is
-      # what release-please reads to compute a bump.
+      # The distinction this line exists to record: it mirrors the *title*
+      # vocabulary, not the `type/*` label family. A commit type is `feat`, never
+      # `type/feature`.
+      #
+      # Nine, not ten: `breaking-change` is a title type this repository accepts,
+      # but not a commit type anyone writes. A breaking commit says `feat!:` or
+      # `fix!:` with a `BREAKING CHANGE:` footer, which is what release-please
+      # reads to compute a bump.
       ["conventional-commit"] = new Step {
         check = new CommandSpec {
           command = "hk util check-conventional-commit --allowed-types \"feat,fix,docs,chore,refactor,test,ci,build,perf\" {{commit_msg_file}}"
