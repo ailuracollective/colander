@@ -22,8 +22,9 @@ jobs:
     steps:
       - uses: ailuracollective/actions/branch-validation@v2
         with:
-          enable-status-comment: false
+          enable-status-comment: true
           branch-types: feat,fix,docs,chore,refactor,test,ci,build,perf
+          comment-token: ${{ secrets.AILURA_KITTY_TOKEN }}
           skip-actors: 'AiluraKitty'
 
   pull-request-policy:
@@ -37,12 +38,13 @@ jobs:
     steps:
       - uses: ailuracollective/actions/pull-request@v2
         with:
-          enable-status-comment: false
+          enable-status-comment: true
           type-labels: type/feature,type/bug,type/documentation,type/improvement,type/task
           title-types: feat,fix,docs,chore,refactor,test,ci,build,perf,breaking-change
           title-min: '15'
           title-max: '72'
           linked-issue-sources: github
+          comment-token: ${{ secrets.AILURA_KITTY_TOKEN }}
           approved-label: status/ready
           default-template: .github/pull_request_template.md
           skip-actors: 'AiluraKitty'
