@@ -6,9 +6,12 @@ mod conversion;
 mod datetime;
 mod fields;
 mod model;
+mod page;
 mod repeater;
 
 pub use model::{FormResponseFieldError, FormResponseValidationMode, FormResponseValidationResult};
+
+use std::collections::HashSet;
 
 use indexmap::IndexMap;
 
@@ -31,6 +34,46 @@ pub fn validate(
     answers_json: &str,
     mode: FormResponseValidationMode,
 ) -> Result<FormResponseValidationResult> {
+    validate_impl(
+        form_schema_json,
+        ui_schema_json,
+        rules_schema_json,
+        answers_json,
+        mode,
+        None,
+    )
+}
+
+/// Validate `answers_json` as a `Complete` response scoped to one layout page.
+///
+/// Only fields named by the page's `children` are checked, and only those
+/// fields are normalized. Cross-field validations are deferred to the final,
+/// unscoped call.
+pub fn validate_page(
+    form_schema_json: &str,
+    ui_schema_json: Option<&str>,
+    rules_schema_json: Option<&str>,
+    answers_json: &str,
+    page_id: &str,
+) -> Result<FormResponseValidationResult> {
+    validate_impl(
+        form_schema_json,
+        ui_schema_json,
+        rules_schema_json,
+        answers_json,
+        FormResponseValidationMode::Complete,
+        Some(page_id),
+    )
+}
+
+fn validate_impl(
+    form_schema_json: &str,
+    ui_schema_json: Option<&str>,
+    rules_schema_json: Option<&str>,
+    answers_json: &str,
+    mode: FormResponseValidationMode,
+    page_id: Option<&str>,
+) -> Result<FormResponseValidationResult> {
     let form_root = json::parse_object(form_schema_json, "form schema")?;
     // R-5: the checked semantic model rejects duplicate codes before the
     // response-specific answer index can silently select the last definition.
@@ -38,6 +81,10 @@ pub fn validate(
     let mut response = ResponseSemantics::from_form(&form_root)?;
     let answers = json::parse_answers(answers_json)?;
     response.load_answers(&form_semantics, &answers);
+
+    let page_fields = page_id
+        .map(|id| page::page_field_ids(ui_schema_json, id))
+        .transpose()?;
 
     validate_with_semantics(
         &form_root,
@@ -47,6 +94,7 @@ pub fn validate(
         ui_schema_json,
         rules_schema_json,
         mode,
+        page_fields.as_ref(),
     )
 }
 
@@ -70,6 +118,7 @@ impl ResponseSemantics {
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 fn validate_with_semantics(
     form_root: &JsonMap,
     form_semantics: &FormSemantics,
@@ -78,6 +127,7 @@ fn validate_with_semantics(
     ui_schema_json: Option<&str>,
     rules_schema_json: Option<&str>,
     mode: FormResponseValidationMode,
+    page_fields: Option<&HashSet<String>>,
 ) -> Result<FormResponseValidationResult> {
     let answer_fields_by_code = &response.answer_fields_by_code;
     let rows = &mut response.rows;
@@ -101,7 +151,8 @@ fn validate_with_semantics(
         if matches!(
             field.field_type.as_str(),
             field_type_names::GROUP | field_type_names::REPEATER | field_type_names::COMPONENT_REF
-        ) {
+        ) || !on_page(field.id.as_str(), page_fields)
+        {
             continue;
         }
         let value = answers.get(&field.code);
@@ -118,6 +169,7 @@ fn validate_with_semantics(
     for repeater in answer_fields_by_code
         .values()
         .filter(|field| field.field_type == field_type_names::REPEATER)
+        .filter(|field| on_page(field.id.as_str(), page_fields))
     {
         let raw_rows = answers.get(&repeater.code);
         validate_repeater(
@@ -137,9 +189,12 @@ fn validate_with_semantics(
         mode,
         &mut errors,
         &mut normalized,
+        page_fields,
     )?;
 
-    if mode == FormResponseValidationMode::Complete {
+    // A page check is a navigation aid: a cross-field validation may read
+    // fields the user has not reached yet, so it waits for the final call.
+    if mode == FormResponseValidationMode::Complete && page_fields.is_none() {
         for error in &evaluation.validation_errors {
             errors.push(FormResponseFieldError {
                 code: error.code.clone(),
@@ -155,6 +210,10 @@ fn validate_with_semantics(
         normalized_answers_json: serialize_normalized(&normalized),
         errors,
     })
+}
+
+fn on_page(field_id: &str, page_fields: Option<&HashSet<String>>) -> bool {
+    page_fields.is_none_or(|ids| ids.contains(field_id))
 }
 
 /// At most `MAX_ERRORS` field errors are returned and their combined size is
@@ -278,6 +337,7 @@ mod tests {
             None,
             Some(rules),
             mode,
+            None,
         )
         .unwrap();
 

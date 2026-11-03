@@ -1,5 +1,7 @@
 //! Calculated fields and the rules hand-off.
 
+use std::collections::HashSet;
+
 use indexmap::IndexMap;
 
 use crate::error::Result;
@@ -19,11 +21,15 @@ pub(super) fn apply_calculated_fields(
     mode: FormResponseValidationMode,
     errors: &mut Vec<FormResponseFieldError>,
     normalized: &mut IndexMap<String, Val>,
+    page_fields: Option<&HashSet<String>>,
 ) -> Result<()> {
     for (code, calculated_value) in &evaluation.calculated_values {
         let Some(field) = fields_by_code.get(code) else {
             continue;
         };
+        if page_fields.is_some_and(|ids| !ids.contains(field.id.as_str())) {
+            continue;
+        }
 
         let submitted_value = match answers.get(code) {
             None | Some(Json::Null) => None,

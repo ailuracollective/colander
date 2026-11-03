@@ -28,7 +28,7 @@
     },
     "layout": {
       "type": "array",
-      "description": "Presentation tree, rewritten by compile.",
+      "description": "Presentation tree, rewritten by compile. A top-level node with type page groups one page's nodes; its id is the pageId accepted by colander_validate_response.",
       "items": { "$ref": "#/$defs/layoutNode" }
     }
   },

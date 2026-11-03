@@ -20,6 +20,7 @@ pub unsafe extern "C" fn colander_validate_response(request: *const c_char) -> *
             let ui = optional_string(request, "uiSchemaJson")?;
             let rules_json = optional_string(request, "rulesSchemaJson")?;
             let answers = require_string(request, "answersJson")?;
+            let page_id = optional_string(request, "pageId")?;
             let mode = match optional_string(request, "mode")?
                 .as_deref()
                 .unwrap_or("Draft")
@@ -33,8 +34,25 @@ pub unsafe extern "C" fn colander_validate_response(request: *const c_char) -> *
                 }
             };
 
-            let result =
-                validate::validate(&form, ui.as_deref(), rules_json.as_deref(), &answers, mode)?;
+            let result = match page_id.as_deref() {
+                Some(page_id) => {
+                    if mode != validate::FormResponseValidationMode::Complete {
+                        return Err(ColanderError::new(
+                            "UI_PAGE_REQUIRES_COMPLETE: pageId requires mode 'Complete'; a page check is a Complete check.",
+                        ));
+                    }
+                    validate::validate_page(
+                        &form,
+                        ui.as_deref(),
+                        rules_json.as_deref(),
+                        &answers,
+                        page_id,
+                    )?
+                }
+                None => {
+                    validate::validate(&form, ui.as_deref(), rules_json.as_deref(), &answers, mode)?
+                }
+            };
 
             Ok(validate::project_result(&result))
         })
