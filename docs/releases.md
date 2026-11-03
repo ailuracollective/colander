@@ -1,126 +1,102 @@
 # Releases
 
-Releasing colander has exactly **one** human decision in it: merging the
-release pull request. Everything before that merge is computed from commits CI
-has already verified; everything after it is driven by the GitHub Release the
-merge produces.
+Releasing colander has one human decision: merging the release pull request.
+Everything before that merge is computed from commits CI has verified; everything
+after is driven by the GitHub Release the merge produces.
 
 ## The flow
 
-1. A commit lands on `master`. `.github/workflows/release-please.yml` runs.
-2. release-please reads the Conventional Commits since the last release,
-   computes the next version, and opens (or updates) a **release pull
-   request** that bumps `Cargo.toml` (`package.version`) and `Cargo.lock` and
-   adds the new `CHANGELOG.md` section.
-3. **A maintainer reviews and merges it. This is the release gate.** Nothing
-   exists outside the repository until this happens.
+1. A commit lands on `master`, and `.github/workflows/release-please.yml` runs.
+2. release-please reads the Conventional Commits since the last release, computes
+   the next version, and opens or updates a **release pull request** bumping
+   `Cargo.toml` (`package.version`) and `Cargo.lock` and adding the `CHANGELOG.md`
+   section.
+3. **A maintainer reviews and merges it: the release gate.** Nothing exists
+   outside the repository until then.
 4. release-please creates the `vX.Y.Z` tag **and** the GitHub Release from the
    merged commit, in the same transaction.
 5. `.github/workflows/publish.yml` triggers on `release: published`: it checks
-   out the tag, checks it against the `[package] version` in `Cargo.toml`,
-   builds `target/release/libcolander.so`, publishes to crates.io through
-   Trusted Publishing, and attaches the cdylib to the Release. **The workflow
-   file that runs is the one inside the tag**, not the one on `master`: a
-   `release` event resolves `github.ref` to the tag, so `publish.yml` is read
-   from the tagged tree while the build checks out that same tree.
+   out the tag, checks it against `[package] version` in `Cargo.toml`, builds
+   `target/release/libcolander.so`, publishes to crates.io through Trusted
+   Publishing, and attaches the cdylib to the Release. **The workflow that runs
+   is the one inside the tag**, not on `master`: a `release` event resolves
+   `github.ref` to the tag.
 
-| Step          | What happens                                                                                                       |
-| ------------- | ------------------------------------------------------------------------------------------------------------------ |
-| Planning      | `release-please.yml` on every push to `master`; `release-type: rust` derives the version from commits              |
-| Release PR    | Bumps `Cargo.toml` and `Cargo.lock`, writes the `CHANGELOG.md` section, title `chore(master): release 0.2.0`       |
-| **Merge**     | **The human gate.** Branch protection, the approving review, and the `policy.yml` gates all apply                  |
-| Tag + Release | release-please writes `vX.Y.Z` and creates the GitHub Release from the merged commit                               |
-| `publish.yml` | Verifies the tag against `Cargo.toml`, builds the cdylib, publishes to crates.io, attaches the artifact            |
-| `ci.yml`      | A release merge skips the heavy `ci` job on the `push` leg only; the `pull_request` leg already gated that content |
+A range of only `chore`, `docs`, `refactor`, `test`, `ci`, `build` or `perf`
+commits produces no release pull request and a green run. No separate guard
+predicts bump-worthiness: release-please is the only source of truth, and a no-op
+run is a pass. A release merge skips the heavy `ci` job on the `push` leg only;
+the `pull_request` leg already gated that content.
 
-A range whose commits are only `chore`, `docs`, `refactor`, `test`, `ci`,
-`build` or `perf` produces no release pull request and a green run. There is
-no guard step predicting bump-worthiness: release-please is the only source of
-truth for it, and a no-op run is a pass.
+## Why release-please
 
-## What changed and why
+The previous pipeline used cocogitto and kept the tag and the GitHub Release as
+two steps on purpose: tag now, release later. release-please cannot separate them
+— creating the tag creates the Release — so that decision collapses into merging
+the release pull request. Nothing reaches the world without a maintainer action
+either way; what is lost is tagging now and releasing later.
 
-The previous pipeline used cocogitto and kept the **tag** and the **GitHub
-Release** as two separate steps on purpose (recorded decision 2026-09-23:
-_"debería ser tag y solo release cuando yo dice"_). release-please cannot
-separate them — creating the tag creates the Release, one step in the tool —
-so the two-step decision collapses into **one** human action: merging the
-release pull request.
-
-Say plainly what is lost and what is not. Nothing reaches the world without a
-maintainer action either way; it just moved from "run the Release workflow" to
-"merge the release PR". What is lost is the ability to **tag now and release
-later**. Everything else survives.
-
-The second change is why the move was worth it. cocogitto had to push
-**straight to `master`** with the `BUMP_TOKEN` admin secret, because the branch
-gate requires `<username>/<type>/<short-description>` whose first segment matches
-the pull request author, and Git forbids `[` in a ref — so **no branch a workflow
-creates can satisfy it**. That gate is the `branch-validation` job in
-`.github/workflows/policy.yml` today. release-please opens a pull request a human
-opens, reviews and merges, so the gate is satisfiable, branch protection stays
-on, and no admin credential exists anywhere in the pipeline. The gate exempts
-the account `RELEASE_PLEASE_TOKEN` belongs to — `AiluraKitty` — for exactly the
-reason above: its pull requests have a head ref of
-`release-please--branches--master--components--colander`, which has no type
-segment and cannot pass by construction. The exemption is about the bot's naming,
-not about trust, and nothing a person wrote is exempted by it. The reasoning is
-recorded in full in the header of `.github/workflows/release-please.yml`.
+The move also removed the admin credential. cocogitto pushed straight to `master`
+with the `BUMP_TOKEN` admin secret, because the branch gate requires
+`<username>/<type>/<short-description>` with the username matching the pull
+request author, and Git forbids `[` in a ref, so no workflow-created branch can
+satisfy it. release-please opens a pull request a human reviews and merges, so
+the gate is satisfiable, branch protection stays on, and no admin credential
+exists in the pipeline. The `branch-validation` job exempts `AiluraKitty`, the
+account `RELEASE_PLEASE_TOKEN` belongs to, because its head ref
+`release-please--branches--master--components--colander` has no type segment and
+cannot pass by construction. The exemption is about naming, not trust; nothing a
+person wrote is exempted.
 
 ## Configuration
 
 Two JSON files at the repository root.
 
 - `.release-please-manifest.json` seeds the last released version as
-  `"." : "0.1.0"`, matching the existing `v0.1.0` tag and `Cargo.toml`.
-  Without it, the first release pull request would plan from a baseline that
-  does not exist.
+  `"." : "0.4.1"`, matching the `v0.4.1` tag and `Cargo.toml`; without it the
+  first release pull request plans from a baseline that does not exist.
 - `release-please-config.json` carries `release-type: rust`,
-  `bump-minor-pre-major: true`, the title pattern, **one** entry in
-  `packages`, and `include-component-in-tag: false`. There is no
-  `separate-pull-requests`, no `tag-separator` and no `sequential-calls`:
-  those are monorepo options and this is a single crate.
+  `bump-minor-pre-major: true`, the title pattern, **one** entry in `packages`,
+  and `include-component-in-tag: false`. The monorepo options
+  (`separate-pull-requests`, `tag-separator`, `sequential-calls`) are absent
+  because this is a single crate.
 
-Two of those keys are load-bearing and neither keeps its default:
+Two keys are load-bearing and non-default:
 
-- **`include-component-in-tag: false`.** The default is **true**
-  (`base.ts`: `options.includeComponentInTag ?? true`), which would tag
-  `colander-v0.2.0`. The existing tag is `v0.1.0` and the tag shape is
-  `vX.Y.Z`; leaving the default breaks that continuity and makes the version
-  check in `publish.yml` fail, because it strips a leading `v` and compares
-  the rest against `[package] version`.
-- **The title pattern is `chore${scope}: release ${version}`, with no
-  parentheses of its own.** `${scope}` already renders as `(master)` — the
-  source builds it as `` `(${this.targetBranch})` `` — so adding parens
-  produces `chore((master)): release 0.2.0`, which the repository's own
-  `scripts/check-conventional-commit.sh` rejects. That rejection is what makes
-  the release pull request unmergeable, so it fails closed rather than open.
+- **`include-component-in-tag: false`.** The default is **true** (`base.ts`:
+  `options.includeComponentInTag ?? true`), tagging `colander-v0.4.1`. The tag
+  shape is `vX.Y.Z`; the default breaks continuity and fails the version check in
+  `publish.yml`, which strips a leading `v` and compares the rest against
+  `[package] version`.
+- **The title pattern is `chore${scope}: release ${version}`, with no parentheses
+  of its own.** `${scope}` renders as `(master)` — built as
+  `` `(${this.targetBranch})` `` — so added parentheses produce
+  `chore((master)): release 0.4.1`, which `scripts/check-conventional-commit.sh`
+  rejects, leaving the release pull request unmergeable: it fails closed.
 
-That `packages` entry is not optional, and its absence **fails silently**:
+The `packages` entry is not optional, and its absence **fails silently**:
 
 ```json
 "packages": { ".": {} }
 ```
 
-`parseConfig` in release-please's `src/manifest.ts` builds the entire release
-plan with `for (const path in config.packages)`. Without it the loop runs
-zero times, `repositoryConfig` stays `{}`, and every consumer downstream
-iterates that empty map. The run then plans **zero releases and exits green**:
-a pipeline that looks healthy and publishes nothing, forever. The root-level
-`release-type` and `bump-minor-pre-major` are only defaults merged into paths
-that exist, so they would be dead too. The published JSON schema agrees —
-`packages` is its single required property. The key is `"."` because that is
-`ROOT_PROJECT_PATH`, and it must match the manifest key exactly.
+`parseConfig` in release-please's `src/manifest.ts` builds the plan with
+`for (const path in config.packages)`. Without the key the loop runs zero times,
+`repositoryConfig` stays `{}`, and downstream consumers iterate that empty map:
+the run plans **zero releases and exits green**, publishing nothing. The
+root-level `release-type` and `bump-minor-pre-major` default only into paths that
+exist, so they die too. The published JSON schema agrees: `packages` is its
+single required property. The key is `"."` because that is `ROOT_PROJECT_PATH`,
+and it must match the manifest key exactly.
 
-`CHANGELOG.md` does not exist yet; the Rust strategy creates it on the first
-release pull request. `dprint.json` already excludes it, because dprint
-rejects the generated layout and the `md-check` hook would then reject every
-release merge.
+`CHANGELOG.md` is generated by the Rust strategy; `dprint.json` excludes it,
+because dprint rejects the generated layout and the `md-check` hook would reject
+every release merge.
 
 ## Versioning policy
 
 The type must be the _only_ thing that matters: `fix:` is a patch, `feat:` is a
-minor, a breaking change is a major.
+minor, and a breaking change is a major.
 
 | Commits since the last release                                      | Bump                       |
 | ------------------------------------------------------------------- | -------------------------- |
@@ -130,119 +106,108 @@ minor, a breaking change is a major.
 | `perf:` only, or only `chore`/`docs`/`refactor`/`test`/`ci`/`build` | no release                 |
 
 The bump **never** auto-bumps a 0.y.z crate to 1.0.0. That is what
-`bump-minor-pre-major: true` guarantees, and it is why a `feat` here produces
-`0.2.0`. Going 1.0.0 remains a deliberate act.
+`bump-minor-pre-major: true` guarantees, and why a `feat` here produces a minor.
+Going 1.0.0 remains a deliberate act.
 
 The release pull request title is `chore(master): release <version>`, which
 satisfies `pull-request-policy`'s `enable-title-conventional` check: `chore` is
-one of the nine allowed types, `master` is a lower-case scope and the header is
-well under `title-max: 72`. That check therefore still runs in substance on
-release-please pull requests — but it is not what exempts them. The
-`AiluraKitty` entry in `skip-actors` exempts the whole `pull-request-policy`
-job for that account, because the action has no per-check escape hatch and a
-release pull request cannot satisfy the other checks either: it links no issue,
-its only label is release-please's own `autorelease: pending`, and its body is a
-generated changelog rather than any type's template. The action reports an
-exempt pull request as skipped, not passed. A human still reviews and merges
+one of the nine allowed types, `master` is a lower-case scope, and the header is
+well under `title-max: 72`. That check is not what exempts the pull request: the
+`AiluraKitty` entry in `skip-actors` exempts the whole job for that account,
+because a release pull request cannot satisfy the other checks either. It links
+no issue, its only label is release-please's `autorelease: pending`, and its body
+is a generated changelog rather than a type template. The action reports an
+exempt pull request as skipped, not passed, and a human still reviews and merges
 it.
 
-## Trusted Publishing setup (one-time, maintainer action)
+## Trusted Publishing
 
 There is no long-lived crates.io credential in this repository and no
-`cargo login`: `publish.yml` exchanges an OIDC token for a short-lived
-registry token. This needs a **one-time registration per crate**, and until it
-exists the publish step fails:
+`cargo login`: `publish.yml` exchanges an OIDC token for a short-lived registry
+token. This needs a **one-time registration per crate**, and until it exists the
+publish step fails:
 
 1. <https://crates.io/settings> → Trusted Publishing → **Add**.
-2. For `colander`: owner `ailuracollective`, repository `colander`,
-   **workflow filename `publish.yml`**.
+2. For `colander`: owner `ailuracollective`, repository `colander`, **workflow
+   filename `publish.yml`**.
 
-The filename must match exactly. `colander` 0.1.0 is already published, so
-the "publish once manually first" prerequisite is satisfied.
+The registration is in place, and `0.4.1` was published through it. The filename
+must match exactly.
 
-The upload carries **no Sigstore attestation**. `cargo publish` on the
-toolchain `publish.yml` installs has no provenance flag at all — `--provenance`
-is rejected as an unknown argument, and there is no `-Z` gate to unlock it — so
-the pipeline publishes on the OIDC exchange alone. An earlier revision of the
-workflow passed `--provenance` regardless and the v0.4.0 run died on argument
-parsing, having uploaded nothing.
+The upload carries **no Sigstore attestation**. `cargo publish` on the toolchain
+`publish.yml` installs has no provenance flag — `--provenance` is rejected as an
+unknown argument, with no `-Z` gate to unlock it — so the pipeline publishes on
+the OIDC exchange alone. An earlier revision passed `--provenance`, and the
+`v0.4.0` run died on argument parsing after uploading nothing.
 
-Also required: the `RELEASE_PLEASE_TOKEN` repository secret, or
-`release-please.yml` fails and no release pull request is ever opened. It is
-about **authorship**, not permissions — release-please creates the commit
-through the GitHub API and attributes it to the calling token, so with
-`GITHUB_TOKEN` every release commit is `github-actions[bot]`.
+The `RELEASE_PLEASE_TOKEN` repository secret is also required, or
+`release-please.yml` fails and no release pull request opens. It is about
+**authorship**, not permissions: release-please creates the commit through the
+GitHub API and attributes it to the calling token, so with `GITHUB_TOKEN` every
+release commit is `github-actions[bot]`.
 
 ## The header guard
 
 `include/colander.h` is generated but committed, and the C ABI is frozen, so a
 release must not ship a header that disagrees with the sources.
 `scripts/check-header.sh` regenerates it with cbindgen into a temporary file,
-compares byte-for-byte and fails on any difference. It is a step of the `ci`
-job through `cargo make header-check`, a dependency of both `cargo make ci` and
+compares byte-for-byte, and fails on any difference. It is a step of the `ci` job
+through `cargo make header-check`, a dependency of both `cargo make ci` and
 `cargo make precommit`.
 
 The header is never patched in place. To regenerate it after an ABI change:
 
-    cbindgen --config cbindgen.toml --crate colander --output include/colander.h
+```bash
+cbindgen --config cbindgen.toml --crate colander --output include/colander.h
+```
 
-and commit the result in the same change that changed the ABI.
+Commit the result in the same change that changed the ABI.
 
 ## Recovery
 
-- **No release pull request after a push to `master`.** Either the range does
-  not deserve a bump (only `chore`/`docs`/`refactor`/`test`/`ci`/`build`/
-  `perf` — a correct no-op), or the workflow failed, most often because
+- **No release pull request after a push to `master`.** Either the range does not
+  deserve a bump (a correct no-op), or the workflow failed, most often because
   `RELEASE_PLEASE_TOKEN` is missing or expired. The run log says which.
 - **The release pull request is wrong.** Close it, fix the underlying commit
   messages, and let the next push re-plan. release-please updates an existing
   pull request rather than opening a second one, so closing it without fixing
-  anything just gets you the same plan. Nothing is tagged until the merge.
-- **The publish job fails.** Re-run it from the Actions UI. Re-run is the first
-  move: nothing local is involved, and no version was consumed unless the
-  failure happened after `cargo publish` already succeeded. If it did reach
-  crates.io, the version is taken and the only repair is a new patch release.
-  Two limits on that first move, and both come from the same fact: a re-run
-  replays the workflow file **from the run's own commit**, and a `release`
-  event runs `publish.yml` **from the tag's tree**. So a fix to `publish.yml`
-  reaches no existing tag by either route. Deleting the Release and recreating
-  it fires `release: published` again against the _same tag_, which still
-  carries the broken file — that is exactly what was tried for `v0.4.0`, and
-  the job failed identically. A workflow fix only ships on the next tag,
-  through the next release pull request; the price is that the broken version
-  is never published and the next one carries its number. The cdylib upload
-  step is idempotent, so a re-run after a successful upload re-attaches
-  nothing it already has.
-- **The Release has no artifact.** Re-run `publish.yml`. The upload step is
-  guarded: it lists the release's existing assets and skips `libcolander.so`
-  if it is already attached, so a re-run after a successful upload is a no-op
-  rather than a failure.
-- **The version and the tag disagree.** The check in `publish.yml` stops the
-  run before anything is built or uploaded. The tag was moved or cut from a
-  different commit than the version it claims: delete the tag and the Release,
-  and release again through a fresh pull request.
+  anything yields the same plan. Nothing is tagged until the merge.
+- **The publish job fails.** Re-run it from the Actions UI first: nothing local
+  is involved, and no version is consumed unless the failure came after
+  `cargo publish`. If it reached crates.io, the version is taken and the only
+  repair is a new patch release. A re-run replays the workflow from the run's
+  commit; a `release` event runs `publish.yml` from the tag's tree, so a fix
+  reaches no existing tag by either route. Deleting and recreating the Release
+  fires `release: published` again against the _same tag_, still carrying the
+  broken file — what failed for `v0.4.0`. A workflow fix ships on the next tag,
+  through the next release pull request; the broken version stays unpublished and
+  the next carries its number. The cdylib upload is idempotent, so a re-run after
+  a successful upload re-attaches nothing.
+- **The Release has no artifact.** Re-run `publish.yml`. The upload step lists
+  the release's existing assets and skips `libcolander.so` if already attached,
+  so a re-run after success is a no-op.
+- **The version and the tag disagree.** The check in `publish.yml` stops the run
+  before anything is built or uploaded. The tag was moved or cut from a different
+  commit than the version it claims: delete the tag and the Release, and release
+  again through a fresh pull request.
 
-A published crates.io version **cannot be deleted**, only yanked. Yanking
-hides it from resolution and tells dependents to stop, but the number stays
-taken forever. Treat every publish as lasting.
+A published crates.io version **cannot be deleted**, only yanked: yanking hides
+it from resolution but the number stays taken forever. Treat every publish as
+lasting.
 
 ## Release state
 
-`0.1.0` is the only `colander` version on crates.io: tag `v0.1.0` at
-`cb99815`, and that exact tree was published. Two earlier tags never produced
-a publication and are gone — a first `v0.1.0` that pointed 37 commits behind
-`master` and was published then deleted, and a `v1.0.0` cut after that one was
-abandoned, which pointed two commits behind and was missing
-`colander_describe_form` (issue #26).
+- `0.1.0` — published, tag `v0.1.0` at `cb99815`. Two earlier tags never produced
+  a publication and are gone: a first `v0.1.0` that pointed 37 commits behind
+  `master`, and a `v1.0.0` cut afterwards that pointed two commits behind and was
+  missing `colander_describe_form` (issue #26).
+- `0.4.0` — tag `v0.4.0` at `b28f0bb` with a Release, and nothing on crates.io.
+  The publish step aborted during argument parsing because that tag's own
+  `publish.yml` passed `--provenance` (issue #43). The workflow comes from the
+  tag, so `0.4.0` will never be published.
+- `0.4.1` — published on 2026-10-05, tag `v0.4.1`, through Trusted Publishing,
+  with the `--provenance` flag removed (issue #44).
 
-`0.4.0` is the other gap, and the newer one: tag `v0.4.0` at `b28f0bb` with a
-Release beside it, and nothing on crates.io. The publish step aborted during
-argument parsing, because that tag's own `publish.yml` passed `--provenance`, a
-flag the toolchain it installs does not accept (issue #43). Deleting and
-recreating the Release could not repair it — the workflow comes from the tag —
-so `0.4.0` will never be published and `0.4.1` is the next version that can be.
-
-The first release pull request after the migration re-derives the changelog
-from the commits since `v0.1.0`. The history was rebuilt, so older sections
-are not recoverable and the first `CHANGELOG.md` will be short. That is
-expected, not a bug.
+The first release pull request after the migration re-derived the changelog from
+the commits since `v0.1.0`. The history was rebuilt, so sections before `0.2.0`
+are not recoverable.

@@ -1,31 +1,26 @@
 # JSON Schema subset
 
-This page describes the Draft 2020-12 subset that `colander_validate_schema`
-implements. colander ships no schemas of its own: the JSON Schemas that describe
-your documents travel with each request, and this page says which keywords they
-may use to actually constrain anything.
+The Draft 2020-12 subset that `colander_validate_schema` implements. colander
+ships no schema of its own: the schemas describing your documents travel with
+each request, and this page says which keywords may constrain anything.
 
-## JSON Schema keywords
+## Keywords
 
-`colander_validate_schema` implements this subset of Draft 2020-12. Every schema
-is classified structurally before the instance is evaluated against it, and the
-classification recurses: it applies inside `properties`, `items`,
-`additionalProperties`, the combinators
-(`allOf`, `anyOf`, `oneOf`, `not`, `if`/`then`/`else`) and the `$defs` entries a
-`$ref` reaches. A rejected keyword is caught wherever it appears, even three
-levels deep.
+Every schema is classified structurally before evaluation, recursing into
+`properties`, `items`, `additionalProperties`, the combinators (`allOf`,
+`anyOf`, `oneOf`, `not`, `if`/`then`/`else`) and the `$defs` entries a `$ref`
+reaches. A rejected keyword is caught wherever it appears, however deep.
 
 Each keyword falls into one of three sets:
 
-- **Implemented** — the table below. These are the assertions the subset runs.
+- **Implemented** — the table below; these assertions run.
 - **Annotation-only** — `title`, `description`, `default`, `examples`,
   `deprecated`, `$comment`, `$id`, `$schema`, `$defs`, `$anchor`, `readOnly` and
-  `writeOnly`. They never assert, so they are accepted and ignored whatever their
-  value.
+  `writeOnly`. They never assert: accepted and ignored whatever their value.
 - **Unsupported assertions** — every other keyword, and an **error**. The rule is
-  open rather than a fixed denylist: a keyword is unsupported when it is neither
-  implemented nor annotation-only. Passing one as if it had asserted would be a
-  silent false positive, so it fails the call instead.
+  open, not a fixed denylist: a keyword is unsupported when it is neither
+  implemented nor annotation-only. Passing one as if it asserted would be a
+  silent false positive, so it fails the call.
 
 | Keyword                                 | Applies to | Notes                                                                                                                                                                                        |
 | --------------------------------------- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -55,117 +50,111 @@ Each keyword falls into one of three sets:
 
 An implemented keyword whose value has the wrong JSON type is an **error**:
 `{"minLength": "3"}` fails instead of constraining nothing. `$ref` siblings are
-still evaluated, which differs from older drafts.
+still evaluated, unlike older drafts.
 
 ### Recursive references are rejected (S-10)
 
-The core does not evaluate recursive schemas, so it rejects them instead of
-running them. A `$ref` that reaches a schema already being resolved — directly
-(`{"$ref":"#"}`), indirectly (`a → b → a`), or through `anyOf`, `properties`,
-`not` or `if`/`then` — produces one deterministic error:
+A `$ref` reaching a schema already being resolved — directly (`{"$ref":"#"}`),
+indirectly (`a → b → a`), or through `anyOf`, `properties`, `not` or
+`if`/`then` — is one deterministic error:
 
 ```
 Invalid instance: $ref: recursive reference '#/$defs/node' is not supported
 ```
 
-Classification runs first and a schema that fails it is **never evaluated**.
-That ordering is the safety property: a cycle can neither recurse without bound
-(a stack overflow aborts the process and `catch_unwind` cannot intercept it) nor
-depend on the instance that would drive the recursion. Reaching one `$defs`
-entry from two independent positions is a shared reference, not a cycle, and
-validates normally. A recursive _instance_ is a different matter: a
-`node`/`next` document is validated by an instance-bounded rule, not by a
-recursive schema.
+Classification runs first: a schema that fails it is **never evaluated**. A cycle
+can neither recurse without bound (a stack overflow aborts the process;
+`catch_unwind` cannot intercept it) nor depend on the driving instance. A `$defs`
+entry reached from two independent positions is a shared reference, not a cycle,
+and validates normally.
 
-### Evaluation work and error collection are bounded (S-11)
+A recursive _instance_ is different: `node`/`next` documents use an
+instance-bounded rule, not a recursive schema.
 
-A non-recursive schema can amplify work through shared references and
-combinators. Evaluation therefore has a deterministic budget:
+### Evaluation is bounded (S-11)
+
+Non-recursive schemas can amplify work through shared references and combinators,
+so evaluation runs on a deterministic budget:
 
 ```
 steps = 10_000 + 20 * instance_nodes
 ```
 
-`instance_nodes` counts the instance itself and every nested array element or
-object member, including their scalar values. One unit is charged at every
-`check_into` invocation, including a combinator probe. When the budget is
-exhausted, evaluation stops and the caller sees the stable failure:
+`instance_nodes` counts the instance and every nested array element or object
+member, scalars included; each `check_into` invocation, including a combinator
+probe, charges one unit. Exhaustion stops evaluation with:
 
 ```
 Invalid instance: schema: SCHEMA_EVALUATION_LIMIT: schema evaluation exceeded the step budget
 ```
 
-The bound is integer work, not a wall-clock timeout, so native and WASM agree.
-In the audit, a 26-level shared-`$ref` `anyOf` chain occupying 1 694 bytes took
-53.8 s before this bound and returns in about 2 ms after it. The same budget
-also bounds the legal `if`/`then` DAG shape and shared-reference `allOf` chains.
+The bound is integer work, not wall-clock time, so native and WASM agree. A
+26-level shared-`$ref` `anyOf` chain of 1,694 bytes took 53.8 s before the bound
+and about 2 ms after it; it also bounds the legal `if`/`then` DAG and
+shared-reference `allOf` chains.
 
-Error collection has a second, independent cap of 1 000 entries. This is not the
-five-error rendering cap: an `allOf` branch can otherwise retain millions of
-failures before rendering starts. Once collection reaches 1 000, later failures
-are not retained; rendered failures state `truncated: 5 of 1000 errors shown`.
-The step bound limits evaluation work, while the collection cap limits retained
-error state; neither bound changes a valid workload that stays within them.
+Error collection has a second, independent cap of 1,000 entries — not the
+five-error rendering cap, since an `allOf` branch can otherwise retain millions
+of failures before rendering. Past 1,000, later failures are not retained, and
+rendered output says `truncated: 5 of 1000 errors shown`.
 
-### Nesting depth is bounded separately (S-12)
+### Nesting is bounded separately (S-12)
 
-A step budget cannot bound recursion depth: depth is at most the step count, so
-a budget sized for a large instance also admits a `$ref` chain thousands of
-levels deep, and a stack overflow aborts the process instead of returning an
-error. Both phases are therefore bounded at 512 levels of nesting:
+A step budget cannot bound recursion depth: depth is at most the step count, so a
+budget for a large instance also admits a `$ref` chain thousands of levels deep,
+and a stack overflow aborts the process. Both phases are bounded at 512 levels:
 
 ```
 Invalid instance: schema: SCHEMA_DEPTH_LIMIT: schema evaluation exceeded the nesting depth
 ```
 
-Classification is bounded too, and that is the phase that matters most here: a
-chain of distinct references is not a cycle, so S-10 accepts it, but the
-classifier still recurses once per level. Measured on the default 8 MiB stack,
-5 000 levels survive and 10 000 abort; 512 sits an order of magnitude below
-that and stays well above the parser's own 64-level JSON nesting limit. A
-30 000-level chain of 1 MB of schema now returns this error in about 110 ms
-instead of aborting, and a 200-level chain still evaluates normally.
+Classification is bounded too: a chain of distinct references is not a cycle, so
+S-10 accepts it, but the classifier recurses once per level. On the default 8 MiB
+stack, 5,000 levels survive and 10,000 abort; 512 sits an order of magnitude
+below and far above the parser's 64-level JSON limit. A 30,000-level chain of
+1 MB now returns this error in about 110 ms, and a 200-level chain still
+evaluates.
 
-The known unsupported assertions include `$dynamicRef`, `$recursiveRef`,
+Known unsupported assertions include `$dynamicRef`, `$recursiveRef`,
 `$vocabulary`, `patternProperties`, `propertyNames`, `dependentRequired`,
 `dependentSchemas`, `unevaluatedProperties`, `unevaluatedItems`, `prefixItems`,
 `additionalItems`, `contains`, `minContains`, `maxContains`, `contentEncoding`,
-`contentMediaType` and `contentSchema`; the set is not exhaustive.
+`contentMediaType` and `contentSchema`; the list is not exhaustive.
 
-Nothing in this subset remains open. `format` is asserted for the closed set
-(S-5); the `pattern` dialect follows ECMA-262 as far as the `fancy-regex` engine
-supports, and an uncompilable pattern is a schema error (S-6); at most the first
-five assertion failures are reported, and a truncated message states how many
-were shown out of the total (S-7).
+## What `format` asserts
 
-What each `format` asserts, and what it does not:
+`format` asserts a closed set of names and only against string instances; an
+unrecognised name is a schema error (S-5). At most the first five assertion
+failures are reported, and a truncated message states how many were shown of the
+total (S-7). A `pattern` follows ECMA-262 as far as `fancy-regex` supports (S-6);
+an uncompilable pattern is a schema error.
 
 - `email` — pragmatic, not RFC 5322: exactly one `@`, a non-empty local part
-  without whitespace, and a domain of non-empty labels ending in at least two
-  ASCII letters.
+  without whitespace, a domain of non-empty labels ending in at least two ASCII
+  letters.
 - `date` — exact RFC 3339 `full-date`: `YYYY-MM-DD` with a valid month and day,
-  including leap years.
-- `date-time` — exact RFC 3339 `date-time` except leap seconds: a `full-date`, a
-  `T`, and a `full-time`. A space separator is not accepted.
-- `time` — exact RFC 3339 `full-time` except leap seconds: `HH:MM:SS`, an
+  leap years included.
+- `date-time` — exact RFC 3339 `date-time` minus leap seconds: `full-date`, `T`,
+  `full-time`. A space separator is rejected.
+- `time` — exact RFC 3339 `full-time` minus leap seconds: `HH:MM:SS`, an
   optional fraction, then `Z` or `±HH:MM`.
-- `uuid` — structural: 8-4-4-4-12 hex digits, case-insensitive; the version and
-  variant nibbles are not checked, and braces are rejected.
-- `ipv4` — dotted decimal with no leading zeros except a group that is exactly
-  `0`; each group 0–255.
+- `uuid` — structural: 8-4-4-4-12 hex digits, case-insensitive; version and
+  variant nibbles unchecked, braces rejected.
+- `ipv4` — dotted decimal, no leading zeros except a group that is exactly `0`;
+  each group 0–255.
 - `ipv6` — RFC 4291 forms except zone IDs: eight groups, or `::` used exactly
   once, with an embedded IPv4 address allowed in the final 32 bits.
-- `hostname` — RFC 1034 labels: 1–63 ASCII letters, digits or hyphens, never
-  starting or ending with a hyphen, at most 253 characters; a single label and a
-  numeric-looking final label are accepted.
-- `uri` — syntactic shape only: a letter-led scheme, `:`, and a non-empty
-  remainder; the authority and path are not validated.
+- `hostname` — RFC 1034 labels: 1–63 ASCII letters, digits or hyphens, no leading
+  or trailing hyphen, at most 253 characters; a single label and a numeric final
+  label are accepted.
+- `uri` — syntactic shape only: a letter-led scheme, `:`, a non-empty remainder;
+  authority and path are not validated.
 
 Every keyword is evaluated independently, so one instance can collect several
 errors.
 
-## Next
+## See also
 
 - The parser and canonical form behind these schemas: [json.md](json.md)
-- The entry point that runs this subset: [entry-points.md](entry-points.md#colander_validate_schema)
+- The entry point that runs this subset: [entry-points-payload.md](entry-points-payload.md#colander_validate_schema)
 - The documents you validate: [documents.md](documents.md)
