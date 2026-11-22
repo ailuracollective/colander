@@ -13,19 +13,6 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  branch-validation:
-    name: Branch name
-
-    if: github.event_name == 'pull_request' && github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.state == 'open'
-    runs-on: ubuntu-latest
-    permissions: {}
-    steps:
-      - uses: ailuracollective/actions/branch-validation@v2
-        with:
-          enable-status-comment: true
-          branch-types: feat,fix,docs,chore,refactor,test,ci,build,perf
-          comment-token: ${{ secrets.AILURA_KITTY_TOKEN }}
-          skip-actors: 'AiluraKitty'
 
   pull-request-policy:
     name: Pull request policy
